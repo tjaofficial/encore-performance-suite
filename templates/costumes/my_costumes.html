@@ -1,0 +1,103 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}My Costumes | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_costumes_measurements.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Costumes{% endblock %}
+
+{% block content %}
+<section class="wardrobe-page-header">
+    <div>
+        <p class="eyebrow">Performance</p>
+
+        <h1>My Costumes</h1>
+
+        <p>
+            Costume photos, instructions, and purchase links
+            for your dancer's assigned performances.
+        </p>
+    </div>
+</section>
+
+<section class="family-costume-grid">
+    {% for assignment in assignments %}
+        <article class="family-costume-card">
+            <div class="costume-card-image">
+                {% with front=assignment.costume.front_image %}
+                    {% if front %}
+                        <img
+                            src="{{ front.image.url }}"
+                            alt="{{ assignment.costume.name }}"
+                        >
+                    {% else %}
+                        <span>Costume</span>
+                    {% endif %}
+                {% endwith %}
+            </div>
+
+            <div class="family-costume-copy">
+                <span>
+                    {{ assignment.student }}
+                    ·
+                    {{ assignment.costume.dance.class_instance.name }}
+                </span>
+
+                <h2>
+                    {{ assignment.costume.dance.title|default:"Dance" }}
+                </h2>
+
+                <strong>
+                    {{ assignment.costume.name }}
+                </strong>
+
+                {% if assignment.costume.student_notes %}
+                    <p>
+                        {{ assignment.costume.student_notes|linebreaksbr }}
+                    </p>
+                {% endif %}
+
+                <div class="family-costume-meta">
+                    {% if assignment.costume_size %}
+                        <span>
+                            Costume Size:
+                            <b>{{ assignment.costume_size }}</b>
+                        </span>
+                    {% endif %}
+
+                    {% if assignment.shoe_size %}
+                        <span>
+                            Shoe Size:
+                            <b>{{ assignment.shoe_size }}</b>
+                        </span>
+                    {% endif %}
+
+                    <span>
+                        Status:
+                        <b>{{ assignment.get_status_display }}</b>
+                    </span>
+                </div>
+
+                <div class="costume-purchase-links">
+                    {% for link in assignment.costume.purchase_links.all %}
+                        <a
+                            href="{{ link.url }}"
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            {{ link.label }} ↗
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </article>
+    {% empty %}
+        <div class="wardrobe-empty-state">
+            No costume assignments are available yet.
+        </div>
+    {% endfor %}
+</section>
+{% endblock %}

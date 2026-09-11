@@ -1,0 +1,265 @@
+{% load static %}
+
+<aside id="app-sidebar" class="app-sidebar">
+    <a
+        class="brand-block encore-logo-link"
+        href="
+            {% if role == 'teacher' %}
+                {% url 'dashboard:teacher_dashboard' studio.slug %}
+            {% elif role == 'family' %}
+                {% url 'dashboard:family_dashboard' studio.slug %}
+            {% elif role == 'student' %}
+                {% url 'dashboard:student_dashboard' studio.slug %}
+            {% else %}
+                {% url 'dashboard:admin_dashboard' studio.slug %}
+            {% endif %}
+        "
+        aria-label="{{ studio.name }} home"
+    >
+        {% if studio.settings.logo %}
+            <img
+                class="tenant-studio-logo"
+                src="{{ studio.settings.logo.url }}"
+                alt="{{ studio.name }}"
+            >
+        {% else %}
+            <img
+                class="encore-sidebar-logo"
+                src="{% static 'images/logo.png' %}"
+                alt="Encore Performance Suite"
+            >
+        {% endif %}
+    </a>
+
+    <div class="studio-block">
+        <span class="studio-label">Studio</span>
+        <strong>{{ studio.name }}</strong>
+
+        <span class="studio-workspace-role">
+            {{ encore_workspace_role_label }} Workspace
+        </span>
+
+        {% if encore_has_multiple_workspaces %}
+            <a
+                class="workspace-switch-link"
+                href="{% url 'accounts:workspace_selector' %}"
+            >
+                Switch Workspace
+            </a>
+        {% endif %}
+    </div>
+
+    <nav class="sidebar-nav">
+        <div class="sidebar-nav-section">
+            <span class="nav-section-label">Home</span>
+
+            {% if role == "teacher" %}
+                <a
+                    class="nav-link {% if request.resolver_match.url_name == 'teacher_dashboard' %}active{% endif %}"
+                    href="{% url 'dashboard:teacher_dashboard' studio.slug %}"
+                >
+                    <span class="nav-icon">⌂</span>
+                    <span>Dashboard</span>
+                </a>
+            {% elif role == "family" %}
+                <a
+                    class="nav-link {% if request.resolver_match.url_name == 'family_dashboard' %}active{% endif %}"
+                    href="{% url 'dashboard:family_dashboard' studio.slug %}"
+                >
+                    <span class="nav-icon">⌂</span>
+                    <span>Family Dashboard</span>
+                </a>
+            {% elif role == "student" %}
+                <a
+                    class="nav-link {% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}"
+                    href="{% url 'dashboard:student_dashboard' studio.slug %}"
+                >
+                    <span class="nav-icon">⌂</span>
+                    <span>Dashboard</span>
+                </a>
+            {% else %}
+                <a
+                    class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}"
+                    href="{% url 'dashboard:admin_dashboard' studio.slug %}"
+                >
+                    <span class="nav-icon">⌂</span>
+                    <span>Dashboard</span>
+                </a>
+            {% endif %}
+
+            <a
+                class="nav-link {% if request.resolver_match.app_name == 'scheduling' %}active{% endif %}"
+                href="{% url 'scheduling:calendar' studio.slug %}"
+            >
+                <span class="nav-icon">◫</span>
+                <span>Calendar</span>
+            </a>
+
+            <a
+                class="nav-link {% if request.resolver_match.app_name == 'communications' and 'email' not in request.resolver_match.url_name %}active{% endif %}"
+                href="{% url 'communications:announcement_list' studio.slug %}"
+            >
+                <span class="nav-icon">◌</span>
+                <span>Announcements</span>
+            </a>
+        </div>
+
+        {% if role == "administrator" %}
+            <div class="sidebar-nav-section">
+                <span class="nav-section-label">Studio</span>
+
+                <a
+                    class="nav-link {% if request.resolver_match.app_name == 'classes' %}active{% endif %}"
+                    href="{% url 'classes:class_list' studio.slug %}"
+                >
+                    <span class="nav-icon">◇</span>
+                    <span>Classes</span>
+                </a>
+
+                <a
+                    class="nav-link {% if request.resolver_match.app_name == 'enrollments' %}active{% endif %}"
+                    href="{% url 'enrollments:enrollment_list' studio.slug %}"
+                >
+                    <span class="nav-icon">↳</span>
+                    <span>Enrollments</span>
+                </a>
+
+                <a
+                    class="nav-link {% if request.resolver_match.app_name == 'students' %}active{% endif %}"
+                    href="{% url 'students:student_list' studio.slug %}"
+                >
+                    <span class="nav-icon">◎</span>
+                    <span>Students</span>
+                </a>
+
+                <a
+                    class="nav-link {% if request.resolver_match.app_name == 'families' %}active{% endif %}"
+                    href="{% url 'families:family_list' studio.slug %}"
+                >
+                    <span class="nav-icon">◉</span>
+                    <span>Families</span>
+                </a>
+
+                <a
+                    class="nav-link {% if request.resolver_match.app_name == 'instructors' %}active{% endif %}"
+                    href="{% url 'instructors:instructor_list' studio.slug %}"
+                >
+                    <span class="nav-icon">△</span>
+                    <span>Instructors</span>
+                </a>
+            </div>
+
+            <div class="sidebar-nav-section">
+                <span class="nav-section-label">Operations</span>
+
+                {% url 'communications:email_manager' studio.slug as email_manager_url %}
+                {% if email_manager_url %}
+                    <a
+                        class="nav-link {% if request.resolver_match.app_name == 'communications' and 'email' in request.resolver_match.url_name %}active{% endif %}"
+                        href="{{ email_manager_url }}"
+                    >
+                        <span class="nav-icon">✉</span>
+                        <span>Email Manager</span>
+                    </a>
+                {% endif %}
+
+                <a
+                    class="nav-link {% if request.resolver_match.app_name == 'reports' %}active{% endif %}"
+                    href="{% url 'reports:reports_dashboard' studio.slug %}"
+                >
+                    <span class="nav-icon">▦</span>
+                    <span>Reports</span>
+                </a>
+
+                <a
+                    class="nav-link {% if request.resolver_match.app_name == 'evaluations' %}active{% endif %}"
+                    href="{% url 'evaluations:evaluation_list' studio.slug %}"
+                >
+                    <span class="nav-icon">✦</span>
+                    <span>Evaluations</span>
+                </a>
+            </div>
+
+            <div class="sidebar-nav-section performance-nav-section">
+                <span class="nav-section-label">Performance</span>
+
+                <a
+                    class="nav-link performance-nav-link {% if request.resolver_match.app_name == 'performance' and request.resolver_match.url_name == 'plan_list' %}active{% endif %}"
+                    href="{% url 'performance:plan_list' studio.slug %}"
+                >
+                    <span class="nav-icon performance-icon">♪</span>
+                    <span class="nav-copy">
+                        <strong>Dances</strong>
+                        <small>Music, media & choreography</small>
+                    </span>
+                </a>
+
+                {% url 'performance:drawing_board_list' studio.slug as drawing_board_list_url %}
+                {% if drawing_board_list_url %}
+                    <a
+                        class="nav-link performance-nav-link drawing-board-nav-link {% if 'drawing_board' in request.resolver_match.url_name %}active{% endif %}"
+                        href="{{ drawing_board_list_url }}"
+                    >
+                        <span class="nav-icon performance-icon">✧</span>
+                        <span class="nav-copy">
+                            <strong>Drawing Board</strong>
+                            <small>Formations, transitions & lighting</small>
+                        </span>
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        {% if role == "teacher" %}
+            <div class="sidebar-nav-section">
+                <span class="nav-section-label">Teaching</span>
+
+                <a
+                    class="nav-link {% if request.resolver_match.app_name == 'classes' %}active{% endif %}"
+                    href="{% url 'classes:class_list' studio.slug %}"
+                >
+                    <span class="nav-icon">◇</span>
+                    <span>My Classes</span>
+                </a>
+
+                <a
+                    class="nav-link {% if request.resolver_match.app_name == 'evaluations' %}active{% endif %}"
+                    href="{% url 'evaluations:evaluation_list' studio.slug %}"
+                >
+                    <span class="nav-icon">✦</span>
+                    <span>Evaluations</span>
+                </a>
+
+                <a
+                    class="nav-link {% if request.resolver_match.app_name == 'resources' %}active{% endif %}"
+                    href="{% url 'resources:resource_list' studio.slug %}"
+                >
+                    <span class="nav-icon">♫</span>
+                    <span>Class Resources</span>
+                </a>
+
+                <a
+                    class="nav-link performance-nav-link {% if request.resolver_match.app_name == 'performance' %}active{% endif %}"
+                    href="{% url 'performance:plan_list' studio.slug %}"
+                >
+                    <span class="nav-icon">♪</span>
+                    <span>My Dances</span>
+                </a>
+            </div>
+        {% endif %}
+
+        {% if role == "student" %}
+            <div class="sidebar-nav-section">
+                <span class="nav-section-label">Student</span>
+
+                <a
+                    class="nav-link {% if request.resolver_match.app_name == 'attendance' %}active{% endif %}"
+                    href="{% url 'attendance:student_history' studio.slug %}"
+                >
+                    <span class="nav-icon">✓</span>
+                    <span>Attendance</span>
+                </a>
+            </div>
+        {% endif %}
+    </nav>
+</aside>

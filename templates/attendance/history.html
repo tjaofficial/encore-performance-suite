@@ -1,0 +1,130 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}
+    Attendance History | Encore Performance Suite
+{% endblock %}
+
+{% block extra_css %}
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_family_student.css' %}"
+    >
+{% endblock %}
+
+{% block topbar_title %}
+    Attendance History
+{% endblock %}
+
+{% block content %}
+<section class="portal-heading">
+    <div>
+        <p class="eyebrow">Attendance</p>
+
+        <h1>
+            {{ student.first_name }}
+            {{ student.last_name }}
+        </h1>
+
+        <p>
+            Attendance history across all recorded classes.
+        </p>
+    </div>
+
+    {% if role == "family" %}
+        <a
+            class="button secondary"
+            href="{% url 'dashboard:family_dashboard' studio.slug %}"
+        >
+            Back to Family
+        </a>
+    {% else %}
+        <a
+            class="button secondary"
+            href="{% url 'dashboard:student_dashboard' studio.slug %}"
+        >
+            Back to Dashboard
+        </a>
+    {% endif %}
+</section>
+
+<section class="metrics-grid portal-metrics four">
+    <article class="metric-card">
+        <span class="metric-label">Attendance</span>
+        <strong>
+            {% if percentage is not None %}
+                {{ percentage }}%
+            {% else %}
+                —
+            {% endif %}
+        </strong>
+        <span>{{ total }} recorded sessions</span>
+    </article>
+
+    <article class="metric-card">
+        <span class="metric-label">Present / Participated</span>
+        <strong>{{ present_like }}</strong>
+        <span>includes late / left early</span>
+    </article>
+
+    <article class="metric-card">
+        <span class="metric-label">Absent</span>
+        <strong>{{ absent }}</strong>
+        <span>unexcused</span>
+    </article>
+
+    <article class="metric-card">
+        <span class="metric-label">Late</span>
+        <strong>{{ late }}</strong>
+        <span>{{ excused }} excused</span>
+    </article>
+</section>
+
+<section class="portal-card">
+    <div class="card-heading">
+        <div>
+            <span class="card-kicker">History</span>
+            <h2>Recorded Attendance</h2>
+        </div>
+    </div>
+
+    <div class="attendance-history-list">
+        {% for record in records %}
+            <article class="history-row">
+                <div class="history-date">
+                    <strong>
+                        {{ record.session.session_date|date:"M" }}
+                    </strong>
+                    <span>
+                        {{ record.session.session_date|date:"j" }}
+                    </span>
+                </div>
+
+                <div class="history-main">
+                    <strong>
+                        {{ record.session.class_instance.name }}
+                    </strong>
+
+                    <span>
+                        {{ record.session.class_instance.class_id }}
+                        ·
+                        {{ record.session.class_instance.instructor.full_name }}
+                    </span>
+
+                    {% if record.note %}
+                        <small>{{ record.note }}</small>
+                    {% endif %}
+                </div>
+
+                <span class="status-pill status-{{ record.status }}">
+                    {{ record.get_status_display }}
+                </span>
+            </article>
+        {% empty %}
+            <div class="empty-state">
+                No attendance has been recorded yet.
+            </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

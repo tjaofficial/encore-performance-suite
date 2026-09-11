@@ -1,0 +1,121 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>
+        Continue Registration | {{ studio.name }}
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_public_registration.css' %}"
+    >
+    <link
+        rel="icon"
+        type="image/png"
+        href="{% static 'images/icon.png' %}"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_tenant_branding.css' %}"
+    >
+    {% include "includes/studio_brand_vars.html" %}
+</head>
+<body>
+    <main class="public-shell narrow">
+        <section class="public-registration-card">
+            <span class="public-kicker">
+                Welcome Back
+            </span>
+
+            <h1>
+                Continue Registration
+            </h1>
+
+            <p>
+                We found your existing Encore family account.
+                Choose the student who should be registered for:
+            </p>
+
+            <div class="handoff-class-card">
+                <strong>
+                    {{ registration_request.class_instance.class_id }}
+                    ·
+                    {{ registration_request.class_instance.name }}
+                </strong>
+
+                <span>
+                    {{ registration_request.class_instance.season.name }}
+                </span>
+            </div>
+
+            <form method="post" class="public-form">
+                {% csrf_token %}
+
+                <div class="student-choice-stack">
+                    {% for student in students %}
+                        <label class="student-choice">
+                            <input
+                                type="radio"
+                                name="student_id"
+                                value="{{ student.id }}"
+                                {% if existing_student and existing_student.id == student.id %}checked{% endif %}
+                            >
+
+                            <span>
+                                <strong>
+                                    {{ student.first_name }}
+                                    {{ student.last_name }}
+                                </strong>
+
+                                <small>
+                                    Age {{ student.age }}
+                                </small>
+                            </span>
+                        </label>
+                    {% endfor %}
+
+                    <label class="student-choice">
+                        <input
+                            type="radio"
+                            name="student_id"
+                            value=""
+                            {% if not existing_student %}checked{% endif %}
+                        >
+
+                        <span>
+                            <strong>
+                                Add
+                                {{ registration_request.student_first_name }}
+                                {{ registration_request.student_last_name }}
+                                as a new student
+                            </strong>
+
+                            <small>
+                                Birthday:
+                                {{ registration_request.student_birthday|date:"M j, Y" }}
+                            </small>
+                        </span>
+                    </label>
+                </div>
+
+                <button
+                    class="public-button primary large"
+                    type="submit"
+                    name="action"
+                    value="convert"
+                >
+                    Complete Registration
+                </button>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

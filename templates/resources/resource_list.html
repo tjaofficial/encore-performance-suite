@@ -1,0 +1,250 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Class Resources | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_resources.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Class Resources{% endblock %}
+
+{% block content %}
+<section class="resource-heading">
+    <div>
+        <p class="eyebrow">Class Resources</p>
+
+        <h1>
+            {% if role == "teacher" %}
+                Teaching Resources
+            {% elif role == "administrator" %}
+                Music & Class Resources
+            {% else %}
+                Your Class Resources
+            {% endif %}
+        </h1>
+
+        <p>
+            Music, videos, documents, and other materials
+            connected directly to classes.
+        </p>
+    </div>
+
+    {% if can_manage %}
+        <a
+            class="button primary"
+            href="{% url 'resources:resource_create' studio.slug %}"
+        >
+            + Add Resource
+        </a>
+    {% endif %}
+</section>
+
+{% if messages %}
+<div class="message-stack">
+    {% for message in messages %}
+        <div class="message-banner">
+            {{ message }}
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<form
+    method="get"
+    class="resource-filters"
+>
+    <div class="wide-filter">
+        <label>Search</label>
+
+        <input
+            type="search"
+            name="q"
+            value="{{ filters.q }}"
+            placeholder="Music, video, class..."
+        >
+    </div>
+
+    <div>
+        <label>Type</label>
+
+        <select name="type">
+            <option value="">
+                All Types
+            </option>
+
+            {% for value, label in resource_types %}
+                <option
+                    value="{{ value }}"
+                    {% if filters.type == value %}selected{% endif %}
+                >
+                    {{ label }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div>
+        <label>Class</label>
+
+        <select name="class">
+            <option value="">
+                All Classes
+            </option>
+
+            {% for class_row in accessible_classes %}
+                <option
+                    value="{{ class_row.class_instance_id }}"
+                    {% if filters.class == class_row.class_instance_id|stringformat:"s" %}selected{% endif %}
+                >
+                    {{ class_row.class_instance__class_id }}
+                    ·
+                    {{ class_row.class_instance__name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="filter-actions">
+        <button
+            class="button primary"
+            type="submit"
+        >
+            Filter
+        </button>
+
+        <a
+            class="button secondary"
+            href="{% url 'resources:resource_list' studio.slug %}"
+        >
+            Reset
+        </a>
+    </div>
+</form>
+
+<div class="class-resource-stack">
+    {% for class_instance, resources in resource_groups %}
+        <section class="class-resource-section">
+            <div class="class-resource-heading">
+                <div>
+                    <span class="class-code">
+                        {{ class_instance.class_id }}
+                    </span>
+
+                    <h2>
+                        {{ class_instance.name }}
+                    </h2>
+
+                    <p>
+                        {{ class_instance.season.name }}
+                        ·
+                        {{ resources|length }}
+                        resource{{ resources|length|pluralize }}
+                    </p>
+                </div>
+
+                {% if role == "administrator" or role == "teacher" %}
+                    <a
+                        href="{% url 'classes:class_detail' studio.slug class_instance.id %}"
+                    >
+                        View Class
+                    </a>
+                {% endif %}
+            </div>
+
+            <div class="resource-grid">
+                {% for resource in resources %}
+                    <article class="resource-card">
+                        <div class="resource-icon resource-{{ resource.resource_type }}">
+                            {% if resource.resource_type == "music" %}
+                                ♫
+                            {% elif resource.resource_type == "video" %}
+                                ▶
+                            {% elif resource.resource_type == "document" %}
+                                ▤
+                            {% else %}
+                                ✦
+                            {% endif %}
+                        </div>
+
+                        <div class="resource-card-main">
+                            <div class="resource-card-title">
+                                <div>
+                                    <span class="resource-type">
+                                        {{ resource.get_resource_type_display }}
+                                    </span>
+
+                                    <h3>
+                                        {{ resource.title }}
+                                    </h3>
+                                </div>
+
+                                {% if can_manage %}
+                                    <a
+                                        class="resource-edit"
+                                        href="{% url 'resources:resource_edit' studio.slug resource.id %}"
+                                    >
+                                        Edit
+                                    </a>
+                                {% endif %}
+                            </div>
+
+                            {% if resource.description %}
+                                <p>
+                                    {{ resource.description }}
+                                </p>
+                            {% endif %}
+
+                            <div class="resource-meta">
+                                {% if resource.uploaded_by %}
+                                    <span>
+                                        Added by
+                                        {{ resource.uploaded_by.full_name }}
+                                    </span>
+                                {% endif %}
+
+                                <span>
+                                    {{ resource.created_at|date:"M j, Y" }}
+                                </span>
+
+                                {% if can_manage and resource.visibility == "staff" %}
+                                    <span class="staff-only">
+                                        Staff Only
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                            <div class="resource-actions">
+                                {% if resource.file %}
+                                    <a
+                                        class="button secondary"
+                                        href="{{ resource.file.url }}"
+                                        download
+                                    >
+                                        Download
+                                    </a>
+                                {% endif %}
+
+                                {% if resource.external_url %}
+                                    <a
+                                        class="button secondary"
+                                        href="{{ resource.external_url }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        Open Resource
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        </section>
+    {% empty %}
+        <div class="empty-state">
+            No class resources are available yet.
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

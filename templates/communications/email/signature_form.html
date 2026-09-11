@@ -1,0 +1,37 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+{% block title %}{{ page_title }} | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_communications.css' %}">{% endblock %}
+{% block topbar_title %}{{ page_title }}{% endblock %}
+{% block content %}
+<section class="communication-heading">
+    <div>
+        <a class="back-link" href="{% url 'communications:email_signature_list' studio.slug %}">← Back to Signatures</a>
+        <p class="eyebrow">Email Manager</p>
+        <h1>{{ page_title }}</h1>
+        <p>Reusable closing content that can be attached to templates and campaigns.</p>
+    </div>
+</section>
+{% include "communications/email/_nav.html" %}
+<form method="post" class="communication-form">
+    {% csrf_token %}
+    <section class="communication-form-card">
+        <div class="form-grid">
+            {% for field in form %}
+                <div class="field-group {% if field.name == 'body' %}full{% endif %}">
+                    {% if field.field.widget.input_type == "checkbox" %}
+                        <label class="checkbox-line">{{ field }}<span>{{ field.label }}</span></label>
+                    {% else %}
+                        {{ field.label_tag }}{{ field }}
+                    {% endif %}
+                    {% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+    <div class="form-actions">
+        <a class="button secondary" href="{% url 'communications:email_signature_list' studio.slug %}">Cancel</a>
+        <button class="button primary" type="submit">Save Signature</button>
+    </div>
+</form>
+{% endblock %}

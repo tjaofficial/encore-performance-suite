@@ -1,0 +1,113 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Student Evaluation | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_evaluations.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Student Evaluation{% endblock %}
+
+{% block content %}
+<section class="evaluation-heading">
+    <div>
+        {% if role == "administrator" or role == "teacher" %}
+            <a
+                class="back-link"
+                href="{% url 'evaluations:evaluation_list' studio.slug %}"
+            >
+                ← Back to Evaluations
+            </a>
+        {% endif %}
+
+        <p class="eyebrow">
+            {{ evaluation.template.name }}
+        </p>
+
+        <h1>
+            {{ evaluation.student.first_name }}
+            {{ evaluation.student.last_name }}
+        </h1>
+
+        <p>
+            {{ evaluation.class_instance.name }}
+            ·
+            {{ evaluation.evaluation_date|date:"F j, Y" }}
+            ·
+            {{ evaluation.instructor.full_name }}
+        </p>
+    </div>
+
+    {% if role == "administrator" or role == "teacher" %}
+        <a
+            class="button secondary"
+            href="{% url 'evaluations:evaluation_edit' studio.slug evaluation.id %}"
+        >
+            Edit Evaluation
+        </a>
+    {% endif %}
+</section>
+
+{% if messages %}
+<div class="message-stack">
+    {% for message in messages %}
+        <div class="message-banner">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<section class="evaluation-summary">
+    {% for rating in evaluation.ratings.all %}
+        <article class="rating-result">
+            <div>
+                <span class="card-kicker">
+                    Progress Area
+                </span>
+
+                <h2>{{ rating.criterion.name }}</h2>
+
+                {% if rating.comments %}
+                    <p>{{ rating.comments }}</p>
+                {% endif %}
+            </div>
+
+            <strong class="rating-badge">
+                {% if rating.criterion.rating_scale == "three_point" %}
+                    {% if rating.rating == "needs_work" %}
+                        Needs Work
+                    {% elif rating.rating == "developing" %}
+                        Developing
+                    {% elif rating.rating == "strong" %}
+                        Strong
+                    {% else %}
+                        —
+                    {% endif %}
+                {% else %}
+                    {{ rating.rating|default:"—" }} / 5
+                {% endif %}
+            </strong>
+        </article>
+    {% endfor %}
+</section>
+
+<section class="evaluation-notes-grid">
+    <article class="evaluation-panel">
+        <span class="card-kicker">Teacher Feedback</span>
+        <h2>Overall Notes</h2>
+
+        <p>
+            {{ evaluation.overall_notes|default:"No overall notes provided."|linebreaksbr }}
+        </p>
+    </article>
+
+    <article class="evaluation-panel">
+        <span class="card-kicker">Next Steps</span>
+        <h2>Goals</h2>
+
+        <p>
+            {{ evaluation.goals|default:"No goals added yet."|linebreaksbr }}
+        </p>
+    </article>
+</section>
+{% endblock %}

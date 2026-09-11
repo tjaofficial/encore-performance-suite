@@ -1,0 +1,198 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static dashboard_preferences dashboard_quick_links %}
+
+{% block title %}
+{{ class_instance.name }} | Encore Performance Suite
+{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/encore_class_dashboard.css' %}"
+>
+<link
+    rel="stylesheet"
+    href="{% static 'css/encore_tasks.css' %}"
+>
+{% endblock %}
+
+{% block topbar_title %}
+Class Dashboard
+{% endblock %}
+
+{% block content %}
+<section class="class-command-header">
+    <div class="class-command-main">
+        <a
+            class="class-back-link"
+            href="{% url 'classes:class_list' studio.slug %}"
+        >
+            ←
+            {% if role == "teacher" %}
+                My Classes
+            {% else %}
+                Classes
+            {% endif %}
+        </a>
+
+        <div class="class-command-topline">
+            <div>
+                <p class="class-code">
+                    {{ class_instance.class_id }}
+                    ·
+                    {{ class_instance.class_type.name }}
+                </p>
+
+                <h1>
+                    {{ class_instance.name }}
+                </h1>
+
+                <p class="class-season">
+                    {{ class_instance.season.name }}
+                </p>
+            </div>
+
+            <div class="class-status-stack">
+                {% if class_instance.is_active %}
+                    <span class="class-status active">
+                        Active
+                    </span>
+                {% else %}
+                    <span class="class-status inactive">
+                        Inactive
+                    </span>
+                {% endif %}
+
+                {% if class_instance.registration_open %}
+                    <span class="class-status registration">
+                        Registration Open
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="class-header-meta">
+            <span>
+                <small>Teacher</small>
+                <strong>
+                    {{ class_instance.instructor.full_name }}
+                </strong>
+            </span>
+
+            <i></i>
+
+            <span>
+                <small>Students</small>
+                <strong>
+                    {{ active_enrollments|length }}
+                    /
+                    {{ class_instance.capacity }}
+                </strong>
+            </span>
+
+            <i></i>
+
+            <span>
+                <small>Ages</small>
+                <strong>
+                    {{ age_label }}
+                </strong>
+            </span>
+
+            {% if class_instance.default_location %}
+                <i></i>
+
+                <span>
+                    <small>Location</small>
+                    <strong>
+                        {{ class_instance.default_location.name }}
+                    </strong>
+                </span>
+            {% endif %}
+
+            <i></i>
+
+            <span>
+                <small>Tuition</small>
+                <strong>
+                    {% if class_instance.tuition_amount is not None %}
+                        ${{ class_instance.tuition_amount }}
+                    {% else %}
+                        Not Set
+                    {% endif %}
+                </strong>
+            </span>
+
+            {% if class_instance.tuition_plan %}
+                <i></i>
+
+                <span>
+                    <small>Billing</small>
+                    <strong>
+                        {{ class_instance.tuition_plan.get_frequency_display }}
+                    </strong>
+                </span>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if role == "administrator" %}
+        <a
+            class="button secondary class-edit-button"
+            href="{% url 'classes:class_edit' studio.slug class_instance.id %}"
+        >
+            Edit Class
+        </a>
+    {% endif %}
+
+    {% dashboard_quick_links request.user studio "class" class_instance performance_plan as class_quick_links %}
+
+    <div class="class-quick-actions">
+        {% for link in class_quick_links %}
+            <a
+                href="{{ link.url }}"
+                {% if link.external %}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                {% endif %}
+            >
+                <span>{{ link.icon }}</span>
+                <strong>{{ link.label }}</strong>
+            </a>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="class-dashboard-grid personalized-class-dashboard">
+    {% for card in dashboard_cards %}
+        <div
+            class="personalized-dashboard-slot width-{{ card.width }} height-{{ card.height }}"
+            data-card-key="{{ card.key }}"
+        >
+            {% include card.template %}
+        </div>
+    {% empty %}
+        <div class="class-dashboard-empty-layout">
+            <strong>No dashboard cards are enabled.</strong>
+
+            <p>
+                Open Settings → Class Dashboard to add cards back.
+            </p>
+
+            <a
+                class="button primary"
+                href="{% url 'studios:class_dashboard_settings' studio.slug %}"
+            >
+                Customize Class Dashboard
+            </a>
+        </div>
+    {% endfor %}
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script
+    src="{% static 'js/encore_quick_tasks.js' %}"
+    defer
+></script>
+{% endblock %}

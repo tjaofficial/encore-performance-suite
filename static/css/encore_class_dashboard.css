@@ -1,0 +1,1840 @@
+.class-dashboard-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 16px;
+}
+
+.class-back-link {
+    display: inline-block;
+    margin-bottom: 10px;
+    color: var(--encore-primary);
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.class-title-line {
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+}
+
+.class-code {
+    margin: 0 0 4px;
+    color: var(--encore-primary);
+    font-size: 0.65rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.class-dashboard-header h1 {
+    margin: 0;
+    color: var(--encore-primary-deep);
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1;
+    letter-spacing: -0.05em;
+}
+
+.class-season {
+    margin: 5px 0 0;
+    color: var(--encore-muted);
+    font-size: 0.73rem;
+}
+
+.class-status-stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding-top: 4px;
+}
+
+.class-status {
+    display: inline-flex;
+    min-height: 23px;
+    align-items: center;
+    padding: 0 8px;
+    border-radius: 999px;
+    font-size: 0.57rem;
+    font-weight: 850;
+}
+
+.class-status.active {
+    background: rgba(22, 134, 92, 0.1);
+    color: #16865c;
+}
+
+.class-status.inactive {
+    background: rgba(102, 112, 133, 0.1);
+    color: var(--encore-muted);
+}
+
+.class-status.registration {
+    background: var(--encore-primary-soft);
+    color: var(--encore-primary);
+}
+
+.class-header-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    margin-top: 12px;
+    color: var(--encore-muted);
+    font-size: 0.66rem;
+}
+
+.class-header-meta span {
+    display: flex;
+    gap: 5px;
+}
+
+.class-header-meta b {
+    color: var(--encore-primary-deep);
+}
+
+.class-quick-actions {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.class-quick-actions a {
+    display: flex;
+    min-height: 52px;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 8px;
+    border: 1px solid var(--encore-border);
+    border-radius: 10px;
+    background: var(--encore-surface);
+    color: var(--encore-primary-deep);
+    font-size: 0.64rem;
+    text-decoration: none;
+}
+
+.class-quick-actions a:hover {
+    border-color: color-mix(
+        in srgb,
+        var(--encore-primary) 34%,
+        var(--encore-border)
+    );
+    color: var(--encore-primary);
+}
+
+.class-quick-actions span {
+    color: var(--encore-primary);
+    font-size: 0.9rem;
+}
+
+.class-dashboard-grid {
+    display: grid;
+    gap: 12px;
+}
+
+.class-dashboard-row {
+    display: grid;
+    gap: 12px;
+    align-items: stretch;
+}
+
+.class-dashboard-row-primary {
+    grid-template-columns:
+        minmax(0, 1.65fr)
+        minmax(280px, 0.85fr);
+}
+
+.class-dashboard-row-secondary,
+.class-dashboard-row-tertiary {
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+}
+
+.class-dashboard-row-quaternary {
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+}
+
+.class-dashboard-card {
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+    flex-direction: column;
+    padding: 14px;
+    border: 1px solid var(--encore-border);
+    border-radius: 13px;
+    background: var(--encore-surface);
+    box-shadow:
+        0 7px 22px
+        rgba(0, 2, 78, 0.04);
+}
+
+.class-dashboard-row-primary
+.class-dashboard-card {
+    min-height: 225px;
+}
+
+.class-dashboard-row-secondary
+.class-dashboard-card {
+    min-height: 190px;
+}
+
+.class-dashboard-row-tertiary
+.class-dashboard-card {
+    min-height: 175px;
+}
+
+.class-dashboard-row-quaternary
+.class-dashboard-card {
+    min-height: 150px;
+}
+
+.class-resource-list,
+.class-task-list,
+.class-meeting-list {
+    flex: 1;
+}
+
+.class-card-button,
+.class-card-link {
+    margin-top: auto;
+}
+
+.class-card-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 9px;
+}
+
+.class-card-heading h2 {
+    margin: 2px 0 0;
+    color: var(--encore-primary-deep);
+    font-size: 0.86rem;
+    letter-spacing: -0.02em;
+}
+
+.class-card-heading > strong {
+    color: var(--encore-primary);
+    font-size: 0.72rem;
+}
+
+.class-card-heading > a {
+    color: var(--encore-primary);
+    font-size: 0.59rem;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.class-card-icon {
+    color: var(--encore-primary);
+    font-size: 1rem;
+}
+
+.class-roster-list {
+    display: grid;
+    max-height: 260px;
+    overflow-y: auto;
+    border-top: 1px solid var(--encore-border);
+}
+
+.class-roster-row {
+    display: grid;
+    grid-template-columns: 25px minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: center;
+    min-height: 38px;
+    border-bottom: 1px solid var(--encore-border);
+}
+
+.roster-index {
+    display: grid;
+    width: 19px;
+    height: 19px;
+    place-items: center;
+    border: 1px solid var(--encore-border);
+    border-radius: 50%;
+    color: var(--encore-muted);
+    font-size: 0.56rem;
+}
+
+.class-roster-row > div {
+    display: grid;
+    gap: 1px;
+}
+
+.class-roster-row strong {
+    color: var(--encore-primary-deep);
+    font-size: 0.65rem;
+}
+
+.class-roster-row span:not(.roster-index):not(.student-detail-next) {
+    color: var(--encore-muted);
+    font-size: 0.57rem;
+}
+
+.student-detail-next {
+    color: var(--encore-primary);
+    font-size: 0.57rem;
+    font-weight: 800;
+}
+
+.class-card-footer-note {
+    margin-top: 8px;
+    color: var(--encore-muted);
+    font-size: 0.56rem;
+}
+
+.class-card-description,
+.dress-code-copy {
+    margin: 0 0 12px;
+    color: var(--encore-muted);
+    font-size: 0.67rem;
+    line-height: 1.55;
+}
+
+.attendance-summary {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 7px;
+    margin-bottom: 11px;
+}
+
+.attendance-summary > div {
+    display: grid;
+    gap: 2px;
+    padding: 9px;
+    border-radius: 9px;
+    background: var(--encore-background);
+}
+
+.attendance-summary strong {
+    color: var(--encore-primary-deep);
+    font-size: 0.9rem;
+}
+
+.attendance-summary span {
+    color: var(--encore-muted);
+    font-size: 0.55rem;
+}
+
+.class-card-button,
+.class-card-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    border-radius: 8px;
+    color: var(--encore-primary);
+    font-size: 0.61rem;
+    font-weight: 850;
+    text-decoration: none;
+}
+
+.class-card-button {
+    border: 1px solid var(--encore-primary);
+}
+
+.class-card-link {
+    margin-top: 8px;
+    border-top: 1px solid var(--encore-border);
+    border-radius: 0;
+}
+
+.class-resource-list,
+.class-task-list,
+.class-meeting-list,
+.waitlist-mini-list {
+    display: grid;
+}
+
+.class-resource-row,
+.class-task-row {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr) auto;
+    gap: 7px;
+    align-items: center;
+    min-height: 34px;
+    border-bottom: 1px solid var(--encore-border);
+}
+
+.class-resource-row > div,
+.class-task-row > div {
+    display: grid;
+    gap: 1px;
+    min-width: 0;
+}
+
+.class-resource-row strong,
+.class-task-row strong {
+    overflow: hidden;
+    color: var(--encore-primary-deep);
+    font-size: 0.61rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.class-resource-row small,
+.class-task-row small {
+    color: var(--encore-muted);
+    font-size: 0.53rem;
+}
+
+.task-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--encore-border);
+}
+
+.class-task-row.priority-high .task-dot {
+    background: var(--encore-primary);
+}
+
+.class-task-row.priority-urgent .task-dot {
+    background: #b04444;
+}
+
+.class-task-date {
+    color: var(--encore-primary);
+    font-size: 0.55rem;
+    font-weight: 800;
+}
+
+.performance-plan-summary {
+    display: grid;
+    gap: 3px;
+    margin-bottom: 12px;
+    padding: 10px;
+    border-radius: 9px;
+    background: var(--encore-primary-soft);
+}
+
+.performance-plan-summary strong {
+    color: var(--encore-primary-deep);
+    font-size: 0.7rem;
+}
+
+.performance-plan-summary span {
+    color: var(--encore-muted);
+    font-size: 0.59rem;
+}
+
+.class-meeting-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 7px;
+    align-items: center;
+    min-height: 35px;
+    border-bottom: 1px solid var(--encore-border);
+}
+
+.class-meeting-row strong {
+    color: var(--encore-primary-deep);
+    font-size: 0.61rem;
+}
+
+.class-meeting-row span,
+.class-meeting-row small {
+    color: var(--encore-muted);
+    font-size: 0.55rem;
+}
+
+.waitlist-mini-list > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 33px;
+    border-bottom: 1px solid var(--encore-border);
+}
+
+.waitlist-mini-list strong {
+    color: var(--encore-primary-deep);
+    font-size: 0.61rem;
+}
+
+.waitlist-mini-list span {
+    color: var(--encore-muted);
+    font-size: 0.55rem;
+}
+
+.class-card-empty {
+    padding: 18px 8px;
+    color: var(--encore-muted);
+    font-size: 0.62rem;
+    text-align: center;
+}
+
+
+@media (max-width: 1150px) {
+    .class-dashboard-row-primary {
+        grid-template-columns:
+            minmax(0, 1.35fr)
+            minmax(270px, 0.85fr);
+    }
+
+    .class-dashboard-row-secondary,
+    .class-dashboard-row-tertiary {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .class-dashboard-row-secondary
+    .schedule-card,
+    .class-dashboard-row-tertiary
+    .evaluations-card {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 760px) {
+    .class-dashboard-header,
+    .class-title-line {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .class-quick-actions {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .class-dashboard-row,
+    .class-dashboard-row-primary,
+    .class-dashboard-row-secondary,
+    .class-dashboard-row-tertiary,
+    .class-dashboard-row-quaternary {
+        grid-template-columns: 1fr;
+    }
+
+    .class-dashboard-row-secondary
+    .schedule-card,
+    .class-dashboard-row-tertiary
+    .evaluations-card {
+        grid-column: auto;
+    }
+
+    .class-dashboard-card {
+        min-height: 0 !important;
+    }
+}
+
+
+/* Class dashboard header polish */
+
+.class-command-header {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 14px 20px;
+    margin-bottom: 16px;
+    padding: 18px 20px 14px;
+    border: 1px solid var(--encore-border);
+    border-radius: 15px;
+    background:
+        linear-gradient(
+            135deg,
+            color-mix(
+                in srgb,
+                var(--encore-primary) 3%,
+                #fff
+            ),
+            #fff 48%
+        );
+    box-shadow:
+        0 8px 26px
+        rgba(0, 2, 78, 0.04);
+}
+
+.class-command-main {
+    min-width: 0;
+}
+
+.class-command-header .class-back-link {
+    margin-bottom: 7px;
+}
+
+.class-command-topline {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.class-command-header .class-code {
+    margin-bottom: 3px;
+    font-size: 0.61rem;
+}
+
+.class-command-header h1 {
+    margin: 0;
+    color: var(--encore-primary-deep);
+    font-size: clamp(2rem, 3.4vw, 2.8rem);
+    line-height: 0.98;
+    letter-spacing: -0.05em;
+}
+
+.class-command-header .class-season {
+    margin-top: 5px;
+    font-size: 0.68rem;
+}
+
+.class-command-header .class-status-stack {
+    justify-content: flex-end;
+    padding-top: 2px;
+}
+
+.class-command-header .class-status {
+    min-height: 22px;
+    padding: 0 8px;
+    font-size: 0.54rem;
+}
+
+.class-command-header .class-header-meta {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: 12px;
+    font-size: inherit;
+}
+
+.class-command-header .class-header-meta > span {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+}
+
+.class-command-header .class-header-meta small {
+    color: var(--encore-muted);
+    font-size: 0.56rem;
+    font-weight: 700;
+}
+
+.class-command-header .class-header-meta strong {
+    color: var(--encore-primary-deep);
+    font-size: 0.62rem;
+    font-weight: 800;
+}
+
+.class-command-header .class-header-meta i {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--encore-border);
+}
+
+.class-edit-button {
+    align-self: start;
+    min-height: 34px;
+    padding: 0 12px;
+    font-size: 0.62rem;
+}
+
+.class-command-header .class-quick-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin: 0;
+    padding-top: 11px;
+    border-top: 1px solid var(--encore-border);
+}
+
+.class-command-header .class-quick-actions a {
+    flex: 0 0 auto;
+    min-height: 34px;
+    padding: 0 11px;
+    border-radius: 9px;
+    font-size: 0.61rem;
+}
+
+.class-command-header .class-quick-actions a:hover {
+    transform: translateY(-1px);
+}
+
+.class-command-header .class-quick-actions span {
+    font-size: 0.78rem;
+}
+
+@media (max-width: 850px) {
+    .class-command-header {
+        grid-template-columns: 1fr;
+    }
+
+    .class-edit-button {
+        justify-self: start;
+    }
+
+    .class-command-topline {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .class-command-header .class-status-stack {
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 620px) {
+    .class-command-header {
+        padding: 15px;
+    }
+
+    .class-command-header .class-header-meta {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .class-command-header .class-header-meta i {
+        display: none;
+    }
+
+    .class-command-header .class-quick-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .class-command-header .class-quick-actions a {
+        justify-content: flex-start;
+    }
+}
+
+
+/* Separate Class Video / Music cards */
+
+.class-dashboard-row-media {
+    grid-template-columns:
+        minmax(0, 1.15fr)
+        minmax(320px, 0.85fr);
+}
+
+.class-video-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.class-video-item {
+    display: grid;
+    gap: 5px;
+    min-width: 0;
+    color: var(--encore-primary-deep);
+    text-decoration: none;
+}
+
+.class-video-thumb {
+    position: relative;
+    display: grid;
+    aspect-ratio: 16 / 9;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 8px;
+    background:
+        linear-gradient(
+            135deg,
+            color-mix(
+                in srgb,
+                var(--encore-primary) 18%,
+                var(--encore-primary-deep)
+            ),
+            var(--encore-primary-deep)
+        );
+}
+
+.class-video-thumb::before {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(
+            circle at 30% 30%,
+            rgba(255, 255, 255, 0.16),
+            transparent 45%
+        );
+    content: "";
+}
+
+.class-video-play {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    width: 32px;
+    height: 32px;
+    place-items: center;
+    padding-left: 2px;
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    color: #fff;
+    font-size: 0.72rem;
+}
+
+.class-video-item strong {
+    overflow: hidden;
+    font-size: 0.6rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.class-music-list {
+    display: grid;
+    flex: 1;
+}
+
+.class-music-row {
+    display: grid;
+    grid-template-columns:
+        25px
+        minmax(0, 1fr)
+        auto;
+    gap: 8px;
+    align-items: center;
+    min-height: 38px;
+    border-bottom: 1px solid var(--encore-border);
+}
+
+.music-icon {
+    display: grid;
+    width: 22px;
+    height: 22px;
+    place-items: center;
+    border-radius: 6px;
+    background: var(--encore-primary-soft);
+    color: var(--encore-primary);
+    font-size: 0.68rem;
+}
+
+.class-music-row > div {
+    display: grid;
+    min-width: 0;
+    gap: 1px;
+}
+
+.class-music-row strong {
+    overflow: hidden;
+    color: var(--encore-primary-deep);
+    font-size: 0.61rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.class-music-row small {
+    overflow: hidden;
+    color: var(--encore-muted);
+    font-size: 0.53rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.class-music-row > a {
+    color: var(--encore-primary);
+    font-size: 0.55rem;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.student-detail-next {
+    text-decoration: none;
+}
+
+.student-detail-next:hover {
+    text-decoration: underline;
+}
+
+.media-empty {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 1000px) {
+    .class-dashboard-row-media {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 650px) {
+    .class-video-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+}
+
+
+/* User-personalized class dashboard layout */
+
+.personalized-class-dashboard {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-auto-flow: row dense;
+    grid-auto-rows: 175px;
+    gap: 12px;
+}
+
+.personalized-dashboard-slot {
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+}
+
+.personalized-dashboard-slot.width-quarter {
+    grid-column: span 3;
+}
+
+.personalized-dashboard-slot.width-half {
+    grid-column: span 6;
+}
+
+.personalized-dashboard-slot.width-full {
+    grid-column: span 12;
+}
+
+.personalized-dashboard-slot.height-1 {
+    grid-row: span 1;
+}
+
+.personalized-dashboard-slot.height-2 {
+    grid-row: span 2;
+}
+
+.personalized-dashboard-slot .class-dashboard-card {
+    width: 100%;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.personalized-dashboard-slot .class-roster-list,
+.personalized-dashboard-slot .class-video-grid,
+.personalized-dashboard-slot .class-music-list,
+.personalized-dashboard-slot .class-task-list,
+.personalized-dashboard-slot .class-meeting-list,
+.personalized-dashboard-slot .waitlist-mini-list {
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.personalized-dashboard-slot.height-1 .class-video-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.personalized-dashboard-slot.width-quarter .class-video-grid {
+    grid-template-columns: 1fr;
+}
+
+.class-dashboard-empty-layout {
+    grid-column: 1 / -1;
+    display: grid;
+    justify-items: center;
+    gap: 7px;
+    padding: 35px;
+    border: 1px dashed var(--encore-border);
+    border-radius: 14px;
+    color: var(--encore-muted);
+    text-align: center;
+}
+
+.class-dashboard-empty-layout strong {
+    color: var(--encore-primary-deep);
+}
+
+.class-dashboard-empty-layout p {
+    margin: 0;
+    font-size: 0.67rem;
+}
+
+@media (max-width: 1000px) {
+    .personalized-dashboard-slot.width-quarter {
+        grid-column: span 6;
+    }
+}
+
+@media (max-width: 720px) {
+    .personalized-class-dashboard {
+        grid-template-columns: 1fr;
+        grid-auto-rows: auto;
+    }
+
+    .personalized-dashboard-slot.width-quarter,
+    .personalized-dashboard-slot.width-half,
+    .personalized-dashboard-slot.width-full {
+        grid-column: auto;
+    }
+
+    .personalized-dashboard-slot.height-1,
+    .personalized-dashboard-slot.height-2 {
+        grid-row: auto;
+    }
+
+    .personalized-dashboard-slot .class-dashboard-card {
+        min-height: 175px;
+    }
+}
+
+
+/* Class dashboard sizing / fit polish */
+
+.personalized-class-dashboard {
+    grid-auto-rows: 215px;
+}
+
+.personalized-dashboard-slot.height-2 {
+    grid-row: span 2;
+}
+
+.personalized-dashboard-slot .class-dashboard-card {
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+}
+
+.personalized-dashboard-slot .class-card-heading {
+    flex: 0 0 auto;
+}
+
+.personalized-dashboard-slot .class-card-description {
+    flex: 0 0 auto;
+}
+
+.personalized-dashboard-slot .class-card-button,
+.personalized-dashboard-slot .class-card-link {
+    flex: 0 0 auto;
+    min-height: 34px;
+}
+
+.personalized-dashboard-slot .class-roster-list,
+.personalized-dashboard-slot .class-task-list,
+.personalized-dashboard-slot .class-meeting-list,
+.personalized-dashboard-slot .class-music-list,
+.personalized-dashboard-slot .waitlist-mini-list {
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow-y: auto;
+}
+
+.personalized-dashboard-slot .class-video-grid {
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+}
+
+.class-videos-card {
+    min-height: 0;
+}
+
+.class-video-grid {
+    align-content: start;
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(120px, 1fr)
+        );
+    gap: 9px;
+}
+
+.class-video-item {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.class-video-thumb {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--encore-primary-deep);
+}
+
+.class-video-thumb img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.class-video-play {
+    position: relative;
+    z-index: 2;
+    flex: 0 0 auto;
+}
+
+.class-video-item strong {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.personalized-dashboard-slot.width-quarter
+.class-video-grid {
+    grid-template-columns: 1fr;
+}
+
+.personalized-dashboard-slot.width-half
+.class-video-grid {
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(125px, 1fr)
+        );
+}
+
+.personalized-dashboard-slot.width-full
+.class-video-grid {
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(150px, 1fr)
+        );
+}
+
+.personalized-dashboard-slot.height-1
+.class-video-grid {
+    grid-auto-rows: min-content;
+}
+
+.personalized-dashboard-slot.height-2
+.class-video-grid {
+    overflow-y: auto;
+}
+
+@media (max-width: 1000px) {
+    .personalized-class-dashboard {
+        grid-auto-rows: 205px;
+    }
+}
+
+@media (max-width: 720px) {
+    .personalized-class-dashboard {
+        grid-auto-rows: auto;
+    }
+
+    .personalized-dashboard-slot .class-dashboard-card {
+        min-height: 205px;
+        height: auto;
+    }
+}
+
+
+/* Correct compact roster + responsive video thumbnail behavior */
+
+.personalized-dashboard-slot .class-roster-list {
+    display: grid;
+    align-content: start;
+    grid-auto-rows: min-content;
+    flex: 1 1 auto;
+    overflow-y: auto;
+}
+
+.personalized-dashboard-slot .class-roster-row {
+    min-height: 38px;
+    height: auto;
+    align-self: start;
+}
+
+/*
+Video cards should show thumbnail-sized items rather than stretching
+one video across every available column.
+*/
+.personalized-dashboard-slot .class-video-grid,
+.class-video-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(
+            auto-fill,
+            minmax(130px, 210px)
+        );
+    grid-auto-rows: min-content;
+    align-content: start;
+    justify-content: start;
+    gap: 9px;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.class-video-item {
+    width: 100%;
+    max-width: 210px;
+    min-width: 0;
+    align-self: start;
+}
+
+.class-video-thumb {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: 8px;
+    background: #0b0d24;
+}
+
+.class-video-thumb img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+    background: #0b0d24;
+}
+
+.personalized-dashboard-slot.width-quarter .class-video-grid {
+    grid-template-columns:
+        minmax(0, 1fr);
+}
+
+.personalized-dashboard-slot.width-quarter .class-video-item {
+    width: 100%;
+    max-width: 210px;
+}
+
+.personalized-dashboard-slot.width-half .class-video-grid {
+    grid-template-columns:
+        repeat(
+            auto-fill,
+            minmax(130px, 190px)
+        );
+}
+
+.personalized-dashboard-slot.width-full .class-video-grid {
+    grid-template-columns:
+        repeat(
+            auto-fill,
+            minmax(140px, 210px)
+        );
+}
+
+/*
+A single video stays thumbnail-sized even inside a full-width card.
+More videos simply fill additional thumbnail slots.
+*/
+.personalized-dashboard-slot.width-half .class-video-item,
+.personalized-dashboard-slot.width-full .class-video-item {
+    max-width: 210px;
+}
+
+@media (max-width: 720px) {
+    .personalized-dashboard-slot .class-video-grid,
+    .personalized-dashboard-slot.width-quarter .class-video-grid,
+    .personalized-dashboard-slot.width-half .class-video-grid,
+    .personalized-dashboard-slot.width-full .class-video-grid {
+        grid-template-columns:
+            repeat(
+                auto-fill,
+                minmax(125px, 1fr)
+            );
+    }
+
+    .class-video-item,
+    .personalized-dashboard-slot.width-quarter .class-video-item,
+    .personalized-dashboard-slot.width-half .class-video-item,
+    .personalized-dashboard-slot.width-full .class-video-item {
+        max-width: none;
+    }
+}
+
+
+/* Class Dashboard visual contrast + action emphasis */
+
+.personalized-class-dashboard {
+    padding: 2px;
+}
+
+.personalized-dashboard-slot .class-dashboard-card {
+    border-color:
+        color-mix(
+            in srgb,
+            var(--encore-primary) 10%,
+            var(--encore-border)
+        );
+    background: #fff;
+    box-shadow:
+        0 8px 24px rgba(0, 2, 78, 0.055),
+        0 1px 2px rgba(0, 2, 78, 0.035);
+}
+
+.personalized-dashboard-slot .class-dashboard-card:hover {
+    border-color:
+        color-mix(
+            in srgb,
+            var(--encore-primary) 20%,
+            var(--encore-border)
+        );
+}
+
+/* Give card headers a little more hierarchy without making them loud. */
+.personalized-dashboard-slot .card-kicker {
+    color: var(--encore-primary);
+    font-weight: 800;
+}
+
+.personalized-dashboard-slot .class-card-heading h2 {
+    color: var(--encore-primary-deep);
+    font-weight: 850;
+}
+
+/* Buttons should read immediately as actions. */
+.personalized-dashboard-slot .class-card-button {
+    min-height: 36px;
+    border: 1px solid
+        color-mix(
+            in srgb,
+            var(--encore-primary) 70%,
+            #fff
+        );
+    background:
+        color-mix(
+            in srgb,
+            var(--encore-primary) 6%,
+            #fff
+        );
+    color: var(--encore-primary);
+    box-shadow:
+        inset 0 0 0 1px
+        rgba(255, 255, 255, 0.35);
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease,
+        transform 0.15s ease;
+}
+
+.personalized-dashboard-slot .class-card-button:hover {
+    border-color: var(--encore-primary);
+    background: var(--encore-primary);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+/* Footer text links get a visible action strip. */
+.personalized-dashboard-slot .class-card-link {
+    min-height: 34px;
+    margin-top: 9px;
+    padding-top: 8px;
+    border-top: 1px solid
+        color-mix(
+            in srgb,
+            var(--encore-primary) 16%,
+            var(--encore-border)
+        );
+    color: var(--encore-primary);
+    font-weight: 900;
+}
+
+.personalized-dashboard-slot .class-card-link:hover {
+    background:
+        linear-gradient(
+            to bottom,
+            transparent,
+            color-mix(
+                in srgb,
+                var(--encore-primary) 4%,
+                #fff
+            )
+        );
+}
+
+/* Small top-right links such as View All / Add New. */
+.personalized-dashboard-slot .class-card-heading > a {
+    display: inline-flex;
+    min-height: 25px;
+    align-items: center;
+    padding: 0 7px;
+    border-radius: 7px;
+    background: var(--encore-primary-soft);
+    color: var(--encore-primary);
+    font-weight: 900;
+}
+
+.personalized-dashboard-slot .class-card-heading > a:hover {
+    background:
+        color-mix(
+            in srgb,
+            var(--encore-primary) 12%,
+            #fff
+        );
+}
+
+/* Student Detail should look clickable instead of plain body text. */
+.student-detail-next {
+    display: inline-flex;
+    min-height: 25px;
+    align-items: center;
+    padding: 0 7px;
+    border-radius: 7px;
+    background: var(--encore-primary-soft);
+    color: var(--encore-primary);
+    font-weight: 900;
+    text-decoration: none;
+}
+
+.student-detail-next:hover {
+    background:
+        color-mix(
+            in srgb,
+            var(--encore-primary) 12%,
+            #fff
+        );
+    text-decoration: none;
+}
+
+/* Give summary blocks a little more separation from the parent card. */
+.attendance-summary > div {
+    border: 1px solid
+        color-mix(
+            in srgb,
+            var(--encore-primary) 6%,
+            var(--encore-border)
+        );
+    background:
+        color-mix(
+            in srgb,
+            var(--encore-primary) 3%,
+            var(--encore-background)
+        );
+}
+
+/* Make list rows feel intentional while keeping them compact. */
+.class-roster-row,
+.class-resource-row,
+.class-task-row,
+.class-meeting-row,
+.waitlist-mini-list > div,
+.class-music-row {
+    border-bottom-color:
+        color-mix(
+            in srgb,
+            var(--encore-primary) 7%,
+            var(--encore-border)
+        );
+}
+
+/* Stronger separation between the command header and dashboard cards. */
+.class-command-header {
+    border-color:
+        color-mix(
+            in srgb,
+            var(--encore-primary) 12%,
+            var(--encore-border)
+        );
+    box-shadow:
+        0 10px 28px rgba(0, 2, 78, 0.06),
+        0 1px 2px rgba(0, 2, 78, 0.03);
+}
+
+/* Quick actions should pop a touch more too. */
+.class-command-header .class-quick-actions a {
+    border-color:
+        color-mix(
+            in srgb,
+            var(--encore-primary) 17%,
+            var(--encore-border)
+        );
+    background:
+        color-mix(
+            in srgb,
+            var(--encore-primary) 2.5%,
+            #fff
+        );
+}
+
+.class-command-header .class-quick-actions a:hover {
+    border-color: var(--encore-primary);
+    background: var(--encore-primary-soft);
+    color: var(--encore-primary);
+}
+
+
+/* Stronger action emphasis */
+
+.class-command-header .class-quick-actions a {
+    min-height: 38px;
+    padding: 0 13px;
+    border: 1px solid
+        color-mix(
+            in srgb,
+            var(--encore-primary) 45%,
+            var(--encore-border)
+        );
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(
+                in srgb,
+                var(--encore-primary) 9%,
+                #fff
+            ),
+            color-mix(
+                in srgb,
+                var(--encore-primary) 4%,
+                #fff
+            )
+        );
+    box-shadow:
+        0 3px 8px rgba(0, 2, 78, 0.07);
+    color: var(--encore-primary-deep);
+    font-weight: 900;
+}
+
+.class-command-header .class-quick-actions a span {
+    display: grid;
+    width: 23px;
+    height: 23px;
+    place-items: center;
+    border-radius: 7px;
+    background: var(--encore-primary);
+    color: #fff;
+    font-size: 0.7rem;
+}
+
+.class-command-header .class-quick-actions a:hover {
+    border-color: var(--encore-primary);
+    background: var(--encore-primary);
+    color: #fff;
+    box-shadow:
+        0 6px 14px rgba(22, 99, 255, 0.18);
+}
+
+.class-command-header .class-quick-actions a:hover span {
+    background: #fff;
+    color: var(--encore-primary);
+}
+
+/* Stronger main card buttons */
+
+.personalized-dashboard-slot .class-card-button {
+    min-height: 38px;
+    border: 1px solid var(--encore-primary);
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(
+                in srgb,
+                var(--encore-primary) 12%,
+                #fff
+            ),
+            color-mix(
+                in srgb,
+                var(--encore-primary) 7%,
+                #fff
+            )
+        );
+    color: var(--encore-primary);
+    font-weight: 900;
+    box-shadow:
+        0 3px 8px rgba(0, 2, 78, 0.055);
+}
+
+.personalized-dashboard-slot .class-card-button:hover {
+    background: var(--encore-primary);
+    color: #fff;
+    box-shadow:
+        0 6px 14px rgba(22, 99, 255, 0.16);
+}
+
+/* Stronger secondary action links */
+
+.personalized-dashboard-slot .class-card-heading > a,
+.student-detail-next {
+    min-height: 27px;
+    padding: 0 8px;
+    border: 1px solid
+        color-mix(
+            in srgb,
+            var(--encore-primary) 28%,
+            var(--encore-border)
+        );
+    background:
+        color-mix(
+            in srgb,
+            var(--encore-primary) 8%,
+            #fff
+        );
+    color: var(--encore-primary);
+    font-weight: 900;
+}
+
+.personalized-dashboard-slot .class-card-heading > a:hover,
+.student-detail-next:hover {
+    border-color: var(--encore-primary);
+    background: var(--encore-primary);
+    color: #fff;
+}
+
+/* Footer links read more like controls */
+
+.personalized-dashboard-slot .class-card-link {
+    min-height: 37px;
+    margin-top: 10px;
+    padding: 7px 10px 0;
+    border-top: 1px solid
+        color-mix(
+            in srgb,
+            var(--encore-primary) 24%,
+            var(--encore-border)
+        );
+    background:
+        linear-gradient(
+            to bottom,
+            transparent,
+            color-mix(
+                in srgb,
+                var(--encore-primary) 5%,
+                #fff
+            )
+        );
+    color: var(--encore-primary);
+    font-weight: 900;
+}
+
+.personalized-dashboard-slot .class-card-link:hover {
+    background:
+        color-mix(
+            in srgb,
+            var(--encore-primary) 9%,
+            #fff
+        );
+}
+
+/* Slightly stronger card definition to support the bolder actions */
+
+.personalized-dashboard-slot .class-dashboard-card {
+    border-color:
+        color-mix(
+            in srgb,
+            var(--encore-primary) 16%,
+            var(--encore-border)
+        );
+    box-shadow:
+        0 10px 26px rgba(0, 2, 78, 0.07),
+        0 1px 2px rgba(0, 2, 78, 0.04);
+}
+
+
+/* Compact class task checklist */
+
+.task-card .quick-task-form {
+    flex: 0 0 auto;
+}
+
+.task-card .class-task-list {
+    display: grid;
+    align-content: start;
+    grid-auto-rows: min-content;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.task-card .class-task-row {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr) auto;
+    gap: 7px;
+    align-items: center;
+    min-height: 38px;
+    height: auto;
+    padding: 3px 0;
+    text-align: left;
+}
+
+.task-card .class-task-row strong {
+    line-height: 1.25;
+}
+
+.task-card .compact-task-empty {
+    padding: 10px 2px;
+    text-align: left;
+}
+
+
+.task-card .quick-task-inline {
+    flex: 0 0 auto;
+    margin-top: 3px;
+}
+
+
+/* Keep Class Tasks as a compact list with add row immediately after tasks. */
+.task-card .class-task-list {
+    flex: 0 1 auto;
+}
+
+.task-card .quick-task-inline {
+    margin-top: 0;
+}
+
+
+.task-card .class-card-link {
+    margin-top: auto !important;
+}
+
+
+/* =========================================================
+   Class Roster Birthday Indicator — Layout Fix
+   ========================================================= */
+
+/*
+The generic roster rule above sets direct child divs to display:grid.
+Override that specifically for the name/age/birthday wrapper.
+*/
+.class-roster-row > .roster-student-info {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 7px;
+}
+
+/* Keep name + age as the original compact two-line stack. */
+.class-roster-row
+.roster-student-copy {
+    display: grid;
+    min-width: 0;
+    gap: 1px;
+}
+
+/*
+The generic roster span rule shrinks all spans to .57rem.
+Explicitly override it for the birthday emoji.
+*/
+.class-roster-row
+.roster-birthday {
+    display: inline-flex;
+    flex: 0 0 auto;
+    width: 30px;
+    height: 30px;
+    align-items: center;
+    justify-content: center;
+
+    margin-left: 2px;
+
+    color: inherit;
+    font-size: 1.45rem !important;
+    line-height: 1 !important;
+
+    cursor: default;
+}
+
+/* Do not let the emoji inherit muted roster text styling. */
+.class-roster-row
+span.roster-birthday {
+    color: inherit !important;
+}
+
+/*
+Keep the row compact. The emoji fits inside the existing two-line
+student block rather than increasing row height.
+*/
+.class-roster-row {
+    min-height: 40px;
+}
+
+/* Give the middle column enough flexibility before the action button. */
+.class-roster-row > .roster-student-info {
+    overflow: hidden;
+}
+
+.class-roster-row
+.roster-student-copy strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+/* Drawing Board card — Dance-based quick access */
+.drawing-board-card-intro {
+    margin-bottom: 9px;
+}
+
+.drawing-board-dance-list {
+    display: grid;
+    align-content: start;
+    gap: 6px;
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding-right: 2px;
+}
+
+.drawing-board-dance-row {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+    gap: 9px;
+    align-items: center;
+    min-height: 48px;
+    padding: 7px 8px;
+    border: 1px solid color-mix(in srgb, var(--encore-primary) 11%, var(--encore-border));
+    border-radius: 9px;
+    background: color-mix(in srgb, var(--encore-primary) 2.5%, #fff);
+    color: var(--encore-primary-deep);
+    text-decoration: none;
+    transition: border-color .15s ease, background .15s ease, transform .15s ease, box-shadow .15s ease;
+}
+
+.drawing-board-dance-row:hover {
+    border-color: color-mix(in srgb, var(--encore-primary) 48%, var(--encore-border));
+    background: color-mix(in srgb, var(--encore-primary) 7%, #fff);
+    box-shadow: 0 5px 14px rgba(22, 99, 255, .09);
+    transform: translateY(-1px);
+}
+
+.drawing-board-dance-icon {
+    display: grid;
+    width: 27px;
+    height: 27px;
+    place-items: center;
+    border-radius: 8px;
+    background: var(--encore-primary);
+    color: #fff;
+    font-size: .78rem;
+    font-weight: 900;
+}
+
+.drawing-board-dance-copy {
+    display: grid;
+    min-width: 0;
+    gap: 2px;
+}
+
+.drawing-board-dance-copy strong {
+    overflow: hidden;
+    color: var(--encore-primary-deep);
+    font-size: .64rem;
+    font-weight: 850;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.drawing-board-dance-copy small {
+    overflow: hidden;
+    color: var(--encore-muted);
+    font-size: .52rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.drawing-board-dance-open {
+    color: var(--encore-primary);
+    font-size: .55rem;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.drawing-board-card-empty {
+    padding: 14px 8px;
+    border: 1px dashed var(--encore-border);
+    border-radius: 9px;
+}
+
+.drawing-board-main-action {
+    margin-top: 9px !important;
+}
+
+.personalized-dashboard-slot.width-quarter .drawing-board-dance-row {
+    grid-template-columns: 25px minmax(0, 1fr);
+}
+
+.personalized-dashboard-slot.width-quarter .drawing-board-dance-open {
+    display: none;
+}

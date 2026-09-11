@@ -1,0 +1,167 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}
+    Take Attendance | Encore Performance Suite
+{% endblock %}
+
+{% block extra_css %}
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_attendance.css' %}"
+    >
+{% endblock %}
+
+{% block topbar_title %}
+    Take Attendance
+{% endblock %}
+
+{% block content %}
+<section class="attendance-heading">
+    <div>
+        <p class="eyebrow">Attendance</p>
+
+        <h1>{{ class_instance.name }}</h1>
+
+        <p>
+            {{ session.session_date|date:"l, F j, Y" }}
+            {% if session.start_time %}
+                · {{ session.start_time|time:"g:i A" }}
+            {% endif %}
+        </p>
+    </div>
+
+    <a
+        class="button secondary"
+        href="{% url 'dashboard:teacher_dashboard' studio.slug %}"
+    >
+        Back to Dashboard
+    </a>
+</section>
+
+{% if messages %}
+    <div class="message-stack">
+        {% for message in messages %}
+            <div class="message-banner">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<form
+    method="post"
+    action="{% url 'attendance:update_attendance' studio.slug session.id %}"
+>
+    {% csrf_token %}
+
+    <section class="attendance-card">
+        <div class="attendance-summary">
+            <div>
+                <span>Class</span>
+                <strong>
+                    {{ class_instance.class_id }}
+                </strong>
+            </div>
+
+            <div>
+                <span>Students</span>
+                <strong>
+                    {{ records|length }}
+                </strong>
+            </div>
+
+            <div>
+                <span>Status</span>
+                <strong>
+                    {% if session.is_finalized %}
+                        Finalized
+                    {% else %}
+                        In Progress
+                    {% endif %}
+                </strong>
+            </div>
+        </div>
+
+        <div class="attendance-roster">
+            {% for record in records %}
+                <article class="student-row">
+                    <div class="student-info">
+                        <div class="student-avatar">
+                            {{ record.student.first_name|slice:":1"|upper }}
+                        </div>
+
+                        <div>
+                            <strong>
+                                {{ record.student.first_name }}
+                                {{ record.student.last_name }}
+                            </strong>
+
+                            <span>
+                                Age {{ record.student.age }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div
+                        class="attendance-options"
+                        data-attendance-group
+                    >
+                        {% for value, label in record.Status.choices %}
+                            <label
+                                class="attendance-choice {% if record.status == value %}selected{% endif %}"
+                            >
+                                <input
+                                    type="radio"
+                                    name="status_{{ record.pk }}"
+                                    value="{{ value }}"
+                                    {% if record.status == value %}checked{% endif %}
+                                >
+                                <span>{{ label }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+
+                    <div class="attendance-note">
+                        <input
+                            type="text"
+                            name="note_{{ record.pk }}"
+                            value="{{ record.note }}"
+                            placeholder="Optional note"
+                        >
+                    </div>
+                </article>
+            {% empty %}
+                <div class="empty-state">
+                    No active students are enrolled in this class.
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <div class="attendance-actions">
+        <button
+            type="submit"
+            class="button secondary"
+            name="save"
+        >
+            Save Progress
+        </button>
+
+        <button
+            type="submit"
+            class="button primary"
+            name="finalize"
+        >
+            Finalize Attendance
+        </button>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+    <script
+        src="{% static 'js/encore_attendance.js' %}"
+        defer
+    ></script>
+{% endblock %}

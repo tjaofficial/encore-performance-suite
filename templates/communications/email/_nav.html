@@ -1,0 +1,31 @@
+
+<nav class="email-manager-nav">
+    <a href="{% url 'communications:email_manager' studio.slug %}">
+        Overview
+    </a>
+    <a href="{% url 'communications:email_compose' studio.slug %}">
+        Compose
+    </a>
+    <a href="{% url 'communications:email_campaign_list' studio.slug %}">
+        Campaigns
+    </a>
+    <a href="{% url 'communications:email_template_list' studio.slug %}">
+        Templates
+    </a>
+    <a href="{% url 'communications:email_signature_list' studio.slug %}">
+        Signatures
+    </a>
+    {% if role == "administrator" %}
+        <a href="{% url 'communications:email_automations' studio.slug %}">
+            Automated Emails
+        </a>
+    {% endif %}
+    <a href="{% url 'communications:email_analytics' studio.slug %}">
+        Analytics
+    </a>
+    {% if role == "administrator" %}
+        <a href="{% url 'communications:email_settings' studio.slug %}">
+            Settings
+        </a>
+    {% endif %}
+</nav>

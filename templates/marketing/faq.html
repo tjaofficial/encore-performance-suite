@@ -1,0 +1,472 @@
+{% extends "marketing/base.html" %}
+
+{% block title %}
+FAQ | Encore Performance Suite
+{% endblock %}
+
+{% block content %}
+<main class="inner-marketing-page faq-page">
+    <section class="inner-hero">
+        <span class="marketing-kicker">
+            Frequently Asked Questions
+        </span>
+
+        <h1>
+            Answers before you even have to ask.
+        </h1>
+
+        <p>
+            Browse common questions about getting started, pricing,
+            subscriptions, features, Drawing Board, payments, and support.
+        </p>
+
+        <div class="hero-actions">
+            <a
+                class="marketing-button primary large"
+                href="{% url 'accounts:register' %}"
+            >
+                Start Your Studio
+            </a>
+
+            <a
+                class="marketing-button ghost large"
+                href="{% url 'marketing:contact' %}"
+            >
+                Contact Encore
+            </a>
+        </div>
+    </section>
+
+    <nav class="faq-jump-nav" aria-label="FAQ categories">
+        <a href="#getting-started">Getting Started</a>
+        <a href="#pricing-subscription">Pricing & Subscription</a>
+        <a href="#features">Features</a>
+        <a href="#drawing-board-faq">Drawing Board</a>
+        <a href="#payments">Payments</a>
+    </nav>
+
+    <section id="getting-started" class="faq-section">
+        <div class="faq-heading">
+            <span class="marketing-kicker">Getting Started</span>
+            <h2>Starting with Encore</h2>
+        </div>
+
+        <div class="faq-stack">
+            <details>
+                <summary>What is Encore Performance Suite?</summary>
+                <p>
+                    Encore is studio-management software built for dance and
+                    performance studios. It connects students, families,
+                    instructors, classes, attendance, registration, communication,
+                    tasks, reporting, choreography, costumes, and other studio workflows.
+                </p>
+            </details>
+
+            <details>
+                <summary>Who is Encore designed for?</summary>
+                <p>
+                    Encore is designed for dance and performance studios that need
+                    a modern system for both day-to-day administration and the
+                    creative work surrounding classes and performances.
+                </p>
+            </details>
+
+            <details>
+                <summary>Do I have to book a demo before signing up?</summary>
+                <p>
+                    No. You can create your studio account and subscribe online
+                    whenever you are ready. Demos are available for studios that
+                    want a guided walkthrough or help deciding what fits.
+                </p>
+            </details>
+
+            <details>
+                <summary>Is there a free trial?</summary>
+                <p>
+                    No. Encore begins billing when you complete registration and
+                    secure checkout. Your studio account activates after payment.
+                </p>
+            </details>
+
+            <details>
+                <summary>When does billing begin?</summary>
+                <p>
+                    Billing begins when your studio completes signup and checkout.
+                    Encore subscriptions are billed monthly.
+                </p>
+            </details>
+
+            <details>
+                <summary>Can Encore help me switch from another studio platform?</summary>
+                <p>
+                    Yes. Encore can help plan onboarding and migration based on
+                    your current system, your studio size, and the data you need
+                    to bring over.
+                </p>
+            </details>
+
+            <details>
+                <summary>Can I add staff after I create my studio?</summary>
+                <p>
+                    Yes. Administrators can add staff access as the studio is
+                    configured and ready to invite instructors or other administrators.
+                </p>
+            </details>
+        </div>
+    </section>
+
+    <section id="pricing-subscription" class="faq-section">
+        <div class="faq-heading">
+            <span class="marketing-kicker">Pricing & Subscription</span>
+            <h2>How billing works</h2>
+        </div>
+
+        <div class="faq-stack">
+            <details>
+                <summary>How is Encore priced?</summary>
+                <p>
+                    Encore uses student-record pricing bands combined with two
+                    software tiers: Essentials and Pro. Each tier also has a
+                    lower Software + Payments price when Encore Payments is enabled.
+                </p>
+            </details>
+
+            <details>
+                <summary>What counts as a student record?</summary>
+                <p>
+                    Every non-deleted student record associated with the studio
+                    counts, including inactive and historical student records.
+                </p>
+            </details>
+
+            <details>
+                <summary>What happens when my studio moves into another pricing band?</summary>
+                <p>
+                    Encore automatically schedules the correct student-record band
+                    for your next billing cycle. The change does not unexpectedly
+                    reprice the middle of your current cycle.
+                </p>
+            </details>
+
+            <details>
+                <summary>Will Encore tell me before my subscription price changes?</summary>
+                <p>
+                    Yes. Encore creates an in-app subscription notice and sends an
+                    email when a student-record band change is scheduled.
+                </p>
+            </details>
+
+            <details>
+                <summary>Can I upgrade from Essentials to Pro?</summary>
+                <p>
+                    Yes. Upgrades take effect immediately and the current billing
+                    period is prorated.
+                </p>
+            </details>
+
+            <details>
+                <summary>Can I downgrade from Pro to Essentials?</summary>
+                <p>
+                    Yes. Downgrades are scheduled for the next billing cycle so you
+                    keep your current Pro access through the period you already paid for.
+                </p>
+            </details>
+
+            <details>
+                <summary>Can I cancel Encore myself?</summary>
+                <p>
+                    Yes. Studio administrators can schedule cancellation from
+                    Subscription & Billing without contacting sales.
+                </p>
+            </details>
+
+            <details>
+                <summary>What happens after I cancel?</summary>
+                <p>
+                    Your studio continues to have access through the end of the
+                    current billing period. The subscription then stops renewing.
+                </p>
+            </details>
+
+            <details>
+                <summary>Can I change my mind after scheduling cancellation?</summary>
+                <p>
+                    Yes. Before the subscription ends, you can choose
+                    “Keep My Subscription” and remove the scheduled cancellation.
+                </p>
+            </details>
+
+            <details>
+                <summary>What if my subscription payment fails?</summary>
+                <p>
+                    Encore does not immediately shut the studio down. The system
+                    supports payment retries, warnings, email and in-app notices,
+                    and a grace period before access is restricted.
+                </p>
+            </details>
+
+            <details>
+                <summary>Is annual billing available?</summary>
+                <p>
+                    Not at launch. Encore is billed monthly.
+                </p>
+            </details>
+
+            <details>
+                <summary>What is Software + Payments pricing?</summary>
+                <p>
+                    Studios using Encore Payments receive a lower monthly software
+                    price. That discount applies while Encore Payments is enabled
+                    and connected.
+                </p>
+            </details>
+        </div>
+    </section>
+
+    <section id="features" class="faq-section">
+        <div class="faq-heading">
+            <span class="marketing-kicker">Features</span>
+            <h2>What Encore can do</h2>
+        </div>
+
+        <div class="faq-stack">
+            <details>
+                <summary>What is included in Essentials?</summary>
+                <p>
+                    Essentials includes the complete core studio-management
+                    foundation: students and families, instructors, classes and
+                    seasons, enrollment and waitlists, scheduling, attendance,
+                    basic calendar, tasks and reminders, announcements and
+                    notifications, family, teacher, and student portals, basic
+                    email sending, registration, basic reports, and studio branding.
+                </p>
+            </details>
+
+            <details>
+                <summary>What does Pro add?</summary>
+                <p>
+                    Pro adds advanced and differentiating operations including
+                    evaluations, task templates and automation, advanced calendar,
+                    teacher time-off requests, substitute management, email
+                    templates, signatures, campaigns, scheduling, analytics and
+                    automation, birthday email, costumes, measurements, music,
+                    dance and choreography management, dashboard customization,
+                    advanced reporting, and multi-location management.
+                </p>
+            </details>
+
+            <details>
+                <summary>Does Encore support multiple locations?</summary>
+                <p>
+                    Yes. Multi-location management is part of Encore Pro.
+                </p>
+            </details>
+
+            <details>
+                <summary>Can teachers take attendance?</summary>
+                <p>
+                    Yes. Teachers can access class rosters and record attendance
+                    from their workspace.
+                </p>
+            </details>
+
+            <details>
+                <summary>Do families have their own portal?</summary>
+                <p>
+                    Yes. Encore includes role-aware family, teacher, and student
+                    portal experiences.
+                </p>
+            </details>
+
+            <details>
+                <summary>Can students have their own accounts?</summary>
+                <p>
+                    Yes. Encore supports a student workspace in addition to family
+                    and teacher workspaces.
+                </p>
+            </details>
+
+            <details>
+                <summary>Can Encore manage costumes and measurements?</summary>
+                <p>
+                    Yes. Costumes and student measurements are part of Encore Pro
+                    and are designed to stay connected to performance workflows.
+                </p>
+            </details>
+
+            <details>
+                <summary>Can teachers request time off?</summary>
+                <p>
+                    Yes. In Pro, teachers can request one or more dates off and
+                    administrators can review the classes affected by each date.
+                </p>
+            </details>
+
+            <details>
+                <summary>Can administrators assign substitute instructors?</summary>
+                <p>
+                    Yes. Pro supports substitute assignment for individual class
+                    occurrences with schedule and time-off conflict checks.
+                </p>
+            </details>
+
+            <details>
+                <summary>Does Encore include email campaigns?</summary>
+                <p>
+                    Pro includes advanced email functionality such as templates,
+                    signatures, campaigns, scheduling, analytics, and automation.
+                </p>
+            </details>
+
+            <details>
+                <summary>Can Encore send birthday emails?</summary>
+                <p>
+                    Birthday email is part of Encore Pro's automated email tools.
+                </p>
+            </details>
+
+            <details>
+                <summary>Can users customize their dashboards?</summary>
+                <p>
+                    Yes. Dashboard customization is a Pro feature.
+                </p>
+            </details>
+        </div>
+    </section>
+
+    <section id="drawing-board-faq" class="faq-section">
+        <div class="faq-heading">
+            <span class="marketing-kicker">Drawing Board</span>
+            <h2>Visual choreography planning</h2>
+        </div>
+
+        <div class="faq-stack">
+            <details open>
+                <summary>What is Drawing Board?</summary>
+                <p>
+                    Drawing Board is Encore's premium visual choreography and
+                    formation-planning workspace. It is designed to help studios
+                    plan dancers, formations, stage pictures, and performance
+                    movement inside the same system used to manage the studio.
+                </p>
+            </details>
+
+            <details>
+                <summary>Is Drawing Board included in Pro?</summary>
+                <p>
+                    No. Drawing Board is a separate premium add-on so studios can
+                    choose it independently of their main Encore tier.
+                </p>
+            </details>
+
+            <details>
+                <summary>How much does Drawing Board cost?</summary>
+                <p>
+                    Drawing Board is $39 per month as a flat studio add-on.
+                </p>
+            </details>
+
+            <details>
+                <summary>Can Essentials studios use Drawing Board?</summary>
+                <p>
+                    Yes. Drawing Board can be added to either Essentials or Pro.
+                </p>
+            </details>
+
+            <details>
+                <summary>Is Drawing Board priced per teacher or per dance?</summary>
+                <p>
+                    No. The current pricing is one flat $39 monthly add-on for
+                    the studio rather than a per-teacher or per-dance fee.
+                </p>
+            </details>
+
+            <details>
+                <summary>Can I remove Drawing Board later?</summary>
+                <p>
+                    Yes. Removal takes effect at the next billing cycle, so you
+                    retain access through the current paid period.
+                </p>
+            </details>
+        </div>
+    </section>
+
+    <section id="payments" class="faq-section">
+        <div class="faq-heading">
+            <span class="marketing-kicker">Payments</span>
+            <h2>Encore Payments</h2>
+        </div>
+
+        <div class="faq-stack">
+            <details>
+                <summary>Can families pay through Encore?</summary>
+                <p>
+                    Encore Payments is being built to support family payments
+                    directly through the platform. Final payment-processing
+                    rollout and rates will be published separately.
+                </p>
+            </details>
+
+            <details>
+                <summary>Will Encore support cards and ACH?</summary>
+                <p>
+                    Card and ACH support are part of the planned Encore Payments
+                    architecture. Final processing pricing is still being modeled.
+                </p>
+            </details>
+
+            <details>
+                <summary>Can I use Encore without Encore Payments?</summary>
+                <p>
+                    Yes. Every pricing band has a Software Only option.
+                </p>
+            </details>
+
+            <details>
+                <summary>Does Encore support recurring tuition?</summary>
+                <p>
+                    Encore has a recurring tuition billing foundation tied to
+                    class enrollment and studio billing policies. Payment
+                    processing through Encore Payments is a separate rollout.
+                </p>
+            </details>
+
+            <details>
+                <summary>Can I record cash, check, credits, and other payments?</summary>
+                <p>
+                    Encore's billing foundation supports recording family-account
+                    payments and credits in addition to future online processing.
+                </p>
+            </details>
+        </div>
+    </section>
+
+    <section class="marketing-cta">
+        <div>
+            <span class="marketing-kicker">
+                Still have a question?
+            </span>
+
+            <h2>
+                Talk with Encore, or start your studio now.
+            </h2>
+        </div>
+
+        <div class="cta-actions">
+            <a
+                class="marketing-button primary large"
+                href="{% url 'accounts:register' %}"
+            >
+                Start Your Studio
+            </a>
+
+            <a
+                class="marketing-button outline-light large"
+                href="{% url 'marketing:contact' %}"
+            >
+                Contact Encore
+            </a>
+        </div>
+    </section>
+</main>
+{% endblock %}

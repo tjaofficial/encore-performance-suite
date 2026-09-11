@@ -1,0 +1,227 @@
+<article
+    class="dashboard-widget teacher-card-shell teacher-today-card"
+    data-teacher-class-widget
+>
+    <div class="teacher-today-heading">
+        <div class="widget-title-group">
+            <span class="widget-icon">▣</span>
+
+            <div>
+                <span class="widget-kicker">
+                    Today's Classes
+                </span>
+
+                <small>
+                    {{ today|date:"l, M j" }}
+                </small>
+            </div>
+        </div>
+
+        <a
+            class="teacher-card-action"
+            href="{% url 'scheduling:calendar' studio.slug %}"
+        >
+            Full Schedule
+        </a>
+    </div>
+
+    {% if today_class_cards %}
+        <div class="teacher-today-body">
+            <div class="teacher-today-picker">
+                <div class="teacher-picker-heading">
+                    <div>
+                        <span>
+                            Your Schedule
+                        </span>
+
+                        <strong>
+                            Select a class
+                        </strong>
+                    </div>
+
+                    <small>
+                        {{ today_class_cards|length }}
+                        class{% if today_class_cards|length != 1 %}es{% endif %}
+                    </small>
+                </div>
+
+                <div class="teacher-today-list">
+                    {% for item in today_class_cards %}
+                        <button
+                            type="button"
+                            class="teacher-today-row
+                            {% if item.status == 'in_progress' %}is-current{% endif %}
+                            {% if item.status == 'completed' %}is-completed{% endif %}"
+                            data-class-selector
+                            data-class-index="{{ forloop.counter0 }}"
+                            aria-pressed="false"
+                        >
+                            <span class="teacher-today-time">
+                                {{ item.meeting.start_time|time:"g:i A" }}
+                            </span>
+
+                            <span class="teacher-today-name">
+                                <strong>
+                                    {{ item.class.name }}
+                                </strong>
+
+                                <small>
+                                    {% if item.location %}
+                                        {{ item.location.name }}
+                                    {% else %}
+                                        No room
+                                    {% endif %}
+                                    ·
+                                    {{ item.meeting.duration_minutes }} min
+                                </small>
+                            </span>
+
+                            <span class="teacher-today-state status-{{ item.status }}">
+                                {% if item.status == "in_progress" %}
+                                    Now
+                                {% elif item.status == "completed" %}
+                                    Done
+                                {% else %}
+                                    Upcoming
+                                {% endif %}
+                            </span>
+
+                            <span class="teacher-class-chevron">
+                                →
+                            </span>
+                        </button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="teacher-selected-class">
+                <div
+                    class="teacher-class-placeholder"
+                    data-class-placeholder
+                >
+                    <div class="teacher-placeholder-icon">
+                        ◫
+                    </div>
+
+                    <strong>
+                        No class selected
+                    </strong>
+
+                    <p>
+                        Select a class from today's schedule
+                        to view its details here.
+                    </p>
+                </div>
+
+                {% for item in today_class_cards %}
+                    <section
+                        class="teacher-selected-panel"
+                        data-class-panel
+                        data-class-index="{{ forloop.counter0 }}"
+                        hidden
+                    >
+                        <div class="teacher-selected-topline">
+                            <div>
+                                <span>
+                                    Selected Class
+                                </span>
+
+                                <h2>
+                                    {{ item.class.name }}
+                                </h2>
+
+                                <p>
+                                    {{ item.class.class_id }}
+                                    ·
+                                    {{ item.class.class_type.name }}
+                                </p>
+                            </div>
+
+                            <span class="teacher-class-status status-{{ item.status }}">
+                                {{ item.status_label }}
+                            </span>
+                        </div>
+
+                        <div class="teacher-selected-facts">
+                            <div>
+                                <span>Time</span>
+
+                                <strong>
+                                    {{ item.meeting.start_time|time:"g:i A" }}
+                                    –
+                                    {{ item.end_at|time:"g:i A" }}
+                                </strong>
+                            </div>
+
+                            <div>
+                                <span>Location</span>
+
+                                <strong>
+                                    {% if item.location %}
+                                        {{ item.location.name }}
+                                    {% else %}
+                                        No room assigned
+                                    {% endif %}
+                                </strong>
+                            </div>
+
+                            <div>
+                                <span>Students</span>
+
+                                <strong>
+                                    {{ item.student_count }}
+                                </strong>
+                            </div>
+
+                            <div>
+                                <span>Ages</span>
+
+                                <strong>
+                                    {{ item.age_label|default:"—" }}
+                                </strong>
+                            </div>
+
+                            <div>
+                                <span>Duration</span>
+
+                                <strong>
+                                    {{ item.meeting.duration_minutes }}
+                                    min
+                                </strong>
+                            </div>
+
+                            <div>
+                                <span>Status</span>
+
+                                <strong>
+                                    {{ item.status_label }}
+                                </strong>
+                            </div>
+                        </div>
+
+                        <a
+                            class="teacher-open-class-button"
+                            href="{% url 'classes:class_detail' studio.slug item.class.id %}"
+                        >
+                            Open Class Dashboard
+                            <span>→</span>
+                        </a>
+                    </section>
+                {% endfor %}
+            </div>
+        </div>
+    {% else %}
+        <div class="today-classes-empty teacher-today-empty">
+            <span>▣</span>
+
+            <strong>
+                No classes scheduled today
+            </strong>
+
+            <p>
+                Your classes for today will appear
+                here automatically.
+            </p>
+        </div>
+    {% endif %}
+</article>

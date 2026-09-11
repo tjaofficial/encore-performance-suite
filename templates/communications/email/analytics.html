@@ -1,0 +1,49 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+{% block title %}Email Analytics | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_communications.css' %}">{% endblock %}
+{% block topbar_title %}Email Analytics{% endblock %}
+{% block content %}
+<section class="communication-heading">
+    <div>
+        <p class="eyebrow">Email Manager</p>
+        <h1>Analytics</h1>
+        <p>Track sending health and campaign engagement without mixing Sent, Delivered, and Opened together.</p>
+    </div>
+</section>
+{% include "communications/email/_nav.html" %}
+<section class="email-stat-grid analytics-stat-grid">
+    <article><span>Sent</span><strong>{{ totals.sent }}</strong><small>Accepted for sending</small></article>
+    <article><span>Delivered</span><strong>{{ totals.delivered }}</strong><small>{{ delivery_rate }}% delivery rate</small></article>
+    <article><span>Opened</span><strong>{{ totals.opened }}</strong><small>{{ open_rate }}% provider-reported open rate</small></article>
+    <article><span>Clicked</span><strong>{{ totals.clicked }}</strong><small>Tracked link activity</small></article>
+    <article><span>Not Sent / Failed</span><strong>{{ totals.failed }}</strong><small>Rendering, reject, or send failures</small></article>
+    <article><span>Bounced</span><strong>{{ totals.bounced }}</strong><small>Permanent delivery failures</small></article>
+    <article><span>Complaints</span><strong>{{ totals.complaints }}</strong><small>Spam complaints</small></article>
+    <article><span>Recipients</span><strong>{{ totals.recipients }}</strong><small>Resolved campaign recipients</small></article>
+</section>
+<div class="analytics-note">
+    <strong>About opens</strong>
+    <span>
+        Open tracking is provider-reported and can be affected by privacy features
+        that preload or block tracking pixels. Delivery and bounce metrics are stronger indicators.
+    </span>
+</div>
+<section class="email-panel">
+    <div class="email-panel-heading"><div><span class="card-kicker">Campaign Breakdown</span><h2>Recent Performance</h2></div></div>
+    <div class="email-campaign-table">
+        <div class="email-table-head"><span>Campaign</span><span>Status</span><span>Delivered</span><span>Opened</span><span>Failed</span></div>
+        {% for campaign in campaigns %}
+            <a class="email-table-row" href="{% url 'communications:email_campaign_detail' studio.slug campaign.id %}">
+                <span><strong>{{ campaign.name }}</strong><small>{{ campaign.created_at|date:"M j, Y" }}</small></span>
+                <span><b class="email-status status-{{ campaign.status }}">{{ campaign.get_status_display }}</b></span>
+                <span>{{ campaign.delivered_count }}</span>
+                <span>{{ campaign.opened_count }}</span>
+                <span>{{ campaign.failed_count }}</span>
+            </a>
+        {% empty %}
+            <div class="empty-state">No campaign data yet.</div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,127 @@
+from django.urls import path
+
+from . import onboarding_views
+from . import admin_dashboard_views
+from . import class_dashboard_views
+from . import rooms_locations_views
+from . import teacher_dashboard_views
+
+app_name = "studios"
+
+urlpatterns = [
+    path(
+        "<slug:studio_slug>/settings/",
+        onboarding_views.onboarding_home,
+        name="onboarding_home",
+    ),
+    path(
+        "<slug:studio_slug>/settings/dashboard-layouts/class/",
+        class_dashboard_views.class_dashboard_settings,
+        name="class_dashboard_settings",
+    ),
+    path(
+        "<slug:studio_slug>/settings/dashboard-layouts/teacher/",
+        teacher_dashboard_views.teacher_dashboard_settings,
+        name="teacher_dashboard_settings",
+    ),
+    path(
+        "<slug:studio_slug>/settings/dashboard-layouts/admin/",
+        admin_dashboard_views.admin_dashboard_settings,
+        name="admin_dashboard_settings",
+    ),
+    path(
+        "<slug:studio_slug>/settings/profile/",
+        onboarding_views.studio_profile,
+        name="studio_profile",
+    ),
+    path(
+        "<slug:studio_slug>/settings/branding/",
+        onboarding_views.studio_branding,
+        name="studio_branding",
+    ),
+    path(
+        "<slug:studio_slug>/settings/widgets/",
+        onboarding_views.widget_settings,
+        name="widget_settings",
+    ),
+    path(
+        "<slug:studio_slug>/settings/locations/",
+        rooms_locations_views.room_location_list,
+        name="location_list",
+    ),
+    path(
+        "<slug:studio_slug>/settings/locations/add/",
+        rooms_locations_views.location_add,
+        name="location_add",
+    ),
+    path(
+        "<slug:studio_slug>/settings/locations/rooms/add/",
+        rooms_locations_views.room_add,
+        name="room_add",
+    ),
+    path(
+        "<slug:studio_slug>/settings/locations/<int:location_id>/edit/",
+        rooms_locations_views.location_edit,
+        name="location_edit",
+    ),
+    path(
+        "<slug:studio_slug>/settings/locations/<int:location_id>/remove/",
+        rooms_locations_views.location_delete,
+        name="location_delete",
+    ),
+    path(
+        "<slug:studio_slug>/settings/locations/rooms/<int:room_id>/edit/",
+        rooms_locations_views.room_edit,
+        name="room_edit",
+    ),
+    path(
+        "<slug:studio_slug>/settings/locations/rooms/<int:room_id>/remove/",
+        rooms_locations_views.room_delete,
+        name="room_delete",
+    ),
+    path(
+        "<slug:studio_slug>/settings/seasons/",
+        onboarding_views.season_list,
+        name="season_list",
+    ),
+    path(
+        "<slug:studio_slug>/settings/seasons/add/",
+        onboarding_views.season_add,
+        name="season_add",
+    ),
+    path(
+        "<slug:studio_slug>/settings/seasons/<int:season_id>/edit/",
+        onboarding_views.season_edit,
+        name="season_edit",
+    ),
+    path(
+        "<slug:studio_slug>/settings/seasons/<int:season_id>/remove/",
+        onboarding_views.season_delete,
+        name="season_delete",
+    ),
+    path(
+        "<slug:studio_slug>/settings/class-types/",
+        onboarding_views.class_type_list,
+        name="class_type_list",
+    ),
+    path(
+        "<slug:studio_slug>/settings/class-types/add/",
+        onboarding_views.class_type_add,
+        name="class_type_add",
+    ),
+    path(
+        "<slug:studio_slug>/settings/class-types/<int:class_type_id>/edit/",
+        onboarding_views.class_type_edit,
+        name="class_type_edit",
+    ),
+    path(
+        "<slug:studio_slug>/settings/class-types/<int:class_type_id>/remove/",
+        onboarding_views.class_type_delete,
+        name="class_type_delete",
+    ),
+    path(
+        "<slug:studio_slug>/settings/staff/invite/",
+        onboarding_views.staff_invite,
+        name="staff_invite",
+    ),
+]

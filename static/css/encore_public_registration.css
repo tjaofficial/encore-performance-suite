@@ -1,0 +1,1184 @@
+:root {
+    --public-navy: #00024e;
+    --public-blue: #1663ff;
+    --public-cyan: #0197fc;
+    --public-text: #11182c;
+    --public-muted: #667085;
+    --public-bg: #f6f8fc;
+    --public-border: #e2e7f0;
+    --public-surface: #ffffff;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background:
+        radial-gradient(
+            circle at top right,
+            rgba(1, 151, 252, 0.08),
+            transparent 30%
+        ),
+        var(--public-bg);
+    color: var(--public-text);
+    font-family:
+        Inter,
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+}
+
+.public-shell {
+    width: min(1180px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 42px 0 60px;
+}
+
+.public-shell.narrow {
+    width: min(760px, calc(100% - 32px));
+}
+
+.embed-mode .public-shell {
+    width: 100%;
+    padding: 14px;
+}
+
+.public-header {
+    margin-bottom: 26px;
+}
+
+.public-header h1,
+.public-detail-card h1,
+.registration-heading h1,
+.public-success-card h1 {
+    margin: 4px 0 8px;
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    letter-spacing: -0.05em;
+}
+
+.public-header p,
+.registration-heading p,
+.public-detail-card > p,
+.public-success-card p {
+    color: var(--public-muted);
+    line-height: 1.6;
+}
+
+.public-kicker {
+    color: var(--public-blue);
+    font-size: 0.68rem;
+    font-weight: 850;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.catalog-filters {
+    display: grid;
+    grid-template-columns:
+        minmax(240px, 1.2fr)
+        minmax(170px, 0.7fr)
+        minmax(170px, 0.7fr)
+        minmax(150px, 0.6fr)
+        auto;
+    gap: 10px;
+    align-items: end;
+    margin-bottom: 20px;
+    padding: 16px;
+    border: 1px solid var(--public-border);
+    border-radius: 17px;
+    background: var(--public-surface);
+}
+
+.embed-mode .catalog-filters {
+    grid-template-columns:
+        minmax(200px, 1fr)
+        minmax(160px, 0.5fr)
+        auto;
+}
+
+.catalog-filters > div {
+    display: grid;
+    gap: 6px;
+}
+
+.catalog-filters label,
+.public-field label {
+    color: var(--public-muted);
+    font-size: 0.68rem;
+    font-weight: 850;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.catalog-filters input,
+.catalog-filters select,
+.public-input {
+    width: 100%;
+    min-height: 43px;
+    padding: 0 11px;
+    border: 1px solid var(--public-border);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--public-text);
+    font: inherit;
+}
+
+textarea.public-input {
+    min-height: 100px;
+    padding-top: 10px;
+    resize: vertical;
+}
+
+.public-class-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 15px;
+}
+
+.public-class-card,
+.public-detail-card,
+.public-registration-card,
+.public-success-card {
+    border: 1px solid var(--public-border);
+    border-radius: 20px;
+    background: var(--public-surface);
+    box-shadow:
+        0 18px 44px
+        rgba(0, 2, 78, 0.07);
+}
+
+.public-class-card {
+    display: grid;
+    gap: 14px;
+    padding: 20px;
+}
+
+.class-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.class-card-top h2 {
+    margin: 4px 0;
+    font-size: 1.2rem;
+}
+
+.class-card-top p {
+    margin: 0;
+    color: var(--public-muted);
+    font-size: 0.76rem;
+}
+
+.availability {
+    display: inline-flex;
+    padding: 5px 8px;
+    border-radius: 999px;
+    font-size: 0.64rem;
+    font-weight: 850;
+}
+
+.availability.open {
+    background: rgba(22, 134, 92, 0.10);
+    color: #16865c;
+}
+
+.availability.full {
+    background: rgba(176, 68, 68, 0.10);
+    color: #b04444;
+}
+
+.class-description {
+    margin: 0;
+    color: var(--public-muted);
+    font-size: 0.78rem;
+    line-height: 1.55;
+}
+
+.class-info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.class-info-grid div {
+    display: grid;
+    gap: 3px;
+}
+
+.class-info-grid span {
+    color: var(--public-muted);
+    font-size: 0.62rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.class-info-grid strong {
+    font-size: 0.78rem;
+}
+
+.meeting-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.meeting-list span {
+    padding: 5px 8px;
+    border-radius: 999px;
+    background: rgba(22, 99, 255, 0.08);
+    color: var(--public-navy);
+    font-size: 0.68rem;
+    font-weight: 750;
+}
+
+.class-card-actions,
+.detail-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.public-button {
+    display: inline-flex;
+    min-height: 42px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 14px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    font: inherit;
+    font-size: 0.76rem;
+    font-weight: 800;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.public-button.primary {
+    background:
+        linear-gradient(
+            135deg,
+            var(--public-blue),
+            #2e3cf1
+        );
+    color: #fff;
+}
+
+.public-button.secondary {
+    border-color: var(--public-border);
+    background: #fff;
+    color: var(--public-navy);
+}
+
+.public-button.large {
+    min-height: 48px;
+    padding: 0 20px;
+}
+
+.public-back-link {
+    display: inline-block;
+    margin-bottom: 16px;
+    color: var(--public-blue);
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.public-detail-card,
+.public-registration-card,
+.public-success-card {
+    padding: 26px;
+}
+
+.detail-section {
+    padding: 18px 0;
+    border-top: 1px solid var(--public-border);
+}
+
+.detail-section h2 {
+    margin: 0 0 8px;
+    font-size: 1rem;
+}
+
+.detail-section p {
+    margin: 0;
+    color: var(--public-muted);
+    line-height: 1.6;
+}
+
+.public-notice {
+    margin: 16px 0;
+    padding: 13px 15px;
+    border-radius: 12px;
+    background: rgba(176, 68, 68, 0.08);
+    color: #8a3c3c;
+    font-size: 0.77rem;
+    line-height: 1.5;
+}
+
+.public-form {
+    display: grid;
+    gap: 18px;
+}
+
+.public-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.public-field {
+    display: grid;
+    gap: 6px;
+}
+
+.public-field.full {
+    grid-column: 1 / -1;
+}
+
+.public-error {
+    color: #b04444;
+    font-size: 0.68rem;
+}
+
+.request-disclaimer {
+    margin: 14px 0 0;
+    color: var(--public-muted);
+    font-size: 0.68rem;
+    line-height: 1.5;
+}
+
+.public-success-card {
+    text-align: center;
+}
+
+.success-mark {
+    display: grid;
+    width: 54px;
+    height: 54px;
+    place-items: center;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    background:
+        linear-gradient(
+            135deg,
+            var(--public-blue),
+            var(--public-cyan)
+        );
+    color: #fff;
+    font-size: 1.4rem;
+    font-weight: 900;
+}
+
+.public-empty {
+    grid-column: 1 / -1;
+    padding: 30px;
+    border-radius: 16px;
+    background: #fff;
+    color: var(--public-muted);
+    text-align: center;
+}
+
+.embed-footer {
+    margin-top: 14px;
+    color: var(--public-muted);
+    font-size: 0.62rem;
+    text-align: center;
+}
+
+@media (max-width: 900px) {
+    .catalog-filters,
+    .embed-mode .catalog-filters,
+    .public-class-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 650px) {
+    .public-form-grid,
+    .class-info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .public-field.full {
+        grid-column: auto;
+    }
+}
+
+
+.widget-style-clean .public-class-card,
+.widget-style-clean .public-detail-card,
+.widget-style-clean .public-registration-card,
+.widget-style-clean .registration-entry-card {
+    border-radius: 14px;
+    box-shadow: 0 10px 28px rgba(0, 2, 78, 0.05);
+}
+
+.widget-style-minimal {
+    background: #fff;
+}
+
+.widget-style-minimal .public-class-card,
+.widget-style-minimal .public-detail-card,
+.widget-style-minimal .public-registration-card,
+.widget-style-minimal .registration-entry-card {
+    border-radius: 4px;
+    box-shadow: none;
+}
+
+.widget-style-minimal .public-class-grid {
+    grid-template-columns: 1fr;
+}
+
+.widget-style-minimal .public-class-card {
+    border-width: 0 0 1px;
+}
+
+.widget-style-cards .public-class-card {
+    transform: translateY(0);
+    transition: transform .16s ease, box-shadow .16s ease;
+}
+
+.widget-style-cards .public-class-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 50px rgba(0, 2, 78, 0.10);
+}
+
+.detail-subtext {
+    margin-top: 5px !important;
+    font-size: .76rem;
+}
+
+.public-calendar-card,
+.registration-entry-card {
+    border: 1px solid var(--public-border);
+    border-radius: 20px;
+    background: var(--public-surface);
+    box-shadow: 0 18px 44px rgba(0, 2, 78, 0.07);
+    overflow: hidden;
+}
+
+.calendar-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--public-border);
+}
+
+.calendar-toolbar h2 {
+    margin: 3px 0 0;
+}
+
+.calendar-nav {
+    display: grid;
+    width: 38px;
+    height: 38px;
+    place-items: center;
+    border: 1px solid var(--public-border);
+    border-radius: 10px;
+    color: var(--public-blue);
+    font-weight: 900;
+    text-decoration: none;
+}
+
+.calendar-weekdays,
+.calendar-month-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.calendar-weekdays {
+    border-bottom: 1px solid var(--public-border);
+    background: rgba(22, 99, 255, .035);
+}
+
+.calendar-weekdays span {
+    padding: 10px;
+    color: var(--public-muted);
+    font-size: .68rem;
+    font-weight: 850;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.calendar-day {
+    min-height: 132px;
+    padding: 9px;
+    border-right: 1px solid var(--public-border);
+    border-bottom: 1px solid var(--public-border);
+}
+
+.calendar-day:nth-child(7n) {
+    border-right: 0;
+}
+
+.calendar-day.outside {
+    background: #fafbfc;
+}
+
+.calendar-day > strong {
+    font-size: .72rem;
+}
+
+.calendar-day-events {
+    display: grid;
+    gap: 5px;
+    margin-top: 7px;
+}
+
+.calendar-day-events article {
+    display: grid;
+    gap: 2px;
+    padding: 6px;
+    border-left: 3px solid var(--public-blue);
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--public-blue) 8%, white);
+}
+
+.calendar-day-events b {
+    font-size: .68rem;
+}
+
+.calendar-day-events span,
+.calendar-day-events small {
+    color: var(--public-muted);
+    font-size: .6rem;
+}
+
+.public-agenda {
+    display: grid;
+}
+
+.public-agenda article {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: 16px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--public-border);
+}
+
+.public-agenda time {
+    display: grid;
+    align-content: start;
+    gap: 3px;
+}
+
+.public-agenda time strong {
+    color: var(--public-blue);
+}
+
+.public-agenda time span,
+.public-agenda small {
+    color: var(--public-muted);
+    font-size: .7rem;
+}
+
+.public-agenda h3 {
+    margin: 0 0 4px;
+}
+
+.public-agenda p {
+    margin: 0 0 5px;
+    color: var(--public-muted);
+    line-height: 1.5;
+}
+
+.public-agenda.compact article {
+    grid-template-columns: 70px 1fr;
+    padding: 10px 14px;
+}
+
+.public-agenda.compact p {
+    display: none;
+}
+
+.registration-entry-card {
+    padding: 22px;
+}
+
+.registration-entry-heading h2 {
+    margin: 3px 0 5px;
+}
+
+.registration-entry-heading p {
+    margin: 0 0 18px;
+    color: var(--public-muted);
+}
+
+.registration-class-list {
+    display: grid;
+    gap: 10px;
+}
+
+.registration-class-list article {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 15px;
+    border: 1px solid var(--public-border);
+    border-radius: 14px;
+}
+
+.registration-class-list h3 {
+    margin: 3px 0 4px;
+}
+
+.registration-class-list p {
+    margin: 0 0 8px;
+    color: var(--public-muted);
+    font-size: .78rem;
+}
+
+.registration-class-action {
+    display: grid;
+    justify-items: end;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+@media (max-width: 760px) {
+    .calendar-weekdays {
+        display: none;
+    }
+
+    .calendar-month-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .calendar-day,
+    .calendar-day:nth-child(7n) {
+        min-height: auto;
+        border-right: 0;
+    }
+
+    .calendar-day.outside {
+        display: none;
+    }
+
+    .registration-class-list article {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .registration-class-action {
+        justify-items: stretch;
+    }
+}
+
+
+.registration-wizard-shell {
+    max-width: 1080px;
+}
+
+.registration-wizard-header {
+    margin-bottom: 16px;
+}
+
+.registration-progress {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.registration-progress span {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    padding: 9px 11px;
+    border: 1px solid var(--public-border);
+    border-radius: 11px;
+    background: var(--public-surface);
+    color: var(--public-muted);
+    font-size: .68rem;
+    font-weight: 850;
+}
+
+.registration-progress span.active {
+    border-color: var(--public-blue);
+    background: color-mix(in srgb, var(--public-blue) 8%, white);
+    color: var(--public-blue);
+}
+
+.registration-progress span.complete {
+    color: var(--public-text);
+}
+
+.registration-progress b {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.registration-wizard-card {
+    width: 100%;
+}
+
+.registration-choice-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.registration-choice-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 18px;
+    border: 1px solid var(--public-border);
+    border-radius: 15px;
+    cursor: pointer;
+    transition: border-color .15s ease, background .15s ease;
+}
+
+.registration-choice-card:hover {
+    border-color: var(--public-blue);
+    background: color-mix(in srgb, var(--public-blue) 4%, white);
+}
+
+.registration-choice-card input {
+    margin-top: 4px;
+}
+
+.registration-choice-card span {
+    display: grid;
+    gap: 5px;
+}
+
+.registration-choice-card small {
+    color: var(--public-muted);
+    line-height: 1.45;
+}
+
+.wizard-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.wizard-form-grid .full {
+    grid-column: 1 / -1;
+}
+
+.wizard-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.wizard-actions.split {
+    justify-content: space-between;
+}
+
+.student-login-toggle {
+    padding: 13px;
+    border: 1px solid var(--public-border);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--public-blue) 4%, white);
+}
+
+.student-login-toggle label,
+.review-confirm {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-weight: 800;
+}
+
+.student-login-note {
+    margin-top: -4px;
+    color: var(--public-muted);
+    font-size: .72rem;
+}
+
+.wizard-class-selection {
+    display: grid;
+    gap: 11px;
+}
+
+.wizard-class-option {
+    display: grid;
+    gap: 10px;
+    padding: 16px;
+    border: 1px solid var(--public-border);
+    border-radius: 15px;
+    cursor: pointer;
+}
+
+.wizard-class-option:has(input:checked) {
+    border-color: var(--public-blue);
+    background: color-mix(in srgb, var(--public-blue) 5%, white);
+}
+
+.wizard-class-option > input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.wizard-class-main {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.wizard-class-main h3 {
+    margin: 4px 0;
+}
+
+.wizard-class-main p {
+    margin: 0;
+    color: var(--public-muted);
+    font-size: .76rem;
+}
+
+.wizard-class-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.wizard-class-meta span {
+    padding: 5px 8px;
+    border-radius: 999px;
+    background: rgba(22, 99, 255, .07);
+    color: var(--public-muted);
+    font-size: .68rem;
+    font-weight: 750;
+}
+
+.registration-review-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.review-panel {
+    padding: 16px;
+    border: 1px solid var(--public-border);
+    border-radius: 14px;
+    background: #fff;
+}
+
+.review-panel-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--public-border);
+}
+
+.review-panel-heading h2 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.review-panel-heading a {
+    color: var(--public-blue);
+    font-size: .72rem;
+    font-weight: 850;
+    text-decoration: none;
+}
+
+.review-panel p {
+    margin: 5px 0 0;
+    color: var(--public-muted);
+    font-size: .78rem;
+    line-height: 1.5;
+}
+
+.review-classes {
+    margin-bottom: 12px;
+}
+
+.review-charge-table-wrap {
+    overflow-x: auto;
+}
+
+.review-charge-table {
+    width: 100%;
+    min-width: 760px;
+    border-collapse: collapse;
+}
+
+.review-charge-table th,
+.review-charge-table td {
+    padding: 11px 9px;
+    border-bottom: 1px solid var(--public-border);
+    text-align: left;
+    vertical-align: top;
+    font-size: .75rem;
+}
+
+.review-charge-table th {
+    color: var(--public-muted);
+    font-size: .64rem;
+    text-transform: uppercase;
+}
+
+.review-charge-table td:first-child {
+    min-width: 210px;
+}
+
+.review-charge-table td small {
+    display: block;
+    margin-top: 3px;
+    color: var(--public-muted);
+}
+
+.review-charge-table .availability {
+    margin-top: 5px;
+}
+
+.registration-total-card {
+    display: grid;
+    justify-items: end;
+    gap: 3px;
+    margin-top: 14px;
+    padding: 15px;
+    border-radius: 13px;
+    background: color-mix(in srgb, var(--public-blue) 7%, white);
+}
+
+.registration-total-card span {
+    color: var(--public-muted);
+    font-size: .68rem;
+    font-weight: 850;
+    text-transform: uppercase;
+}
+
+.registration-total-card strong {
+    color: var(--public-navy);
+    font-size: 1.35rem;
+}
+
+.registration-total-card small {
+    max-width: 620px;
+    color: var(--public-muted);
+    line-height: 1.45;
+    text-align: right;
+}
+
+.registration-total-card.ready {
+    justify-items: center;
+    padding: 24px;
+    text-align: center;
+}
+
+.registration-total-card.ready small {
+    text-align: center;
+}
+
+.review-confirm-form {
+    margin-top: 14px;
+}
+
+.review-confirm {
+    padding: 13px;
+    border: 1px solid var(--public-border);
+    border-radius: 12px;
+}
+
+@media (max-width: 760px) {
+    .registration-progress {
+        grid-template-columns: 1fr;
+    }
+
+    .registration-progress span:not(.active) b {
+        display: none;
+    }
+
+    .registration-choice-list,
+    .wizard-form-grid,
+    .registration-review-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .wizard-form-grid .full {
+        grid-column: auto;
+    }
+
+    .wizard-actions.split {
+        flex-direction: column-reverse;
+    }
+
+    .wizard-actions .public-button {
+        width: 100%;
+    }
+}
+
+
+.stripe-payment-element {
+    padding: 16px;
+    border: 1px solid var(--public-border);
+    border-radius: 14px;
+    background: #fff;
+}
+
+.payment-setup-error {
+    margin: 16px 0;
+}
+
+.registration-free-notice {
+    background: rgba(22, 134, 92, .08);
+    color: #146c4b;
+}
+
+.registration-complete-card {
+    display: grid;
+    gap: 18px;
+}
+
+.registration-confirmation-list {
+    display: grid;
+    gap: 8px;
+    width: 100%;
+    text-align: left;
+}
+
+.registration-confirmation-list article {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 12px;
+    border: 1px solid var(--public-border);
+    border-radius: 11px;
+}
+
+.registration-confirmation-list article div {
+    display: grid;
+    gap: 3px;
+}
+
+.registration-confirmation-list small {
+    color: var(--public-muted);
+}
+
+.registration-receipt-summary {
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+    padding: 15px;
+    border-radius: 13px;
+    background: color-mix(in srgb, var(--public-blue) 7%, white);
+}
+
+.registration-receipt-summary span,
+.registration-receipt-summary small {
+    color: var(--public-muted);
+    font-size: .72rem;
+}
+
+.registration-receipt-summary strong {
+    font-size: 1.35rem;
+}
+
+
+.returning-account-grid {
+    display: grid;
+    grid-template-columns: minmax(280px, .8fr) minmax(420px, 1.2fr);
+    gap: 14px;
+}
+
+.returning-account-card {
+    padding: 18px;
+    border: 1px solid var(--public-border);
+    border-radius: 15px;
+    background: #fff;
+}
+
+.returning-account-card.existing {
+    align-self: start;
+    background: color-mix(in srgb, var(--public-blue) 4%, white);
+}
+
+.returning-account-card h2,
+.existing-students-panel h2 {
+    margin: 4px 0 6px;
+}
+
+.returning-account-card > p,
+.existing-students-panel > p {
+    margin: 0 0 14px;
+    color: var(--public-muted);
+    line-height: 1.5;
+}
+
+.existing-students-panel {
+    margin-bottom: 18px;
+    padding: 16px;
+    border: 1px solid var(--public-border);
+    border-radius: 15px;
+    background: color-mix(in srgb, var(--public-blue) 4%, white);
+}
+
+.existing-student-grid {
+    display: grid;
+    gap: 8px;
+}
+
+.existing-student-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 12px;
+    border: 1px solid var(--public-border);
+    border-radius: 11px;
+    background: #fff;
+}
+
+.existing-student-card div {
+    display: grid;
+    gap: 3px;
+}
+
+.existing-student-card small {
+    color: var(--public-muted);
+}
+
+.existing-student-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 16px 0 2px;
+    color: var(--public-muted);
+    font-size: .7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.existing-student-divider::before,
+.existing-student-divider::after {
+    height: 1px;
+    flex: 1;
+    background: var(--public-border);
+    content: "";
+}
+
+@media (max-width: 860px) {
+    .returning-account-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .existing-student-card {
+        align-items: stretch;
+        flex-direction: column;
+    }
+}

@@ -1,0 +1,175 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Instructors | Encore Performance Suite{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_staff_enrollment.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_list_views.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Instructor Manager{% endblock %}
+
+{% block content %}
+<section class="manager-heading">
+    <div>
+        <p class="eyebrow">Staff</p>
+        <h1>Instructors</h1>
+        <p>
+            Manage faculty profiles, assignments, emergency information,
+            and availability.
+        </p>
+    </div>
+
+    <div class="list-heading-actions">
+        {% include "includes/list_view_toggle.html" with list_view_label="Instructor display" %}
+
+        <a
+            class="button primary"
+            href="{% url 'instructors:instructor_create' studio.slug %}"
+        >
+            + Add Instructor
+        </a>
+    </div>
+</section>
+
+<form method="get" class="filter-panel compact-filter">
+    <div class="wide-filter">
+        <label>Search</label>
+        <input
+            type="search"
+            name="q"
+            value="{{ filters.q }}"
+            placeholder="Name, email, phone..."
+        >
+    </div>
+
+    <div>
+        <label>Status</label>
+        <select name="status">
+            <option value="">All</option>
+            <option value="active" {% if filters.status == "active" %}selected{% endif %}>
+                Active
+            </option>
+            <option value="inactive" {% if filters.status == "inactive" %}selected{% endif %}>
+                Inactive
+            </option>
+        </select>
+    </div>
+
+    <div class="filter-buttons">
+        <button class="button primary" type="submit">Filter</button>
+        <a
+            class="button secondary"
+            href="{% url 'instructors:instructor_list' studio.slug %}"
+        >
+            Reset
+        </a>
+    </div>
+</form>
+
+{% if view_mode == "table" %}
+<section class="encore-list-table-card">
+    <div class="encore-list-table-wrap">
+        <table class="encore-list-table">
+            <thead>
+                <tr>
+                    <th>Instructor</th>
+                    <th>Email</th>
+                    <th>Primary Classes</th>
+                    <th>Assistant Classes</th>
+                    <th>Phone</th>
+                    <th>Status</th>
+                    <th class="action-cell">Open</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for instructor in instructors %}
+                    <tr>
+                        <td>
+                            <a
+                                class="primary-cell"
+                                href="{% url 'instructors:instructor_detail' studio.slug instructor.id %}"
+                            >
+                                {{ instructor.full_name }}
+                            </a>
+                        </td>
+                        <td>{{ instructor.email|default:"—" }}</td>
+                        <td class="numeric-cell">{{ instructor.primary_class_count }}</td>
+                        <td class="numeric-cell">{{ instructor.assistant_class_count }}</td>
+                        <td>{{ instructor.phone|default:"—" }}</td>
+                        <td>
+                            <div class="table-badges">
+                                {% if instructor.is_active %}
+                                    <span class="status-pill active">Active</span>
+                                {% else %}
+                                    <span class="status-pill inactive">Inactive</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="action-cell">
+                            <a href="{% url 'instructors:instructor_detail' studio.slug instructor.id %}">
+                                Open →
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td class="empty-cell" colspan="7">
+                            No instructors matched your filters.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% else %}
+<section class="staff-grid">
+    {% for instructor in instructors %}
+        <a
+            class="staff-card"
+            href="{% url 'instructors:instructor_detail' studio.slug instructor.id %}"
+        >
+            <div class="staff-card-top">
+                <div class="staff-avatar">
+                    {{ instructor.first_name|slice:":1"|upper }}
+                </div>
+
+                <div class="staff-title">
+                    <h2>{{ instructor.full_name }}</h2>
+                    <p>{{ instructor.email|default:"No email" }}</p>
+                </div>
+
+                {% if instructor.is_active %}
+                    <span class="status-pill active">Active</span>
+                {% else %}
+                    <span class="status-pill inactive">Inactive</span>
+                {% endif %}
+            </div>
+
+            <div class="staff-metrics">
+                <div>
+                    <span>Primary Classes</span>
+                    <strong>{{ instructor.primary_class_count }}</strong>
+                </div>
+
+                <div>
+                    <span>Assistant Classes</span>
+                    <strong>{{ instructor.assistant_class_count }}</strong>
+                </div>
+
+                <div>
+                    <span>Phone</span>
+                    <strong>{{ instructor.phone|default:"—" }}</strong>
+                </div>
+            </div>
+        </a>
+    {% empty %}
+        <div class="empty-state">
+            No instructors matched your filters.
+        </div>
+    {% endfor %}
+</section>
+{% endif %}
+{% endblock %}

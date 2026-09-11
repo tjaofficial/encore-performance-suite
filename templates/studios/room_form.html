@@ -1,0 +1,37 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+{% block title %}{{ page_title|default:"Add Room" }} | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}">{% endblock %}
+{% block topbar_title %}Rooms & Locations{% endblock %}
+{% block content %}
+<div class="settings-workspace">
+    {% include "includes/settings_nav.html" %}
+    <div class="settings-workspace-content">
+        <section class="settings-heading">
+            <div>
+                <a class="back-link" href="{% url 'studios:location_list' studio.slug %}">← Back to Rooms & Locations</a>
+                <p class="eyebrow">Studio Settings</p>
+                <h1>{{ page_title|default:"Add Room" }}</h1>
+                <p>{% if editing %}Update this teaching, rehearsal, or performance space.{% else %}Add a teaching, rehearsal, or performance space. A room can belong directly to {{ studio.name }} and does not need a physical address.{% endif %}</p>
+            </div>
+        </section>
+        <form method="post" class="settings-form room-settings-form">
+            {% csrf_token %}
+            {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+            <section class="settings-panel room-form-panel">
+                <div class="location-form-intro"><span>Room</span><strong>Space information</strong><p>Location is optional. Leave it blank for a normal studio room, or choose a physical location only when the studio operates from multiple buildings or sites.</p></div>
+                <div class="settings-form-grid room-form-grid">
+                    {% for field in form %}
+                    <div class="settings-field{% if field.name == 'notes' %} room-notes-field{% endif %}">
+                        {% if field.field.widget.input_type == "checkbox" %}<label class="checkbox-line">{{ field }}<span>{{ field.label }}</span></label>{% else %}{{ field.label_tag }}{{ field }}{% endif %}
+                        {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                        {% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            <div class="form-actions"><a class="button secondary" href="{% url 'studios:location_list' studio.slug %}">Cancel</a><button class="button primary" type="submit">{% if editing %}Save Changes{% else %}Add Room{% endif %}</button></div>
+        </form>
+    </div>
+</div>
+{% endblock %}

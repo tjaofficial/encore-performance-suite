@@ -1,0 +1,122 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Review Time Off | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_calendar.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Review Time Off{% endblock %}
+
+{% block content %}
+<section class="time-off-page">
+    <header class="time-off-page-header">
+        <div>
+            <a
+                class="time-off-back-link"
+                href="{% url 'scheduling:time_off_admin_list' studio.slug %}"
+            >
+                ← Back to Time Off Requests
+            </a>
+
+            <p class="eyebrow">Teacher Time Off</p>
+
+            <h1>{{ time_off_request.instructor.full_name }}</h1>
+
+            <p>
+                {{ time_off_request.reason }}
+            </p>
+        </div>
+    </header>
+
+    <form
+        method="post"
+        class="time-off-form-card"
+        data-time-off-review-form
+    >
+        {% csrf_token %}
+
+        <section class="time-off-form-section">
+            <div class="time-off-section-heading">
+                <span>01</span>
+                <div>
+                    <strong>Review Requested Dates</strong>
+                    <small>
+                        Approve all, deny all, or decide each date separately.
+                    </small>
+                </div>
+            </div>
+
+            <div class="time-off-bulk-actions">
+                <button
+                    type="button"
+                    data-time-off-bulk="approved"
+                >
+                    Approve All
+                </button>
+
+                <button
+                    type="button"
+                    data-time-off-bulk="denied"
+                >
+                    Deny All
+                </button>
+            </div>
+
+            <div class="time-off-decision-list">
+                {% for field in form %}
+                    {% if field.name != "decision_note" %}
+                        <label class="time-off-decision-row">
+                            <span>{{ field.label }}</span>
+                            {{ field }}
+                            {{ field.errors }}
+                        </label>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="time-off-form-section">
+            <div class="time-off-section-heading">
+                <span>02</span>
+                <div>
+                    <strong>Admin Note</strong>
+                    <small>
+                        Optional note that can be included with the decision.
+                    </small>
+                </div>
+            </div>
+
+            <label class="time-off-field">
+                {{ form.decision_note }}
+            </label>
+        </section>
+
+        <div class="time-off-review-warning">
+            Approved dates that contain scheduled classes will require
+            substitute coverage before approval can be finalized.
+        </div>
+
+        <div class="time-off-form-actions">
+            <a
+                class="button secondary"
+                href="{% url 'scheduling:time_off_admin_list' studio.slug %}"
+            >
+                Cancel
+            </a>
+
+            <button
+                type="submit"
+                class="button primary"
+            >
+                Continue
+            </button>
+        </div>
+    </form>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/encore_time_off.js' %}" defer></script>
+{% endblock %}

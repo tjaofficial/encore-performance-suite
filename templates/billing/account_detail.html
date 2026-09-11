@@ -1,0 +1,342 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}
+Billing | {{ account.family }} | Encore
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_billing.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_recurring_tuition.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_enrollment_billing.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Family Billing{% endblock %}
+
+{% block content %}
+<section class="billing-heading">
+    <div>
+        <a
+            class="back-link"
+            href="{% url 'families:family_detail' studio.slug account.family.id %}"
+        >
+            ← Back to Family
+        </a>
+
+        <p class="eyebrow">Billing Account</p>
+        <h1>{{ account.family }}</h1>
+
+        <p>
+            Enrollment-driven tuition, charges, payments,
+            credits, and current balance.
+        </p>
+    </div>
+
+    <div class="billing-actions">
+        <a
+            class="button secondary"
+            href="{% url 'billing:add_credit' studio.slug account.id %}"
+        >
+            + Credit
+        </a>
+
+        <a
+            class="button secondary"
+            href="{% url 'billing:record_payment' studio.slug account.id %}"
+        >
+            Record Payment
+        </a>
+
+        <a
+            class="button primary"
+            href="{% url 'billing:add_charge' studio.slug account.id %}"
+        >
+            + Manual Charge
+        </a>
+    </div>
+</section>
+
+{% if messages %}
+<div class="message-stack">
+    {% for message in messages %}
+        <div class="message-banner">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="billing-source-note">
+    <strong>Tuition is enrollment-driven.</strong>
+
+    <span>
+        Normal tuition is created from the student's Class tuition,
+        Class billing policy, and Season dates. Manual charges are for
+        exceptions such as costumes, merchandise, or other fees.
+    </span>
+</div>
+
+<section class="billing-metrics">
+    <article class="metric-card">
+        <span class="metric-label">Current Balance</span>
+        <strong>${{ account.balance|floatformat:2 }}</strong>
+        <span>amount currently owed</span>
+    </article>
+
+    <article class="metric-card">
+        <span class="metric-label">Total Charges</span>
+        <strong>${{ account.total_charges|floatformat:2 }}</strong>
+        <span>non-void charges</span>
+    </article>
+
+    <article class="metric-card">
+        <span class="metric-label">Payments Received</span>
+        <strong>${{ account.total_payments|floatformat:2 }}</strong>
+        <span>succeeded payments</span>
+    </article>
+
+    <article class="metric-card">
+        <span class="metric-label">Credits</span>
+        <strong>${{ account.total_credits|floatformat:2 }}</strong>
+        <span>discounts / credits issued</span>
+    </article>
+</section>
+
+<section class="billing-grid">
+    <article class="billing-card span-2">
+        <div class="card-heading">
+            <div>
+                <span class="card-kicker">Enrollment Billing</span>
+                <h2>Active Tuition Schedules</h2>
+            </div>
+        </div>
+
+        <div class="recurring-grid">
+            {% for schedule in recurring_schedules %}
+                <div class="recurring-card locked-schedule">
+                    <div>
+                        <strong>
+                            {% if schedule.class_instance %}
+                                {{ schedule.class_instance.name }}
+                            {% else %}
+                                {{ schedule.tuition_plan.name }}
+                            {% endif %}
+                        </strong>
+
+                        <span>
+                            ${{ schedule.amount|floatformat:2 }}
+                            ·
+                            {{ schedule.tuition_plan.get_frequency_display }}
+                        </span>
+                    </div>
+
+                    <div class="recurring-meta">
+                        {% if schedule.student %}
+                            <span>
+                                {{ schedule.student.first_name }}
+                                {{ schedule.student.last_name }}
+                            </span>
+                        {% endif %}
+
+                        <span>
+                            {% if schedule.next_charge_date %}
+                                Next:
+                                {{ schedule.next_charge_date|date:"M j, Y" }}
+                            {% else %}
+                                No future charge
+                            {% endif %}
+                        </span>
+
+                        {% if schedule.is_active %}
+                            <span class="status-pill status-active">
+                                Active
+                            </span>
+                        {% else %}
+                            <span class="status-pill status-void">
+                                Inactive
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+            {% empty %}
+                <div class="empty-state">
+                    No recurring tuition schedules.
+                </div>
+            {% endfor %}
+        </div>
+    </article>
+
+    <article class="billing-card span-2">
+        <div class="card-heading">
+            <div>
+                <span class="card-kicker">Receivables</span>
+                <h2>Charges</h2>
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            <table class="billing-table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Student</th>
+                        <th>Due</th>
+                        <th>Amount</th>
+                        <th>Paid/Credited</th>
+                        <th>Remaining</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for charge in charges %}
+                        <tr>
+                            <td>
+                                <strong>{{ charge.description }}</strong>
+                                <small>
+                                    {{ charge.get_charge_type_display }}
+                                    {% if charge.enrollment %}
+                                        · Enrollment Generated
+                                    {% endif %}
+                                </small>
+                            </td>
+
+                            <td>
+                                {% if charge.student %}
+                                    {{ charge.student.first_name }}
+                                    {{ charge.student.last_name }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {{ charge.due_date|date:"M j, Y"|default:"—" }}
+                            </td>
+
+                            <td>${{ charge.amount|floatformat:2 }}</td>
+
+                            <td>
+                                ${{ charge.paid_amount|add:charge.credit_amount|floatformat:2 }}
+                            </td>
+
+                            <td>
+                                <strong>
+                                    ${{ charge.balance_remaining|floatformat:2 }}
+                                </strong>
+                            </td>
+
+                            <td>
+                                <span class="status-pill status-{{ charge.status }}">
+                                    {{ charge.get_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7">
+                                <div class="empty-state">
+                                    No charges yet.
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </article>
+
+    <article class="billing-card">
+        <div class="card-heading">
+            <div>
+                <span class="card-kicker">Money In</span>
+                <h2>Payments</h2>
+            </div>
+        </div>
+
+        {% for payment in payments %}
+            <div class="money-row">
+                <div>
+                    <strong>${{ payment.amount|floatformat:2 }}</strong>
+                    <span>
+                        {{ payment.get_method_display }}
+                        ·
+                        {{ payment.paid_at|date:"M j, Y" }}
+                    </span>
+                </div>
+
+                <div class="money-row-right">
+                    <span class="status-pill status-{{ payment.status }}">
+                        {{ payment.get_status_display }}
+                    </span>
+                </div>
+            </div>
+        {% empty %}
+            <div class="empty-state">
+                No payments recorded.
+            </div>
+        {% endfor %}
+    </article>
+
+    <article class="billing-card">
+        <div class="card-heading">
+            <div>
+                <span class="card-kicker">Adjustments</span>
+                <h2>Credits</h2>
+            </div>
+        </div>
+
+        {% for credit in credits %}
+            <div class="money-row">
+                <div>
+                    <strong>${{ credit.amount|floatformat:2 }}</strong>
+                    <span>
+                        {{ credit.description }}
+                        ·
+                        {{ credit.get_credit_type_display }}
+                    </span>
+                </div>
+            </div>
+        {% empty %}
+            <div class="empty-state">
+                No credits issued.
+            </div>
+        {% endfor %}
+    </article>
+
+    <article class="billing-card span-2">
+        <div class="card-heading">
+            <div>
+                <span class="card-kicker">History</span>
+                <h2>Account Ledger</h2>
+            </div>
+        </div>
+
+        <div class="ledger-list">
+            {% for row in ledger_rows %}
+                <div class="ledger-row">
+                    <div class="ledger-date">
+                        {{ row.date|date:"M j" }}
+                    </div>
+
+                    <div class="ledger-main">
+                        <strong>{{ row.description }}</strong>
+                        <span>
+                            {{ row.kind }}
+                            ·
+                            {{ row.status }}
+                        </span>
+                    </div>
+
+                    <strong class="ledger-amount {{ row.direction }}">
+                        {% if row.direction == "credit" %}-{% endif %}
+                        ${{ row.amount|floatformat:2 }}
+                    </strong>
+                </div>
+            {% empty %}
+                <div class="empty-state">
+                    No billing activity yet.
+                </div>
+            {% endfor %}
+        </div>
+    </article>
+</section>
+{% endblock %}

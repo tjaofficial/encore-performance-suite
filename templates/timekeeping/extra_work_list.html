@@ -1,0 +1,174 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}
+Time & Extra Work | Encore
+{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/encore_timekeeping.css' %}"
+>
+{% endblock %}
+
+{% block topbar_title %}
+Time & Extra Work
+{% endblock %}
+
+{% block content %}
+<section class="timekeeping-heading">
+    <div>
+        <p class="eyebrow">
+            Teacher Time
+        </p>
+
+        <h1>
+            Time & Extra Work
+        </h1>
+
+        <p>
+            Track work outside your normal
+            scheduled teaching hours.
+        </p>
+    </div>
+
+    <a
+        class="button primary"
+        href="{% url 'timekeeping:extra_work_create' studio.slug %}"
+    >
+        + Log Extra Work
+    </a>
+</section>
+
+{% if messages %}
+    <div class="message-stack">
+        {% for message in messages %}
+            <div class="message-banner">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<section class="extra-work-history-card">
+    <div class="time-history-toolbar">
+        <div class="time-card-heading">
+            <div>
+                <span>
+                    History
+                </span>
+
+                <h2>
+                    Extra Work Entries
+                </h2>
+            </div>
+        </div>
+
+        <form
+            method="get"
+            class="time-filter-form"
+        >
+            <div class="time-filter-field">
+                <label for="time-start-date">
+                    Start Date
+                </label>
+
+                <input
+                    id="time-start-date"
+                    class="encore-input"
+                    type="date"
+                    name="start"
+                    value="{{ start_date }}"
+                >
+            </div>
+
+            <div class="time-filter-field">
+                <label for="time-end-date">
+                    End Date
+                </label>
+
+                <input
+                    id="time-end-date"
+                    class="encore-input"
+                    type="date"
+                    name="end"
+                    value="{{ end_date }}"
+                >
+            </div>
+
+            <button
+                class="button secondary time-filter-button"
+                type="submit"
+            >
+                Apply
+            </button>
+        </form>
+    </div>
+
+    <div class="extra-work-table-header">
+        <div>
+            Date
+        </div>
+
+        <div>
+            Work
+        </div>
+
+        <div class="extra-work-total-heading">
+            <span>
+                Total
+            </span>
+
+            <strong>
+                {{ total_duration_display }}
+            </strong>
+        </div>
+    </div>
+
+    <div class="extra-work-history-list">
+        {% for entry in entries %}
+            <div class="extra-work-history-row">
+                <div class="extra-work-date">
+                    <strong>
+                        {{ entry.work_date|date:"M j" }}
+                    </strong>
+
+                    <span>
+                        {{ entry.work_date|date:"Y" }}
+                    </span>
+                </div>
+
+                <div class="extra-work-copy">
+                    <strong>
+                        {{ entry.get_category_display }}
+                    </strong>
+
+                    <span>
+                        {% if entry.description %}
+                            {{ entry.description }}
+                        {% else %}
+                            No description
+                        {% endif %}
+                    </span>
+                </div>
+
+                <strong class="extra-work-duration">
+                    {{ entry.duration_display }}
+                </strong>
+            </div>
+        {% empty %}
+            <div class="time-empty-state">
+                <strong>
+                    No extra work in this date range.
+                </strong>
+
+                <p>
+                    Change the start/end dates or
+                    log a new extra work entry.
+                </p>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

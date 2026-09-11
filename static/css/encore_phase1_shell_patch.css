@@ -1,0 +1,364 @@
+.studio-workspace-role {
+    display: block;
+    margin-top: 4px;
+    color: rgba(255, 255, 255, 0.68);
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.workspace-switch-link {
+    display: inline-block;
+    margin-top: 8px;
+}
+
+.topbar-icon-button {
+    position: relative;
+    display: inline-grid;
+    width: 38px;
+    height: 38px;
+    place-items: center;
+    border: 1px solid var(--encore-border);
+    border-radius: 10px;
+    background: var(--encore-surface);
+    color: var(--encore-text);
+    text-decoration: none;
+}
+
+.notification-bell svg {
+    width: 19px;
+    height: 19px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.topbar-count {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    display: grid;
+    min-width: 19px;
+    height: 19px;
+    place-items: center;
+    padding: 0 5px;
+    border: 2px solid var(--encore-surface);
+    border-radius: 999px;
+    background: #b04444;
+    color: #fff;
+    font-size: 0.58rem;
+    font-weight: 900;
+}
+
+.profile-menu {
+    position: relative;
+}
+
+.profile-menu-toggle {
+    border: 0;
+    cursor: pointer;
+}
+
+.profile-dropdown[hidden] {
+    display: none;
+}
+
+.profile-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    z-index: 100;
+    width: min(320px, calc(100vw - 32px));
+    overflow: hidden;
+    border: 1px solid var(--encore-border);
+    border-radius: 15px;
+    background: var(--encore-surface);
+    box-shadow: 0 20px 55px rgba(0, 2, 78, 0.15);
+}
+
+.profile-dropdown-identity {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 11px;
+    padding: 15px;
+    border-bottom: 1px solid var(--encore-border);
+}
+
+.profile-dropdown-avatar {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    border-radius: 50%;
+    background: linear-gradient(
+        135deg,
+        var(--studio-primary, var(--encore-primary)),
+        var(--studio-accent, var(--encore-accent))
+    );
+    color: #fff;
+    font-weight: 900;
+}
+
+.profile-dropdown-identity > div {
+    display: grid;
+    min-width: 0;
+    gap: 2px;
+}
+
+.profile-dropdown-identity span {
+    color: var(--encore-muted);
+    font-size: 0.72rem;
+}
+
+.profile-dropdown-identity small {
+    color: var(--encore-primary);
+    font-size: 0.66rem;
+    font-weight: 750;
+}
+
+.profile-dropdown-links {
+    display: grid;
+    padding: 6px;
+}
+
+.profile-dropdown-links a,
+.profile-dropdown-footer a {
+    display: flex;
+    min-height: 39px;
+    align-items: center;
+    padding: 0 10px;
+    border-radius: 9px;
+    color: var(--encore-text);
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.profile-dropdown-links a:hover,
+.profile-dropdown-footer a:hover {
+    background: var(--encore-primary-soft);
+    color: var(--encore-primary);
+}
+
+.profile-dropdown-footer {
+    padding: 6px;
+    border-top: 1px solid var(--encore-border);
+}
+
+.profile-dropdown-footer a {
+    color: #b04444;
+}
+
+.profile-page-heading h1 {
+    margin: 0;
+    font-size: clamp(2rem, 4vw, 3rem);
+    letter-spacing: -0.045em;
+}
+
+.profile-page-heading p:last-child {
+    color: var(--encore-muted);
+}
+
+.profile-page-card,
+.profile-workspaces-card {
+    margin-top: 18px;
+    padding: 20px;
+    border: 1px solid var(--encore-border);
+    border-radius: 17px;
+    background: var(--encore-surface);
+    box-shadow: var(--encore-shadow);
+}
+
+.profile-page-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.profile-page-grid .full {
+    grid-column: 1 / -1;
+}
+
+.profile-page-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+}
+
+.profile-workspace-list {
+    display: grid;
+}
+
+.profile-workspace-row {
+    display: grid;
+    gap: 2px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--encore-border);
+}
+
+.profile-workspace-row span {
+    color: var(--encore-muted);
+    font-size: 0.7rem;
+}
+
+@media (max-width: 650px) {
+    .profile-page-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-page-grid .full {
+        grid-column: auto;
+    }
+}
+
+
+.dashboard-topbar {
+    min-height: 76px;
+    padding-top: 9px;
+    padding-bottom: 9px;
+    background: rgba(255, 255, 255, 0.96);
+}
+
+.dashboard-topbar-greeting {
+    display: grid;
+    gap: 2px;
+}
+
+.dashboard-topbar-greeting h1 {
+    margin: 0;
+    color: var(--encore-primary-deep);
+    font-size: 1.1rem;
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+}
+
+.dashboard-topbar-greeting h1 span {
+    font-size: 0.85em;
+}
+
+.dashboard-topbar-greeting p {
+    margin: 0;
+    color: var(--encore-muted);
+    font-size: 0.67rem;
+}
+
+.dashboard-topbar-date {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-right: 18px;
+    border-right: 1px solid var(--encore-border);
+    color: var(--encore-primary-deep);
+    font-size: 0.68rem;
+    font-weight: 750;
+    white-space: nowrap;
+}
+
+.dashboard-topbar-date svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: var(--encore-primary);
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.profile-summary-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+.topbar-profile-copy {
+    display: grid;
+    min-width: 70px;
+    gap: 1px;
+    text-align: left;
+}
+
+.topbar-profile-copy strong {
+    color: var(--encore-primary-deep);
+    font-size: 0.68rem;
+}
+
+.topbar-profile-copy small {
+    color: var(--encore-muted);
+    font-size: 0.56rem;
+}
+
+.profile-chevron {
+    color: var(--encore-primary-deep);
+    font-size: 0.75rem;
+}
+
+@media (max-width: 850px) {
+    .dashboard-topbar-date,
+    .topbar-profile-copy,
+    .profile-chevron {
+        display: none;
+    }
+
+    .dashboard-topbar-greeting h1 {
+        font-size: 0.9rem;
+    }
+
+    .dashboard-topbar-greeting p {
+        display: none;
+    }
+}
+
+
+/* Global Encore workspace header */
+
+.encore-global-topbar {
+    min-height: 76px;
+    padding-top: 9px;
+    padding-bottom: 9px;
+    background: rgba(255, 255, 255, 0.97);
+}
+
+.encore-global-topbar
+.dashboard-topbar-greeting {
+    display: grid;
+    gap: 2px;
+}
+
+.encore-global-topbar
+.dashboard-topbar-greeting h1 {
+    margin: 0;
+    color: var(--encore-primary-deep);
+    font-size: 1.08rem;
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+}
+
+.encore-global-topbar
+.dashboard-topbar-greeting p {
+    margin: 0;
+    color: var(--encore-muted);
+    font-size: 0.66rem;
+}
+
+.encore-global-topbar
+.topbar-actions {
+    margin-left: auto;
+}
+
+@media (max-width: 850px) {
+    .encore-global-topbar
+    .dashboard-topbar-greeting h1 {
+        font-size: 0.9rem;
+    }
+
+    .encore-global-topbar
+    .dashboard-topbar-greeting p {
+        display: none;
+    }
+}

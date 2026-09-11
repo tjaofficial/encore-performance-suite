@@ -1,0 +1,98 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ report.title }} | Encore Reports{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_reports.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Reports{% endblock %}
+
+{% block content %}
+<a
+    class="report-back-link"
+    href="{% url 'reports:reports_dashboard' studio.slug %}"
+>
+    ← Back to Reports
+</a>
+
+<section class="reports-heading report-detail-heading">
+    <div>
+        <p class="eyebrow">{{ report.category }}</p>
+        <h1>{{ report.title }}</h1>
+        <p>{{ report.description }}</p>
+    </div>
+
+    <div class="report-actions">
+        <a
+            class="button secondary"
+            href="{% url 'reports:report_csv' studio.slug report_key %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}"
+        >
+            Export CSV
+        </a>
+    </div>
+</section>
+
+<form method="get" class="season-filter">
+    <div>
+        <label>Season</label>
+        <select name="season">
+            {% for season in seasons %}
+                <option
+                    value="{{ season.id }}"
+                    {% if selected_season and selected_season.id == season.id %}selected{% endif %}
+                >
+                    {{ season.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <button class="button primary" type="submit">Apply</button>
+</form>
+
+<section class="report-result-card">
+    <div class="report-result-heading">
+        <div>
+            <strong>{{ report.rows|length }}</strong>
+            <span>result{{ report.rows|length|pluralize }}</span>
+        </div>
+
+        {% if selected_season %}
+            <small>{{ selected_season.name }}</small>
+        {% endif %}
+    </div>
+
+    <div class="report-table-wrap">
+        <table class="report-table report-data-table">
+            <thead>
+                <tr>
+                    {% for column in report.columns %}
+                        <th>{{ column }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for row in report.rows %}
+                    <tr>
+                        {% for cell in row.cells %}
+                            <td>{{ cell }}</td>
+                        {% endfor %}
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td
+                            colspan="{{ report.columns|length }}"
+                            class="empty-state"
+                        >
+                            No records matched this report.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,276 @@
+:root {
+    --encore-bg: #f6f2ec;
+    --encore-surface: #ffffff;
+    --encore-dark: #211d24;
+    --encore-text: #211f26;
+    --encore-muted: #716b74;
+    --encore-border: #e7e0d7;
+    --encore-primary: #7a3f63;
+    --encore-primary-dark: #5c2d49;
+    --encore-primary-soft: #f2e7ed;
+    --encore-warm: #b56a3f;
+    --encore-success: #3e7962;
+    --encore-shadow: 0 18px 52px rgba(32, 24, 30, 0.08);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    min-height: 100%;
+}
+
+body {
+    background:
+        radial-gradient(
+            circle at top left,
+            rgba(122, 63, 99, 0.09),
+            transparent 30rem
+        ),
+        var(--encore-bg);
+    color: var(--encore-text);
+    font-family:
+        Inter,
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+}
+
+.workspace-shell {
+    min-height: 100vh;
+}
+
+.workspace-header {
+    display: flex;
+    min-height: 82px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 0 max(24px, calc((100vw - 1180px) / 2));
+    border-bottom: 1px solid var(--encore-border);
+    background: rgba(246, 242, 236, 0.88);
+    backdrop-filter: blur(14px);
+}
+
+.brand-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.brand-mark {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    border-radius: 13px;
+    background: var(--encore-primary);
+    color: #fff;
+    font-family: Georgia, serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.brand-name,
+.brand-subtitle {
+    margin: 0;
+}
+
+.brand-name {
+    font-weight: 900;
+    letter-spacing: 0.14em;
+}
+
+.brand-subtitle {
+    margin-top: 2px;
+    color: var(--encore-muted);
+    font-size: 0.73rem;
+}
+
+.account-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    color: var(--encore-muted);
+    font-size: 0.78rem;
+}
+
+.account-actions a {
+    color: var(--encore-primary);
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.workspace-content {
+    width: min(1180px, calc(100% - 48px));
+    margin: 0 auto;
+    padding: 68px 0;
+}
+
+.workspace-heading {
+    max-width: 730px;
+    margin-bottom: 34px;
+}
+
+.eyebrow {
+    margin: 0 0 8px;
+    color: var(--encore-primary);
+    font-size: 0.72rem;
+    font-weight: 850;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.workspace-heading h1 {
+    margin: 0;
+    font-size: clamp(2.3rem, 5vw, 4.3rem);
+    line-height: 1;
+    letter-spacing: -0.05em;
+}
+
+.workspace-heading > p:last-child {
+    max-width: 630px;
+    margin: 18px 0 0;
+    color: var(--encore-muted);
+    line-height: 1.65;
+}
+
+.workspace-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.workspace-card {
+    display: grid;
+    min-height: 290px;
+    padding: 24px;
+    border: 1px solid var(--encore-border);
+    border-radius: 22px;
+    background: var(--encore-surface);
+    box-shadow: var(--encore-shadow);
+    color: inherit;
+    text-decoration: none;
+    transition:
+        transform 150ms ease,
+        border-color 150ms ease,
+        box-shadow 150ms ease;
+}
+
+.workspace-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(122, 63, 99, 0.35);
+    box-shadow: 0 24px 65px rgba(32, 24, 30, 0.12);
+}
+
+.workspace-card.current {
+    border-color: rgba(122, 63, 99, 0.55);
+}
+
+.workspace-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.role-icon {
+    display: grid;
+    width: 48px;
+    height: 48px;
+    place-items: center;
+    border-radius: 14px;
+    font-size: 1rem;
+    font-weight: 900;
+}
+
+.role-administrator {
+    background: var(--encore-primary-soft);
+    color: var(--encore-primary);
+}
+
+.role-teacher {
+    background: rgba(181, 106, 63, 0.13);
+    color: var(--encore-warm);
+}
+
+.role-family {
+    background: rgba(62, 121, 98, 0.13);
+    color: var(--encore-success);
+}
+
+.role-student {
+    background: rgba(90, 89, 156, 0.13);
+    color: #575696;
+}
+
+.current-pill {
+    padding: 6px 9px;
+    border-radius: 999px;
+    background: var(--encore-primary-soft);
+    color: var(--encore-primary);
+    font-size: 0.68rem;
+    font-weight: 850;
+}
+
+.workspace-card-body {
+    align-self: center;
+    padding: 18px 0;
+}
+
+.studio-name {
+    color: var(--encore-muted);
+    font-size: 0.75rem;
+    font-weight: 750;
+}
+
+.workspace-card h2 {
+    margin: 7px 0 8px;
+    font-size: 1.55rem;
+}
+
+.workspace-card p {
+    margin: 0;
+    color: var(--encore-muted);
+    font-size: 0.86rem;
+    line-height: 1.6;
+}
+
+.workspace-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    align-self: end;
+    padding-top: 18px;
+    border-top: 1px solid var(--encore-border);
+    color: var(--encore-primary);
+    font-size: 0.8rem;
+    font-weight: 850;
+}
+
+@media (max-width: 760px) {
+    .workspace-header {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 20px 24px;
+    }
+
+    .workspace-content {
+        width: min(100% - 28px, 1180px);
+        padding: 42px 0;
+    }
+
+    .workspace-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .account-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+}

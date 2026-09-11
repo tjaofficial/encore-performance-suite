@@ -1,0 +1,19 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+{% block title %}Seasons | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}">{% endblock %}
+{% block topbar_title %}Seasons{% endblock %}
+{% block content %}
+<div class="settings-workspace">
+    {% include "includes/settings_nav.html" %}
+    <div class="settings-workspace-content">
+        <section class="settings-heading"><div><a class="back-link" href="{% url 'studios:onboarding_home' studio.slug %}">← Back to Studio Settings</a><p class="eyebrow">Studio Settings</p><h1>Seasons</h1><p>Create and maintain the terms, sessions, and performance seasons used by your classes.</p></div><a class="button primary" href="{% url 'studios:season_add' studio.slug %}">+ Add Season</a></section>
+        {% if messages %}<div class="message-stack">{% for message in messages %}<div class="message-banner {{ message.tags }}">{{ message }}</div>{% endfor %}</div>{% endif %}
+        <section class="settings-list">
+            {% for season in seasons %}
+            <article class="settings-list-row"><div><strong>{{ season.name }}</strong><span>{{ season.start_date|date:"M j, Y" }} – {{ season.end_date|date:"M j, Y" }}</span></div><div class="settings-item-actions"><a class="settings-edit-link" href="{% url 'studios:season_edit' studio.slug season.id %}">Edit</a><form method="post" action="{% url 'studios:season_delete' studio.slug season.id %}" onsubmit="return confirm('Remove {{ season.name|escapejs }}?');">{% csrf_token %}<button class="settings-remove-button" type="submit">Remove</button></form></div></article>
+            {% empty %}<div class="empty-state">No seasons yet.</div>{% endfor %}
+        </section>
+    </div>
+</div>
+{% endblock %}

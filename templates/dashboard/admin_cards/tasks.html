@@ -1,0 +1,50 @@
+<article class="admin-dashboard-card admin-task-card">
+    <div class="card-heading">
+        <div>
+            <span class="card-kicker">Admin Work</span>
+            <h2>Tasks / To-Do</h2>
+        </div>
+
+        <a
+            class="task-card-header-action"
+            href="{% url 'tasks:task_create' studio.slug %}"
+        >
+            + Add Task
+        </a>
+    </div>
+
+    {% if admin_tasks %}
+        <div class="admin-compact-list admin-card-scroll">
+            {% for task in admin_tasks %}
+                <div class="admin-task-row priority-{{ task.priority }}">
+                    <span class="admin-task-dot"></span>
+
+                    <div class="admin-row-copy">
+                        <strong>{{ task.title }}</strong>
+                        <span>
+                            {{ task.get_priority_display }}
+                            {% if task.due_date %}
+                                · Due {{ task.due_date|date:"M j" }}
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    {% if task.is_overdue %}
+                        <small class="admin-alert-badge">Overdue</small>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <a
+            class="admin-card-footer-link"
+            href="{% url 'tasks:task_list' studio.slug %}"
+        >
+            View All Tasks →
+        </a>
+    {% else %}
+        <div class="empty-state">
+            No open administrator tasks.
+        </div>
+    {% endif %}
+</article>

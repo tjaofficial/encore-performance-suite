@@ -1,0 +1,247 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Class Dashboard Settings | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_dashboard_layout_editor.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Class Dashboard Settings{% endblock %}
+
+{% block content %}
+<div class="settings-workspace">
+    {% include "includes/settings_nav.html" %}
+
+    <main class="settings-workspace-content">
+        <section class="settings-heading dashboard-layout-heading">
+            <div>
+                <p class="eyebrow">Personal Dashboard Layout</p>
+
+                <h1>Class Dashboard</h1>
+
+                <p>
+                    This layout belongs only to you at {{ studio.name }}.
+                    Other teachers can arrange their Class Dashboard differently.
+                </p>
+            </div>
+        </section>
+
+        <form
+            method="post"
+            id="dashboard-layout-form"
+            class="dashboard-layout-form"
+        >
+            {% csrf_token %}
+
+            <input
+                type="hidden"
+                id="layout-json"
+                name="layout_json"
+                value="{{ layout_json|escape }}"
+            >
+
+                        {% include "includes/dashboard_quick_links_settings.html" %}
+
+<section class="layout-settings-panel">
+                <div class="layout-panel-heading">
+                    <div>
+                        <span>Step 1</span>
+                        <h2>Choose Your Cards</h2>
+                        <p>
+                            Turn cards on or off. You can change this anytime.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="dashboard-card-picker">
+                    {% for card in editor_cards %}
+                        <label
+                            class="dashboard-card-choice"
+                            data-card-choice="{{ card.key }}"
+                        >
+                            <input
+                                type="checkbox"
+                                data-card-enabled="{{ card.key }}"
+                                {% if card.enabled %}checked{% endif %}
+                            >
+
+                            <span class="choice-check">✓</span>
+
+                            <span>
+                                <strong>{{ card.label }}</strong>
+                                <small>{{ card.description }}</small>
+                            </span>
+                        </label>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section class="layout-settings-panel">
+                <div class="layout-panel-heading">
+                    <div>
+                        <span>Step 2</span>
+                        <h2>Arrange Your Dashboard</h2>
+                        <p>
+                            Drag cards to move them. Select a card to change its size.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="dashboard-layout-editor">
+                    <div
+                        id="dashboard-layout-preview"
+                        class="dashboard-layout-preview"
+                    >
+                        {% for card in editor_cards %}
+                            <article
+                                class="layout-preview-card width-{{ card.width }} height-{{ card.height }}"
+                                draggable="true"
+                                tabindex="0"
+                                data-layout-card="{{ card.key }}"
+                                data-width="{{ card.width }}"
+                                data-height="{{ card.height }}"
+                                {% if not card.enabled %}hidden{% endif %}
+                            >
+                                <div class="preview-card-top">
+                                    <span class="drag-handle">⠿</span>
+
+                                    <strong>{{ card.label }}</strong>
+
+                                    <span class="preview-card-size">
+                                        {{ card.width }}
+                                        ·
+                                        {{ card.height }} row{% if card.height == 2 %}s{% endif %}
+                                    </span>
+                                </div>
+
+                                <div class="preview-card-body">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+
+                                <div class="preview-card-accessible-move">
+                                    <button
+                                        type="button"
+                                        data-move="up"
+                                        aria-label="Move {{ card.label }} earlier"
+                                    >
+                                        ←
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        data-move="down"
+                                        aria-label="Move {{ card.label }} later"
+                                    >
+                                        →
+                                    </button>
+                                </div>
+                            </article>
+                        {% endfor %}
+                    </div>
+
+                    <aside class="layout-card-controls">
+                        <div class="layout-controls-placeholder">
+                            <span>Card Size</span>
+                            <strong>Select a card in the preview</strong>
+                            <p>
+                                Then choose how wide and tall it should be.
+                            </p>
+                        </div>
+
+                        <div
+                            class="layout-controls-active"
+                            data-active-controls
+                            hidden
+                        >
+                            <span>Selected Card</span>
+                            <h3 data-selected-card-name>Card</h3>
+
+                            <div class="visual-size-setting">
+                                <strong>Width</strong>
+
+                                <div class="visual-size-options">
+                                    <button type="button" data-width-choice="quarter">
+                                        <span class="size-shape width-quarter"></span>
+                                        ¼
+                                    </button>
+
+                                    <button type="button" data-width-choice="half">
+                                        <span class="size-shape width-half"></span>
+                                        ½
+                                    </button>
+
+                                    <button type="button" data-width-choice="full">
+                                        <span class="size-shape width-full"></span>
+                                        Full
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="visual-size-setting">
+                                <strong>Height</strong>
+
+                                <div class="visual-size-options height-options">
+                                    <button type="button" data-height-choice="1">
+                                        <span class="height-shape height-one"></span>
+                                        1 Row
+                                    </button>
+
+                                    <button type="button" data-height-choice="2">
+                                        <span class="height-shape height-two"></span>
+                                        2 Rows
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+            </section>
+
+            <div class="dashboard-layout-actions">
+                <button
+                    class="button secondary"
+                    type="submit"
+                    name="action"
+                    value="reset"
+                    formnovalidate
+                >
+                    Reset to Default
+                </button>
+
+                <div>
+                    <span
+                        id="layout-save-status"
+                        class="layout-save-status"
+                    >
+                        Changes are not saved until you click Save Layout.
+                    </span>
+
+                    <button
+                        class="button primary"
+                        type="submit"
+                        name="action"
+                        value="save"
+                    >
+                        Save Layout
+                    </button>
+                </div>
+            </div>
+        </form>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script
+    src="{% static 'js/encore_dashboard_layout_editor.js' %}"
+    defer
+></script>
+<script
+    src="{% static 'js/encore_dashboard_quick_links_settings.js' %}"
+    defer
+></script>
+{% endblock %}

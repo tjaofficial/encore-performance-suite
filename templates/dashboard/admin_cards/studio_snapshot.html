@@ -1,0 +1,71 @@
+<article class="admin-dashboard-card admin-studio-snapshot-card">
+    <div class="card-heading snapshot-card-heading">
+        <div>
+            <span class="card-kicker">Studio Snapshot</span>
+            <h2>At a Glance</h2>
+        </div>
+    </div>
+
+    <div class="studio-snapshot-layout">
+        <div class="snapshot-enrollment-summary">
+            <div
+                class="snapshot-donut"
+                style="
+                    --enrolled-stop: {{ studio_snapshot.enrolled_stop }}%;
+                    --waitlisted-stop: {{ studio_snapshot.waitlisted_stop }}%;
+                "
+            >
+                <div class="snapshot-donut-center">
+                    <strong>{{ studio_snapshot.total_students }}</strong>
+                    <span>Students</span>
+                </div>
+            </div>
+
+            <div class="snapshot-donut-legend">
+                <div>
+                    <strong>{{ studio_snapshot.enrolled_count }}</strong>
+                    <i class="snapshot-dot enrolled"></i>
+                    <span>Enrolled</span>
+                </div>
+
+                <div>
+                    <strong>{{ studio_snapshot.waitlisted_only_count }}</strong>
+                    <i class="snapshot-dot waitlisted"></i>
+                    <span>Waitlisted Only</span>
+                </div>
+
+                <div>
+                    <strong>{{ studio_snapshot.inactive_count }}</strong>
+                    <i class="snapshot-dot inactive"></i>
+                    <span>Inactive</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="studio-snapshot-metrics">
+            {% for metric in card.snapshot_metrics %}
+                <div class="studio-snapshot-metric">
+                    {% if metric == "student_records" %}
+                        <strong>{{ total_students }}</strong>
+                        <span>Student Records</span>
+                    {% elif metric == "active_students" %}
+                        <strong>{{ active_students }}</strong>
+                        <span>Active Students</span>
+                    {% elif metric == "active_classes" %}
+                        <strong>{{ active_class_count }}</strong>
+                        <span>Active Classes</span>
+                    {% elif metric == "active_enrollments" %}
+                        <strong>{{ active_enrollment_count }}</strong>
+                        <span>Active Enrollments</span>
+                    {% elif metric == "instructors" %}
+                        <strong>{{ active_instructors }}</strong>
+                        <span>Instructors</span>
+                    {% elif metric == "waitlisted" %}
+                        <strong>{{ waitlist_count }}</strong>
+                        <span>Waitlisted</span>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</article>

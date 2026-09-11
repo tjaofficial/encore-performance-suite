@@ -1,0 +1,29 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finishing Setup | Encore</title>
+    <link rel="stylesheet" href="{% static 'css/encore_login.css' %}">
+</head>
+<body>
+<main class="simple-shell">
+    <section class="simple-card">
+        <div class="brand-mark">E</div>
+        <p class="eyebrow">Encore Performance Suite</p>
+        <h1>We're finishing your studio setup.</h1>
+        <p>
+            Your checkout returned successfully, but Encore is still
+            confirming the subscription with Stripe. Refresh this page
+            in a moment or sign in once activation completes.
+        </p>
+        {% if error %}
+            <div class="form-error"><p>{{ error }}</p></div>
+        {% endif %}
+        <a href="{% url 'accounts:login' %}">Go to Sign In</a>
+    </section>
+</main>
+</body>
+</html>

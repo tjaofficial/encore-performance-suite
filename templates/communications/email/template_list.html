@@ -1,0 +1,41 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+{% block title %}Email Templates | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_communications.css' %}">{% endblock %}
+{% block topbar_title %}Email Templates{% endblock %}
+{% block content %}
+<section class="communication-heading">
+    <div>
+        <p class="eyebrow">Email Manager</p>
+        <h1>Templates</h1>
+        <p>Reusable email content for campaigns, birthday messages, and automated emails.</p>
+    </div>
+    <a class="button primary" href="{% url 'communications:email_template_create' studio.slug %}">+ New Template</a>
+</section>
+{% include "communications/email/_nav.html" %}
+<section class="email-template-grid">
+    {% for template in templates %}
+        <article class="email-template-card">
+            <div class="email-template-card-top">
+                <span class="email-template-category">{{ template.get_category_display }}</span>
+                {% if template.is_system_default %}<span class="system-pill">Encore Default</span>{% endif %}
+            </div>
+            <h2>{{ template.name }}</h2>
+            <p>{{ template.subject }}</p>
+            <div class="email-template-meta">
+                {% if template.signature %}<span>Signature: {{ template.signature.name }}</span>{% endif %}
+                {% if template.automation_rules.count %}
+                    <span>{{ template.automation_rules.count }} automation rule{{ template.automation_rules.count|pluralize }}</span>
+                {% endif %}
+                {% if not template.is_active %}<span>Inactive</span>{% endif %}
+            </div>
+            <div class="email-template-actions">
+                <a class="button secondary" href="{% url 'communications:email_compose' studio.slug %}?template={{ template.id }}">Use Template</a>
+                <a class="button secondary" href="{% url 'communications:email_template_edit' studio.slug template.id %}">Edit</a>
+            </div>
+        </article>
+    {% empty %}
+        <div class="empty-state">No templates yet.</div>
+    {% endfor %}
+</section>
+{% endblock %}

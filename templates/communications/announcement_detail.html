@@ -1,0 +1,91 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}
+{{ announcement.title }} | Encore
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_communications.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Announcement{% endblock %}
+
+{% block content %}
+<section class="communication-heading">
+    <div>
+        <a
+            class="back-link"
+            href="{% url 'communications:announcement_list' studio.slug %}"
+        >
+            ← Back to Announcements
+        </a>
+
+        <p class="eyebrow">
+            {{ announcement.get_audience_display }}
+        </p>
+
+        <h1>{{ announcement.title }}</h1>
+
+        <p>
+            Published
+            {{ announcement.publish_at|date:"F j, Y · g:i A" }}
+        </p>
+    </div>
+
+    {% if can_edit %}
+        <a
+            class="button secondary"
+            href="{% url 'communications:announcement_edit' studio.slug announcement.id %}"
+        >
+            Edit Announcement
+        </a>
+    {% endif %}
+</section>
+
+<article
+    class="announcement-detail-card
+    priority-{{ announcement.priority }}"
+>
+    <div class="announcement-detail-top">
+        <div class="announcement-tags">
+            <span
+                class="priority-pill priority-{{ announcement.priority }}"
+            >
+                {{ announcement.get_priority_display }}
+            </span>
+
+            {% if announcement.is_pinned %}
+                <span class="pin-label">
+                    ★ Pinned
+                </span>
+            {% endif %}
+        </div>
+
+        {% if announcement.expires_at %}
+            <span class="expires-copy">
+                Expires
+                {{ announcement.expires_at|date:"M j, Y · g:i A" }}
+            </span>
+        {% endif %}
+    </div>
+
+    <div class="announcement-body">
+        {{ announcement.message|linebreaksbr }}
+    </div>
+
+    {% if announcement.audience == "class" %}
+        <div class="announcement-class-list">
+            <span>Sent to:</span>
+
+            {% for class_instance in announcement.classes.all %}
+                <span class="class-chip">
+                    {{ class_instance.class_id }}
+                    ·
+                    {{ class_instance.name }}
+                </span>
+            {% endfor %}
+        </div>
+    {% endif %}
+</article>
+{% endblock %}

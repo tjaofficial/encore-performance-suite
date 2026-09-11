@@ -1,0 +1,186 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Email Manager | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_communications.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Email Manager{% endblock %}
+
+{% block content %}
+<section class="communication-heading email-manager-heading">
+    <div>
+        <p class="eyebrow">Communications</p>
+        <h1>Email Manager</h1>
+        <p>
+            Send studio email, build reusable templates, schedule campaigns,
+            automate common messages, and track delivery.
+        </p>
+    </div>
+
+    <a
+        class="button primary"
+        href="{% url 'communications:email_compose' studio.slug %}"
+    >
+        + Compose Email
+    </a>
+</section>
+
+{% include "communications/email/_nav.html" %}
+
+{% if messages %}
+<div class="message-stack">
+    {% for message in messages %}
+        <div class="message-banner">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<section class="email-stat-grid">
+    <article>
+        <span>Sent</span>
+        <strong>{{ totals.total_sent }}</strong>
+        <small>Accepted by SES</small>
+    </article>
+    <article>
+        <span>Delivered</span>
+        <strong>{{ totals.total_delivered }}</strong>
+        <small>Accepted by recipient server</small>
+    </article>
+    <article>
+        <span>Opened</span>
+        <strong>{{ totals.total_opened }}</strong>
+        <small>Provider-reported opens</small>
+    </article>
+    <article>
+        <span>Not Sent / Failed</span>
+        <strong>{{ totals.total_failed }}</strong>
+        <small>Messages requiring attention</small>
+    </article>
+</section>
+
+<section class="email-manager-grid">
+    <article class="email-panel">
+        <div class="email-panel-heading">
+            <div>
+                <span class="card-kicker">Quick Start</span>
+                <h2>Send Email</h2>
+            </div>
+        </div>
+
+        <div class="email-action-list">
+            <a href="{% url 'communications:email_compose' studio.slug %}">
+                <span>✉</span>
+                <div>
+                    <strong>Students / Families</strong>
+                    <small>Target the entire studio or selected classes.</small>
+                </div>
+                <b>→</b>
+            </a>
+            <a href="{% url 'communications:email_compose' studio.slug %}">
+                <span>◎</span>
+                <div>
+                    <strong>Students in Instructor Classes</strong>
+                    <small>Choose one or more instructors.</small>
+                </div>
+                <b>→</b>
+            </a>
+            <a href="{% url 'communications:email_compose' studio.slug %}">
+                <span>◇</span>
+                <div>
+                    <strong>Instructors</strong>
+                    <small>Email selected instructors or the full staff.</small>
+                </div>
+                <b>→</b>
+            </a>
+            <a href="{% url 'communications:email_compose' studio.slug %}">
+                <span>▦</span>
+                <div>
+                    <strong>Classes</strong>
+                    <small>Email guardians, students, or both by class.</small>
+                </div>
+                <b>→</b>
+            </a>
+        </div>
+    </article>
+
+    <article class="email-panel">
+        <div class="email-panel-heading">
+            <div>
+                <span class="card-kicker">Tools</span>
+                <h2>Email Setup</h2>
+            </div>
+        </div>
+
+        <div class="email-tool-grid">
+            <a href="{% url 'communications:email_template_list' studio.slug %}">
+                <strong>{{ template_count }}</strong>
+                <span>Templates</span>
+            </a>
+            <a href="{% url 'communications:email_signature_list' studio.slug %}">
+                <strong>{{ signature_count }}</strong>
+                <span>Signatures</span>
+            </a>
+            <a href="{% url 'communications:email_campaign_list' studio.slug %}?status=scheduled">
+                <strong>{{ scheduled_count }}</strong>
+                <span>Scheduled</span>
+            </a>
+            {% if role == "administrator" %}
+                <a href="{% url 'communications:email_automations' studio.slug %}">
+                    <strong>⚙</strong>
+                    <span>Automation</span>
+                </a>
+            {% endif %}
+        </div>
+    </article>
+</section>
+
+<section class="email-panel">
+    <div class="email-panel-heading">
+        <div>
+            <span class="card-kicker">Recent Activity</span>
+            <h2>Campaigns</h2>
+        </div>
+
+        <a href="{% url 'communications:email_campaign_list' studio.slug %}">
+            View All →
+        </a>
+    </div>
+
+    <div class="email-campaign-table">
+        <div class="email-table-head">
+            <span>Campaign</span>
+            <span>Status</span>
+            <span>Recipients</span>
+            <span>Delivered</span>
+            <span>Opened</span>
+        </div>
+
+        {% for campaign in recent_campaigns %}
+            <a
+                class="email-table-row"
+                href="{% url 'communications:email_campaign_detail' studio.slug campaign.id %}"
+            >
+                <span>
+                    <strong>{{ campaign.name }}</strong>
+                    <small>{{ campaign.created_at|date:"M j, Y · g:i A" }}</small>
+                </span>
+                <span>
+                    <b class="email-status status-{{ campaign.status }}">
+                        {{ campaign.get_status_display }}
+                    </b>
+                </span>
+                <span>{{ campaign.total_recipients }}</span>
+                <span>{{ campaign.delivered_count }}</span>
+                <span>{{ campaign.opened_count }}</span>
+            </a>
+        {% empty %}
+            <div class="empty-state">
+                No email campaigns yet.
+            </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

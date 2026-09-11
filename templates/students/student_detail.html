@@ -1,0 +1,366 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}
+{{ student.first_name }} {{ student.last_name }} | Encore
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_people_manager.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_tasks.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Student Details{% endblock %}
+
+{% block content %}
+<section class="people-heading">
+    <div>
+        <a
+            class="back-link"
+            href="{% url 'students:student_list' studio.slug %}"
+        >
+            ← Back to Students
+        </a>
+
+        <p class="eyebrow">Student Record</p>
+
+        <h1>
+            {{ student.first_name }}
+            {{ student.last_name }}
+        </h1>
+
+        <p>
+            Age {{ student.age }}
+            {% if student.family %}
+                · {{ student.family }}
+            {% endif %}
+        </p>
+    </div>
+
+    <a
+        class="button primary"
+        href="{% url 'students:student_edit' studio.slug student.id %}"
+    >
+        Edit Student
+    </a>
+</section>
+
+{% if messages %}
+<div class="message-stack">
+    {% for message in messages %}
+        <div class="message-banner">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<section class="detail-grid">
+    <article class="people-card">
+        <div class="card-heading">
+            <div>
+                <span class="card-kicker">Profile</span>
+                <h2>Student Information</h2>
+            </div>
+        </div>
+
+        <dl class="details-list">
+            <div>
+                <dt>Birthday</dt>
+                <dd>{{ student.birthday|date:"F j, Y" }}</dd>
+            </div>
+
+            <div>
+                <dt>Age</dt>
+                <dd>{{ student.age }}</dd>
+            </div>
+
+            <div>
+                <dt>Gender</dt>
+                <dd>{{ student.get_gender_display }}</dd>
+            </div>
+
+            <div>
+                <dt>Family</dt>
+                <dd>
+                    {% if student.family %}
+                        <a
+                            href="{% url 'families:family_detail' studio.slug student.family.id %}"
+                        >
+                            {{ student.family }}
+                        </a>
+                    {% else %}
+                        Standalone
+                    {% endif %}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Performing</dt>
+                <dd>{{ student.performing|yesno:"Yes,No" }}</dd>
+            </div>
+
+            <div>
+                <dt>Paper Waiver</dt>
+                <dd>{{ student.paper_waiver_on_file|yesno:"On File,Not On File" }}</dd>
+            </div>
+
+            <div>
+                <dt>Enrollment</dt>
+                <dd>
+                    {% if student.enrollment_blocked %}
+                        Blocked
+                    {% else %}
+                        Allowed
+                    {% endif %}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Status</dt>
+                <dd>{{ student.is_active|yesno:"Active,Inactive" }}</dd>
+            </div>
+        </dl>
+    </article>
+
+    <article class="people-card">
+        <div class="card-heading">
+            <div>
+                <span class="card-kicker">Attendance</span>
+                <h2>Recent Attendance</h2>
+            </div>
+
+            <strong>
+                {% if attendance_percentage is not None %}
+                    {{ attendance_percentage }}%
+                {% else %}
+                    —
+                {% endif %}
+            </strong>
+        </div>
+
+        {% for record in recent_attendance %}
+            <div class="compact-row">
+                <div>
+                    <strong>{{ record.session.class_instance.name }}</strong>
+                    <span>
+                        {{ record.session.session_date|date:"M j, Y" }}
+                    </span>
+                </div>
+
+                <span class="status-pill status-{{ record.status }}">
+                    {{ record.get_status_display }}
+                </span>
+            </div>
+        {% empty %}
+            <div class="empty-state">
+                No attendance recorded yet.
+            </div>
+        {% endfor %}
+    </article>
+
+    <article class="people-card span-2">
+        <div class="card-heading">
+            <div>
+                <span class="card-kicker">Reminders / To-Do</span>
+                <h2>Student Tasks</h2>
+            </div>
+
+            <a
+                class="task-card-header-action"
+                href="{% url 'tasks:task_create' studio.slug %}?student={{ student.id }}"
+            >
+                + Add Task
+            </a>
+        </div>
+
+        <div class="student-detail-task-list task-checklist">
+        {% for task in student_tasks %}
+            <div class="compact-row task-list-row">
+                <form
+                    class="task-complete-form"
+                    method="post"
+                    action="{% url 'tasks:task_toggle_complete' studio.slug task.id %}"
+                >
+                    {% csrf_token %}
+
+                    <input
+                        type="hidden"
+                        name="next"
+                        value="{{ request.get_full_path }}"
+                    >
+
+                    <button
+                        type="submit"
+                        class="task-check-button compact-task-check"
+                        aria-label="Complete {{ task.title }}"
+                    ><span aria-hidden="true"></span></button>
+                </form>
+
+                <div>
+                    <strong>{{ task.title }}</strong>
+
+                    <span>
+                        {% if task.class_instance %}
+                            {{ task.class_instance.name }}
+                        {% else %}
+                            General Student Reminder
+                        {% endif %}
+
+                        {% if task.due_date %}
+                            · Due {{ task.due_date|date:"M j, Y" }}
+                        {% endif %}
+                    </span>
+                </div>
+
+                <div class="task-row-end">
+                    <span class="status-pill">
+                        {{ task.get_priority_display }}
+                    </span>
+
+                {% if task.created_by_id == request.user.id or role == "administrator" %}
+                    <div class="task-row-menu" data-task-menu>
+                        <button
+                            type="button"
+                            class="task-row-menu-button"
+                            aria-label="Options for {{ task.title }}"
+                            aria-expanded="false"
+                            data-task-menu-button
+                        >
+                            ⋯
+                        </button>
+
+                        <div
+                            class="task-row-menu-popover"
+                            data-task-menu-popover
+                            hidden
+                        >
+                            <a
+                                href="{% url 'tasks:task_edit' studio.slug task.id %}?next={{ request.get_full_path|urlencode }}"
+                            >
+                                Edit
+                            </a>
+
+                            <form
+                                method="post"
+                                action="{% url 'tasks:task_delete' studio.slug task.id %}"
+                                onsubmit="return confirm('Delete this reminder?');"
+                            >
+                                {% csrf_token %}
+                                <input
+                                    type="hidden"
+                                    name="next"
+                                    value="{{ request.get_full_path }}"
+                                >
+                                <button type="submit">
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% endif %}
+                </div>
+            </div>
+        {% empty %}
+            <div class="compact-task-empty">
+                No open reminders for this student.
+            </div>
+        {% endfor %}
+        </div>
+    </article>
+
+    <article class="people-card span-2">
+        <div class="card-heading">
+            <div>
+                <span class="card-kicker">Classes</span>
+                <h2>Enrollments</h2>
+            </div>
+        </div>
+
+        <div class="people-table-wrap">
+            <table class="people-table">
+                <thead>
+                    <tr>
+                        <th>Class</th>
+                        <th>Season</th>
+                        <th>Instructor</th>
+                        <th>Status</th>
+                        <th>Source</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for enrollment in enrollments %}
+                        <tr>
+                            <td>
+                                <a
+                                    href="{% url 'classes:class_detail' studio.slug enrollment.class_instance.id %}"
+                                >
+                                    {{ enrollment.class_instance.class_id }}
+                                    ·
+                                    {{ enrollment.class_instance.name }}
+                                </a>
+                            </td>
+
+                            <td>
+                                {{ enrollment.class_instance.season.name }}
+                            </td>
+
+                            <td>
+                                {{ enrollment.class_instance.instructor.full_name }}
+                            </td>
+
+                            <td>
+                                {{ enrollment.get_status_display }}
+                            </td>
+
+                            <td>
+                                {{ enrollment.get_source_display }}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5">
+                                <div class="empty-state">
+                                    No enrollment history yet.
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </article>
+
+    <article class="people-card span-2">
+        <div class="card-heading">
+            <div>
+                <span class="card-kicker">Health & Notes</span>
+                <h2>Important Information</h2>
+            </div>
+        </div>
+
+        <div class="note-grid">
+            <div>
+                <strong>Medical Conditions</strong>
+                <p>{{ student.medical_conditions|default:"None listed." }}</p>
+            </div>
+
+            <div>
+                <strong>Allergies</strong>
+                <p>{{ student.allergies|default:"None listed." }}</p>
+            </div>
+
+            <div>
+                <strong>Comments</strong>
+                <p>{{ student.comments|default:"No comments." }}</p>
+            </div>
+        </div>
+    </article>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script
+    src="{% static 'js/encore_quick_tasks.js' %}"
+    defer
+></script>
+{% endblock %}

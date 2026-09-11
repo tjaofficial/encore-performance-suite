@@ -1,0 +1,25 @@
+# Secrets / environment
+.env
+.env.*
+!.env.example
+
+# Local databases
+db.sqlite3
+*.sqlite3
+db.sqlite3.pre-postgres-backup
+db.sqlite3.backup
+
+# Virtual environment
+venv/
+.venv/
+
+# Generated Django files
+staticfiles/
+media/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# macOS
+.DS_Store

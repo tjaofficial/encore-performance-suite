@@ -1,0 +1,67 @@
+<input
+    type="hidden"
+    id="quick-links-json"
+    name="quick_links_json"
+    value="{{ quick_links_json|escape }}"
+>
+
+<section class="layout-settings-panel dashboard-quick-links-settings">
+    <div class="layout-panel-heading">
+        <div>
+            <span>Quick Links</span>
+
+            <h2>Choose Your Shortcuts</h2>
+
+            <p>
+                Pick built-in destinations and optionally add
+                your own links such as Studio Director.
+            </p>
+        </div>
+    </div>
+
+    <div class="dashboard-quick-link-picker">
+        {% for action in quick_link_options %}
+            <label class="dashboard-quick-action-choice">
+                <input
+                    type="checkbox"
+                    data-quick-link-enabled="{{ action.key }}"
+                    {% if action.selected %}checked{% endif %}
+                >
+
+                <span class="choice-check">✓</span>
+
+                <span>
+                    <strong>{{ action.label }}</strong>
+                    <small>{{ action.description }}</small>
+                </span>
+            </label>
+        {% endfor %}
+    </div>
+
+    <div class="dashboard-custom-shortcuts">
+        <div class="custom-shortcuts-heading">
+            <strong>Custom Shortcuts</strong>
+            <small>Optional external or internal links.</small>
+        </div>
+
+        {% for custom in quick_links_custom %}
+            <div class="custom-shortcut-row">
+                <input
+                    type="text"
+                    value="{{ custom.label }}"
+                    maxlength="80"
+                    placeholder="Label"
+                    data-custom-quick-link-label
+                >
+
+                <input
+                    type="url"
+                    value="{{ custom.url }}"
+                    maxlength="1000"
+                    placeholder="https://..."
+                    data-custom-quick-link-url
+                >
+            </div>
+        {% endfor %}
+    </div>
+</section>

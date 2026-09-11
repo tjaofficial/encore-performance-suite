@@ -1,0 +1,162 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}
+Notification Center | Encore
+{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/encore_notifications.css' %}"
+>
+<link
+    rel="stylesheet"
+    href="{% static 'css/encore_list_views.css' %}"
+>
+{% endblock %}
+
+{% block topbar_title %}
+Notification Center
+{% endblock %}
+
+{% block content %}
+<section class="notification-heading">
+    <div>
+        <p class="eyebrow">
+            Notifications
+        </p>
+
+        <h1>
+            Notification Center
+        </h1>
+
+        <p>
+            Announcements, tasks, requests, and other updates
+            for your current Encore workspace.
+        </p>
+    </div>
+
+    <div class="list-heading-actions">
+        <a
+            class="button secondary"
+            href="{% url 'communications:announcement_list' studio.slug %}"
+        >
+            Announcement History
+        </a>
+
+        <a
+            class="button secondary"
+            href="{% url 'tasks:task_list' studio.slug %}"
+        >
+            Open Tasks
+        </a>
+    </div>
+</section>
+
+{% if task_notifications %}
+<section class="notification-section">
+    <div class="notification-section-heading">
+        <h2>Tasks & Requests</h2>
+        <span>{{ task_notifications|length }} recent</span>
+    </div>
+
+    <div class="notification-stack">
+        {% for item in task_notifications %}
+            <a
+                class="task-notification-row {% if not item.is_read %}unread{% endif %}"
+                href="{% url 'tasks:task_list' studio.slug %}"
+            >
+                <span class="task-notification-icon">
+                    {% if item.kind == "approval" %}
+                        !
+                    {% elif item.kind == "approved" %}
+                        ✓
+                    {% elif item.kind == "denied" %}
+                        ×
+                    {% else %}
+                        ✓
+                    {% endif %}
+                </span>
+
+                <span class="task-notification-copy">
+                    <strong>{{ item.title }}</strong>
+
+                    {% if item.message %}
+                        <p>{{ item.message|truncatechars:150 }}</p>
+                    {% endif %}
+
+                    <small>
+                        {{ item.created_at|date:"M j, Y · g:i A" }}
+                    </small>
+                </span>
+
+                {% if not item.is_read %}
+                    <span class="notification-unread-dot"></span>
+                {% endif %}
+            </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<section class="notification-section">
+    <div class="notification-section-heading">
+        <h2>Announcements</h2>
+        <span>Studio & class updates</span>
+    </div>
+
+    <div class="notification-stack">
+        {% for row in notification_rows %}
+            <a
+                class="notification-row
+                {% if not row.is_read %}unread{% endif %}
+                priority-{{ row.announcement.priority }}"
+                href="{% url 'communications:announcement_detail' studio.slug row.announcement.id %}"
+            >
+                <span class="notification-icon">
+                    {% if row.announcement.priority == "urgent" %}
+                        !
+                    {% elif row.announcement.is_pinned %}
+                        ★
+                    {% else %}
+                        ◌
+                    {% endif %}
+                </span>
+
+                <div>
+                    <span class="notification-audience">
+                        {{ row.announcement.get_audience_display }}
+                    </span>
+
+                    <strong>
+                        {{ row.announcement.title }}
+                    </strong>
+
+                    <p>
+                        {{ row.announcement.message|truncatechars:160 }}
+                    </p>
+
+                    <small>
+                        {{ row.announcement.publish_at|date:"M j, Y · g:i A" }}
+                    </small>
+                </div>
+
+                {% if not row.is_read %}
+                    <span class="notification-unread-dot"></span>
+                {% endif %}
+            </a>
+        {% empty %}
+            {% if not task_notifications %}
+                <div class="empty-state">
+                    No notifications yet.
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    No announcements right now.
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Registration Complete | {{ studio.name }}</title>
+    <link rel="stylesheet" href="{% static 'css/encore_public_registration.css' %}">
+    <link rel="stylesheet" href="{% static 'css/encore_tenant_branding.css' %}">
+    {% include "includes/studio_brand_vars.html" %}
+</head>
+<body class="{% if embed_mode %}embed-mode{% endif %}">
+<main class="public-shell narrow">
+    <section class="public-success-card registration-complete-card">
+        <div class="success-mark">✓</div>
+        <span class="public-kicker">{{ studio.name }}</span>
+        <h1>Registration Complete</h1>
+        <p>
+            {{ student.first_name }} {{ student.last_name }} is now in Encore.
+            A confirmation email with account instructions has been sent to
+            {{ registration_session.contact_email }}.
+        </p>
+
+        <div class="registration-confirmation-list">
+            {% for enrollment in enrollments %}
+                <article>
+                    <div>
+                        <strong>{{ enrollment.class_instance.name }}</strong>
+                        <small>{{ enrollment.class_instance.season.name }}</small>
+                    </div>
+                    <span class="availability {% if enrollment.status == 'active' %}open{% else %}full{% endif %}">
+                        {{ enrollment.get_status_display }}
+                    </span>
+                </article>
+            {% endfor %}
+        </div>
+
+        {% if payment %}
+            <div class="registration-receipt-summary">
+                <span>Payment Received</span>
+                <strong>${{ payment.amount }} USD</strong>
+                <small>Stripe reference: {{ payment.external_reference }}</small>
+            </div>
+        {% else %}
+            <div class="registration-receipt-summary">
+                <span>Payment Due Today</span>
+                <strong>$0.00 USD</strong>
+            </div>
+        {% endif %}
+
+        <a class="public-button primary large" href="/accounts/login/" {% if embed_mode %}target="_blank"{% endif %}>
+            Sign In to Encore
+        </a>
+    </section>
+
+    {% if embed_mode %}
+        <footer class="embed-footer">Powered by Encore Performance Suite</footer>
+    {% endif %}
+</main>
+</body>
+</html>

@@ -1,0 +1,88 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}
+Family Invites | Encore
+{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/encore_family_signup.css' %}"
+>
+{% endblock %}
+
+{% block topbar_title %}
+Family Invites
+{% endblock %}
+
+{% block content %}
+<section class="invite-heading">
+    <div>
+        <p class="eyebrow">
+            Family Access
+        </p>
+
+        <h1>
+            Family Invites
+        </h1>
+
+        <p>
+            Invite an existing studio family to claim
+            their Encore portal.
+        </p>
+    </div>
+
+    <a
+        class="button primary"
+        href="{% url 'registration_portal:invite_create' studio.slug %}"
+    >
+        + Invite Family
+    </a>
+</section>
+
+<section class="invite-stack">
+    {% for invite in invites %}
+        <article class="invite-row">
+            <div>
+                <strong>
+                    {{ invite.email }}
+                </strong>
+
+                <span>
+                    {% if invite.family %}
+                        {{ invite.family }}
+                    {% else %}
+                        New Family
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="invite-state">
+                {% if invite.is_accepted %}
+                    <span class="invite-badge accepted">
+                        Accepted
+                    </span>
+                {% elif invite.is_expired %}
+                    <span class="invite-badge expired">
+                        Expired
+                    </span>
+                {% else %}
+                    <span class="invite-badge pending">
+                        Pending
+                    </span>
+                {% endif %}
+
+                <small>
+                    Expires
+                    {{ invite.expires_at|date:"M j, Y" }}
+                </small>
+            </div>
+        </article>
+    {% empty %}
+        <div class="empty-state">
+            No family invites yet.
+        </div>
+    {% endfor %}
+</section>
+{% endblock %}

@@ -1,0 +1,112 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>
+        Register | {{ class_instance.name }}
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_public_registration.css' %}"
+    >
+    <link
+        rel="icon"
+        type="image/png"
+        href="{% static 'images/icon.png' %}"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_tenant_branding.css' %}"
+    >
+    {% include "includes/studio_brand_vars.html" %}
+</head>
+
+<body class="{% if embed_mode %}embed-mode {% endif %}widget-style-{{ widget_style|default:'clean' }}">
+    <main class="public-shell narrow">
+        <a
+            class="public-back-link"
+            href="{% url 'registration_portal:public_class_detail' studio.slug class_instance.id %}{% if embed_mode %}?embed=1{% endif %}"
+        >
+            ← Back to Class
+        </a>
+
+        <section class="public-registration-card">
+            <div class="registration-heading">
+                <span class="public-kicker">
+                    {{ studio.name }}
+                </span>
+
+                <h1>
+                    {% if is_full %}
+                        Join the Waitlist
+                    {% else %}
+                        Registration
+                    {% endif %}
+                </h1>
+
+                <p>
+                    {{ class_instance.class_id }}
+                    ·
+                    {{ class_instance.name }}
+                </p>
+            </div>
+
+            {% if is_full %}
+                <div class="public-notice">
+                    This class is currently full. Submit your information
+                    and the studio can contact you if space becomes available.
+                </div>
+            {% endif %}
+
+            <form method="post" class="public-form">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="public-errors">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <div class="public-form-grid">
+                    {% for field in form %}
+                        <div
+                            class="public-field
+                            {% if field.name == 'notes' %}full{% endif %}"
+                        >
+                            {{ field.label_tag }}
+                            {{ field }}
+
+                            {% for error in field.errors %}
+                                <small class="public-error">
+                                    {{ error }}
+                                </small>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <button
+                    class="public-button primary large"
+                    type="submit"
+                >
+                    Continue Registration
+                </button>
+            </form>
+
+            <p class="request-disclaimer">
+                Submitting this form does not guarantee enrollment.
+                The studio will confirm availability and next steps.
+            </p>
+        </section>
+    </main>
+</body>
+</html>

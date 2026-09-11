@@ -1,0 +1,105 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}
+{{ page_title }} | Encore
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_communications.css' %}">
+{% endblock %}
+
+{% block topbar_title %}
+{{ page_title }}
+{% endblock %}
+
+{% block content %}
+<section class="communication-heading">
+    <div>
+        <a
+            class="back-link"
+            href="{% url 'communications:announcement_list' studio.slug %}"
+        >
+            ← Back to Announcements
+        </a>
+
+        <p class="eyebrow">Communications</p>
+        <h1>{{ page_title }}</h1>
+
+        <p>
+            Publish an Encore message to the appropriate audience.
+        </p>
+    </div>
+</section>
+
+<div class="communication-tip">
+    <strong>Class announcements follow enrollment automatically.</strong>
+
+    <span>
+        Families and Students only receive a class announcement when
+        they have an active enrollment relationship with the selected class.
+    </span>
+</div>
+
+<form
+    method="post"
+    class="communication-form"
+>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+        <div class="form-errors">
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
+
+    <section class="communication-form-card">
+        <div class="form-grid">
+            {% for field in form %}
+                <div
+                    class="field-group
+                    {% if field.name == 'message' or field.name == 'classes' %}full{% endif %}"
+                >
+                    {% if field.field.widget.input_type == "checkbox" %}
+                        <label class="checkbox-line">
+                            {{ field }}
+                            <span>{{ field.label }}</span>
+                        </label>
+                    {% else %}
+                        {{ field.label_tag }}
+                        {{ field }}
+                    {% endif %}
+
+                    {% if field.help_text %}
+                        <small>
+                            {{ field.help_text }}
+                        </small>
+                    {% endif %}
+
+                    {% for error in field.errors %}
+                        <small class="field-error">
+                            {{ error }}
+                        </small>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <div class="form-actions">
+        <a
+            class="button secondary"
+            href="{% url 'communications:announcement_list' studio.slug %}"
+        >
+            Cancel
+        </a>
+
+        <button
+            class="button primary"
+            type="submit"
+        >
+            Save Announcement
+        </button>
+    </div>
+</form>
+{% endblock %}

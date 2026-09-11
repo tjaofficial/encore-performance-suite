@@ -1,0 +1,232 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ instructor.full_name }} | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_staff_enrollment.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Instructor Details{% endblock %}
+
+{% block content %}
+<section class="manager-heading">
+    <div>
+        <a
+            class="back-link"
+            href="{% url 'instructors:instructor_list' studio.slug %}"
+        >
+            ← Back to Instructors
+        </a>
+
+        <p class="eyebrow">Instructor</p>
+        <h1>{{ instructor.full_name }}</h1>
+
+        <p>
+            {% if instructor.email %}
+                {{ instructor.email }}
+            {% endif %}
+            {% if instructor.phone %}
+                · {{ instructor.phone }}
+            {% endif %}
+        </p>
+    </div>
+
+    <a
+        class="button primary"
+        href="{% url 'instructors:instructor_edit' studio.slug instructor.id %}"
+    >
+        Edit Instructor
+    </a>
+</section>
+
+{% if messages %}
+<div class="message-stack">
+    {% for message in messages %}
+        <div class="message-banner">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<section class="detail-grid">
+    <article class="manager-card">
+        <div class="card-heading">
+            <div>
+                <span class="card-kicker">Profile</span>
+                <h2>Contact & Emergency</h2>
+            </div>
+        </div>
+
+        <dl class="details-list">
+            <div>
+                <dt>Email</dt>
+                <dd>{{ instructor.email|default:"—" }}</dd>
+            </div>
+
+            <div>
+                <dt>Phone</dt>
+                <dd>{{ instructor.phone|default:"—" }}</dd>
+            </div>
+
+            <div>
+                <dt>Address</dt>
+                <dd>
+                    {% if instructor.address_line_1 %}
+                        {{ instructor.address_line_1 }}
+                        {% if instructor.address_line_2 %}
+                            <br>{{ instructor.address_line_2 }}
+                        {% endif %}
+                        {% if instructor.city or instructor.state or instructor.postal_code %}
+                            <br>
+                            {{ instructor.city }}{% if instructor.city and instructor.state %}, {% endif %}
+                            {{ instructor.state }}
+                            {{ instructor.postal_code }}
+                        {% endif %}
+                    {% else %}
+                        —
+                    {% endif %}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Emergency Contact</dt>
+                <dd>
+                    {{ instructor.emergency_contact_name|default:"—" }}
+                    {% if instructor.emergency_contact_phone %}
+                        · {{ instructor.emergency_contact_phone }}
+                    {% endif %}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Encore Login</dt>
+                <dd>
+                    {% if instructor.user %}
+                        {{ instructor.user.email }}
+                    {% else %}
+                        Not linked
+                    {% endif %}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Status</dt>
+                <dd>{{ instructor.is_active|yesno:"Active,Inactive" }}</dd>
+            </div>
+        </dl>
+    </article>
+
+    <article class="manager-card">
+        <div class="card-heading">
+            <div>
+                <span class="card-kicker">Availability</span>
+                <h2>Teaching Availability</h2>
+            </div>
+        </div>
+
+        {% for row in availability %}
+            <div class="compact-row">
+                <div>
+                    <strong>{{ row.get_day_of_week_display }}</strong>
+                    <span>
+                        {{ row.start_time|time:"g:i A" }}
+                        –
+                        {{ row.end_time|time:"g:i A" }}
+                    </span>
+                </div>
+
+                {% if row.is_available %}
+                    <span class="status-pill active">Available</span>
+                {% else %}
+                    <span class="status-pill inactive">Unavailable</span>
+                {% endif %}
+            </div>
+        {% empty %}
+            <div class="empty-state">
+                No availability entered.
+            </div>
+        {% endfor %}
+    </article>
+
+    <article class="manager-card">
+        <div class="card-heading">
+            <div>
+                <span class="card-kicker">Teaching</span>
+                <h2>Primary Classes</h2>
+            </div>
+        </div>
+
+        {% for class_instance in primary_classes %}
+            <a
+                class="linked-row"
+                href="{% url 'classes:class_detail' studio.slug class_instance.id %}"
+            >
+                <div>
+                    <strong>
+                        {{ class_instance.class_id }}
+                        ·
+                        {{ class_instance.name }}
+                    </strong>
+
+                    <span>
+                        {{ class_instance.season.name }}
+                    </span>
+                </div>
+
+                <span>→</span>
+            </a>
+        {% empty %}
+            <div class="empty-state">
+                No active primary classes.
+            </div>
+        {% endfor %}
+    </article>
+
+    <article class="manager-card">
+        <div class="card-heading">
+            <div>
+                <span class="card-kicker">Teaching</span>
+                <h2>Assistant Classes</h2>
+            </div>
+        </div>
+
+        {% for class_instance in assisting_classes %}
+            <a
+                class="linked-row"
+                href="{% url 'classes:class_detail' studio.slug class_instance.id %}"
+            >
+                <div>
+                    <strong>
+                        {{ class_instance.class_id }}
+                        ·
+                        {{ class_instance.name }}
+                    </strong>
+
+                    <span>
+                        {{ class_instance.season.name }}
+                    </span>
+                </div>
+
+                <span>→</span>
+            </a>
+        {% empty %}
+            <div class="empty-state">
+                No active assistant classes.
+            </div>
+        {% endfor %}
+    </article>
+
+    {% if instructor.bio %}
+    <article class="manager-card span-2">
+        <div class="card-heading">
+            <div>
+                <span class="card-kicker">Profile</span>
+                <h2>Bio</h2>
+            </div>
+        </div>
+
+        <p class="body-copy">{{ instructor.bio|linebreaksbr }}</p>
+    </article>
+    {% endif %}
+</section>
+{% endblock %}

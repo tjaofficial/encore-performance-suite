@@ -1,0 +1,109 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>
+        Join {{ studio.name }} on Encore
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_public_registration.css' %}"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_family_signup.css' %}"
+    >
+    <link
+        rel="icon"
+        type="image/png"
+        href="{% static 'images/icon.png' %}"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_tenant_branding.css' %}"
+    >
+    {% include "includes/studio_brand_vars.html" %}
+</head>
+
+<body>
+    <main class="public-shell narrow">
+        <section class="public-registration-card">
+            <span class="public-kicker">
+                You're Invited
+            </span>
+
+            <h1>
+                Join {{ studio.name }} on Encore
+            </h1>
+
+            {% if invite.is_accepted %}
+                <div class="public-notice">
+                    This invite has already been accepted.
+                </div>
+
+                <a
+                    class="public-button primary"
+                    href="/accounts/login/"
+                >
+                    Sign In
+                </a>
+            {% elif invite.is_expired %}
+                <div class="public-notice">
+                    This invite has expired.
+                    Ask the studio to send a new one.
+                </div>
+            {% else %}
+                <p>
+                    Set your password to activate the Family portal
+                    for <strong>{{ invite.email }}</strong>.
+                </p>
+
+                <form
+                    method="post"
+                    class="public-form"
+                >
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="public-errors">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <div class="public-form-grid">
+                        {% for field in form %}
+                            <div class="public-field">
+                                {{ field.label_tag }}
+                                {{ field }}
+
+                                {% for error in field.errors %}
+                                    <small class="public-error">
+                                        {{ error }}
+                                    </small>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <button
+                        class="public-button primary large"
+                        type="submit"
+                    >
+                        Activate Family Account
+                    </button>
+                </form>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>

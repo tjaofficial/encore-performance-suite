@@ -1,0 +1,392 @@
+.timekeeping-heading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+.timekeeping-heading h1 {
+    margin: 2px 0 5px;
+    color: var(--encore-primary-deep);
+    font-size: clamp(1.7rem, 3vw, 2.4rem);
+    letter-spacing: -0.04em;
+}
+
+.timekeeping-heading p:last-child {
+    margin: 0;
+    color: var(--encore-muted);
+    font-size: 0.72rem;
+}
+
+.back-link {
+    display: inline-block;
+    margin-bottom: 12px;
+    color: var(--encore-primary);
+    font-size: 0.63rem;
+    font-weight: 850;
+    text-decoration: none;
+}
+
+.extra-work-form-card,
+.extra-work-history-card {
+    padding: 17px;
+    border: 1px solid var(--encore-border);
+    border-radius: 14px;
+    background: #fff;
+    box-shadow:
+        0 8px 24px rgba(0, 2, 78, 0.05);
+}
+
+.extra-work-form-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.time-field {
+    display: grid;
+    gap: 6px;
+}
+
+.time-field.full {
+    grid-column: 1 / -1;
+}
+
+.time-field > label {
+    color: var(--encore-primary-deep);
+    font-size: 0.62rem;
+    font-weight: 900;
+}
+
+.time-field small {
+    color: var(--encore-muted);
+    font-size: 0.57rem;
+}
+
+.extra-work-form .encore-input {
+    width: 100%;
+    min-width: 0;
+    min-height: 42px;
+    box-sizing: border-box;
+    padding: 8px 10px;
+    border: 1px solid var(--encore-border);
+    border-radius: 9px;
+    outline: 0;
+    background: #fff;
+    color: var(--encore-primary-deep);
+    font: inherit;
+    font-size: 0.7rem;
+}
+
+.extra-work-form .encore-input:focus {
+    border-color: var(--encore-primary);
+    box-shadow:
+        0 0 0 3px
+        color-mix(
+            in srgb,
+            var(--encore-primary) 10%,
+            transparent
+        );
+}
+
+.time-duration-inputs {
+    display: grid;
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.time-duration-inputs > div {
+    position: relative;
+}
+
+.time-duration-inputs span {
+    position: absolute;
+    top: 50%;
+    right: 9px;
+    transform: translateY(-50%);
+    color: var(--encore-muted);
+    font-size: 0.55rem;
+    pointer-events: none;
+}
+
+.time-duration-inputs .encore-input {
+    padding-right: 48px;
+}
+
+.time-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.time-card-heading {
+    margin-bottom: 10px;
+}
+
+.time-card-heading span {
+    color: var(--encore-primary);
+    font-size: 0.55rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.time-card-heading h2 {
+    margin: 2px 0 0;
+    color: var(--encore-primary-deep);
+    font-size: 0.92rem;
+}
+
+.extra-work-history-list {
+    display: grid;
+}
+
+.extra-work-history-row {
+    display: grid;
+    grid-template-columns:
+        55px minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    min-height: 52px;
+    border-bottom: 1px solid var(--encore-border);
+}
+
+.extra-work-date,
+.extra-work-copy {
+    display: grid;
+    gap: 1px;
+}
+
+.extra-work-date strong,
+.extra-work-copy strong {
+    color: var(--encore-primary-deep);
+    font-size: 0.66rem;
+}
+
+.extra-work-date span,
+.extra-work-copy span {
+    color: var(--encore-muted);
+    font-size: 0.56rem;
+}
+
+.extra-work-duration {
+    color: var(--encore-primary);
+    font-size: 0.68rem;
+}
+
+.time-empty-state {
+    padding: 28px 12px;
+    text-align: center;
+}
+
+.time-empty-state strong {
+    color: var(--encore-primary-deep);
+    font-size: 0.72rem;
+}
+
+.time-empty-state p {
+    max-width: 420px;
+    margin: 5px auto 0;
+    color: var(--encore-muted);
+    font-size: 0.62rem;
+}
+
+.field-error {
+    color: #b04444 !important;
+}
+
+.time-form-errors {
+    margin-bottom: 12px;
+    padding: 10px;
+    border-radius: 9px;
+    background: rgba(176, 68, 68, 0.07);
+    color: #9b3d3d;
+    font-size: 0.64rem;
+}
+
+@media (max-width: 700px) {
+    .timekeeping-heading {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .extra-work-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .time-field.full {
+        grid-column: auto;
+    }
+}
+
+
+/* Time history filters, total, and row tracking */
+
+.time-history-toolbar {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 12px;
+}
+
+.time-history-toolbar .time-card-heading {
+    margin-bottom: 0;
+}
+
+.time-filter-form {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.time-filter-field {
+    display: grid;
+    gap: 4px;
+}
+
+.time-filter-field label {
+    color: var(--encore-primary-deep);
+    font-size: 0.55rem;
+    font-weight: 850;
+}
+
+.time-filter-field .encore-input {
+    min-height: 34px;
+    padding: 6px 8px;
+    border: 1px solid var(--encore-border);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--encore-primary-deep);
+    font: inherit;
+    font-size: 0.62rem;
+}
+
+.time-filter-field .encore-input:focus {
+    outline: 0;
+    border-color: var(--encore-primary);
+    box-shadow:
+        0 0 0 3px
+        color-mix(
+            in srgb,
+            var(--encore-primary) 9%,
+            transparent
+        );
+}
+
+.time-filter-button {
+    min-height: 34px;
+}
+
+.extra-work-table-header {
+    display: grid;
+    grid-template-columns:
+        55px minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    min-height: 34px;
+    padding: 0 8px;
+    border-top: 1px solid var(--encore-border);
+    border-bottom: 1px solid var(--encore-border);
+    background:
+        color-mix(
+            in srgb,
+            var(--encore-primary) 2%,
+            #fff
+        );
+    color: var(--encore-muted);
+    font-size: 0.54rem;
+    font-weight: 850;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.extra-work-total-heading {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    text-transform: none;
+}
+
+.extra-work-total-heading span {
+    color: var(--encore-muted);
+    font-size: 0.56rem;
+    font-weight: 850;
+}
+
+.extra-work-total-heading strong {
+    color: var(--encore-primary);
+    font-size: 0.7rem;
+    font-weight: 900;
+}
+
+.extra-work-history-row {
+    padding: 0 8px;
+    border-radius: 7px;
+    transition:
+        background 120ms ease,
+        box-shadow 120ms ease;
+}
+
+.extra-work-history-row:hover {
+    background:
+        color-mix(
+            in srgb,
+            var(--encore-primary) 5%,
+            #fff
+        );
+    box-shadow:
+        inset 3px 0 0
+        color-mix(
+            in srgb,
+            var(--encore-primary) 55%,
+            transparent
+        );
+}
+
+@media (max-width: 760px) {
+    .time-history-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .time-filter-form {
+        display: grid;
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .time-filter-button {
+        grid-column: 1 / -1;
+    }
+
+    .extra-work-table-header {
+        grid-template-columns:
+            48px minmax(0, 1fr) auto;
+    }
+}
+
+@media (max-width: 520px) {
+    .time-filter-form {
+        grid-template-columns: 1fr;
+    }
+
+    .time-filter-button {
+        grid-column: auto;
+    }
+
+    .extra-work-table-header {
+        grid-template-columns:
+            44px minmax(0, 1fr) auto;
+        gap: 7px;
+    }
+
+    .extra-work-total-heading {
+        gap: 4px;
+    }
+}

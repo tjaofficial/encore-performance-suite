@@ -1,0 +1,34 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ report_title }} | Encore Reports{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_reports.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Reports{% endblock %}
+
+{% block content %}
+<a
+    class="report-back-link"
+    href="{% url 'reports:reports_dashboard' studio.slug %}"
+>
+    ← Back to Reports
+</a>
+
+<section class="report-unavailable-card">
+    <span class="card-kicker">{{ report_category|default:"Encore Reports" }}</span>
+    <h1>{{ report_title }}</h1>
+    <p>{{ report_description }}</p>
+
+    <div class="report-planned-message">
+        <strong>This report is mapped but not wired yet.</strong>
+        <span>
+            The report is part of the Encore reporting roadmap and can be
+            implemented against the existing studio data as that reporting
+            phase is completed.
+        </span>
+    </div>
+</section>
+{% endblock %}

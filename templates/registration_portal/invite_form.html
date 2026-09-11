@@ -1,0 +1,83 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}
+Invite Family | Encore
+{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/encore_family_signup.css' %}"
+>
+{% endblock %}
+
+{% block topbar_title %}
+Invite Family
+{% endblock %}
+
+{% block content %}
+<section class="invite-heading">
+    <div>
+        <a
+            class="back-link"
+            href="{% url 'registration_portal:invite_list' studio.slug %}"
+        >
+            ← Back to Family Invites
+        </a>
+
+        <p class="eyebrow">
+            Family Access
+        </p>
+
+        <h1>
+            Invite a Family
+        </h1>
+
+        <p>
+            Link the invite to an existing Family,
+            or leave Family blank to create one when accepted.
+        </p>
+    </div>
+</section>
+
+<form
+    method="post"
+    class="invite-form"
+>
+    {% csrf_token %}
+
+    <section class="invite-panel">
+        <div class="invite-form-grid">
+            {% for field in form %}
+                <div class="invite-field">
+                    {{ field.label_tag }}
+                    {{ field }}
+
+                    {% for error in field.errors %}
+                        <small class="field-error">
+                            {{ error }}
+                        </small>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <div class="form-actions">
+        <a
+            class="button secondary"
+            href="{% url 'registration_portal:invite_list' studio.slug %}"
+        >
+            Cancel
+        </a>
+
+        <button
+            class="button primary"
+            type="submit"
+        >
+            Create Invite
+        </button>
+    </div>
+</form>
+{% endblock %}

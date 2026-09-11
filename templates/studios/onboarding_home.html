@@ -1,0 +1,204 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Settings | Encore{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/encore_studio_settings.css' %}"
+>
+{% endblock %}
+
+{% block topbar_title %}Settings{% endblock %}
+
+{% block content %}
+<div class="settings-workspace">
+    {% include "includes/settings_nav.html" %}
+
+    <main class="settings-workspace-content">
+        <section class="settings-heading">
+            <div>
+                <p class="eyebrow">Settings</p>
+
+                <h1>Your Encore Settings</h1>
+
+                <p>
+                    Personalize your workspace without changing
+                    how another teacher or administrator prefers theirs.
+                </p>
+            </div>
+        </section>
+
+        <section class="settings-section-block">
+            <div class="settings-section-heading">
+                <div>
+                    <span>Personal</span>
+                    <h2>Dashboard Layouts</h2>
+                    <p>
+                        Choose what you see and how your dashboards are arranged.
+                    </p>
+                </div>
+            </div>
+
+            <div class="settings-feature-list">
+                <a
+                    class="settings-feature-row"
+                    href="{% url 'studios:class_dashboard_settings' studio.slug %}"
+                >
+                    <span class="settings-icon">▦</span>
+
+                    <div>
+                        <strong>Class Dashboard</strong>
+                        <p>
+                            Choose cards, drag them into place,
+                            and control card width and height.
+                        </p>
+                    </div>
+
+                    <span class="settings-feature-state">
+                        {% if class_dashboard_customized %}
+                            Customized
+                        {% else %}
+                            Default
+                        {% endif %}
+                    </span>
+
+                    <b>→</b>
+                </a>
+
+                {% if role == "teacher" %}
+                    <a
+                        class="settings-feature-row"
+                        href="{% url 'studios:teacher_dashboard_settings' studio.slug %}"
+                    >
+                        <span class="settings-icon">▦</span>
+
+                        <div>
+                            <strong>Teacher Dashboard</strong>
+                            <p>
+                                Choose quick actions, arrange cards,
+                                and control card size.
+                            </p>
+                        </div>
+
+                        <span class="settings-feature-state">
+                            {% if teacher_dashboard_customized %}
+                                Customized
+                            {% else %}
+                                Default
+                            {% endif %}
+                        </span>
+
+                        <b>→</b>
+                    </a>
+                {% endif %}
+
+                {% if role == "administrator" %}
+                    <a
+                        class="settings-feature-row"
+                        href="{% url 'studios:admin_dashboard_settings' studio.slug %}"
+                    >
+                        <span class="settings-icon">▦</span>
+
+                        <div>
+                            <strong>Admin Dashboard</strong>
+                            <p>
+                                Choose optional cards, drag them into place,
+                                and control card width and height.
+                            </p>
+                        </div>
+
+                        <span class="settings-feature-state">
+                            {% if admin_dashboard_customized %}
+                                Customized
+                            {% else %}
+                                Default
+                            {% endif %}
+                        </span>
+
+                        <b>→</b>
+                    </a>
+                {% endif %}
+            </div>
+        </section>
+
+        {% if role == "administrator" %}
+            <section class="settings-section-block">
+                <div class="settings-section-heading">
+                    <div>
+                        <span>Studio Administration</span>
+                        <h2>{{ studio.name }}</h2>
+                        <p>
+                            These settings affect the studio itself
+                            and are available only to administrators.
+                        </p>
+                    </div>
+
+                    {% if progress_percent is not None %}
+                        <strong class="settings-progress-label">
+                            {{ progress_percent }}% setup
+                        </strong>
+                    {% endif %}
+                </div>
+
+                <div class="settings-feature-list">
+                    <a class="settings-feature-row" href="{% url 'studios:studio_profile' studio.slug %}">
+                        <span class="settings-icon">◎</span>
+                        <div>
+                            <strong>Studio Profile</strong>
+                            <p>Studio name and identity.</p>
+                        </div>
+                        <b>→</b>
+                    </a>
+
+                    <a class="settings-feature-row" href="{% url 'studios:studio_branding' studio.slug %}">
+                        <span class="settings-icon">✦</span>
+                        <div>
+                            <strong>Branding & Registration</strong>
+                            <p>Logo, colors, and public registration preferences.</p>
+                        </div>
+                        <b>→</b>
+                    </a>
+
+                    <a class="settings-feature-row" href="{% url 'studios:location_list' studio.slug %}">
+                        <span class="settings-icon">⌖</span>
+                        <div>
+                            <strong>Locations</strong>
+                            <p>Buildings, rooms, and teaching locations.</p>
+                        </div>
+                        <b>→</b>
+                    </a>
+
+                    <a class="settings-feature-row" href="{% url 'studios:season_list' studio.slug %}">
+                        <span class="settings-icon">◫</span>
+                        <div>
+                            <strong>Seasons</strong>
+                            <p>Terms, semesters, and performance seasons.</p>
+                        </div>
+                        <b>→</b>
+                    </a>
+
+                    <a class="settings-feature-row" href="{% url 'studios:class_type_list' studio.slug %}">
+                        <span class="settings-icon">◇</span>
+                        <div>
+                            <strong>Class Types</strong>
+                            <p>Ballet, jazz, tap, hip hop, and more.</p>
+                        </div>
+                        <b>→</b>
+                    </a>
+
+                    <a class="settings-feature-row" href="{% url 'studios:staff_invite' studio.slug %}">
+                        <span class="settings-icon">△</span>
+                        <div>
+                            <strong>Staff Access</strong>
+                            <p>Invite administrators and teachers.</p>
+                        </div>
+                        <b>→</b>
+                    </a>
+                </div>
+            </section>
+        {% endif %}
+    </main>
+</div>
+{% endblock %}

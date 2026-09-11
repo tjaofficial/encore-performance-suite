@@ -1,0 +1,24 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Registration Expired | {{ studio.name }}</title>
+    <link rel="stylesheet" href="{% static 'css/encore_public_registration.css' %}">
+    <link rel="stylesheet" href="{% static 'css/encore_tenant_branding.css' %}">
+    {% include "includes/studio_brand_vars.html" %}
+</head>
+<body class="{% if embed_mode %}embed-mode{% endif %}">
+<main class="public-shell narrow">
+    <section class="public-success-card">
+        <span class="public-kicker">{{ studio.name }}</span>
+        <h1>This Registration Has Expired</h1>
+        <p>For privacy and security, unfinished registrations expire after 48 hours.</p>
+        <a class="public-button primary" href="{% url 'registration_portal:public_registration_home' studio.slug %}">
+            Start Again
+        </a>
+    </section>
+</main>
+</body>
+</html>

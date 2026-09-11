@@ -1,0 +1,160 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}
+Log Extra Work | Encore
+{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/encore_timekeeping.css' %}"
+>
+{% endblock %}
+
+{% block topbar_title %}
+Time & Extra Work
+{% endblock %}
+
+{% block content %}
+<section class="timekeeping-heading">
+    <div>
+        <a
+            class="back-link"
+            href="{% url 'timekeeping:extra_work_list' studio.slug %}"
+        >
+            ← Back to Extra Work
+        </a>
+
+        <p class="eyebrow">
+            Teacher Time
+        </p>
+
+        <h1>
+            Log Extra Work
+        </h1>
+
+        <p>
+            Record tech, administrative,
+            rehearsal, event, or other work
+            outside your normal class schedule.
+        </p>
+    </div>
+</section>
+
+<form
+    method="post"
+    class="extra-work-form"
+>
+    {% csrf_token %}
+
+    <section class="extra-work-form-card">
+        {% if form.non_field_errors %}
+            <div class="time-form-errors">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <div class="extra-work-form-grid">
+            <div class="time-field">
+                <label
+                    for="{{ form.work_date.id_for_label }}"
+                >
+                    Date
+                </label>
+
+                {{ form.work_date }}
+
+                {% for error in form.work_date.errors %}
+                    <small class="field-error">
+                        {{ error }}
+                    </small>
+                {% endfor %}
+            </div>
+
+            <div class="time-field">
+                <label
+                    for="{{ form.category.id_for_label }}"
+                >
+                    Type of Work
+                </label>
+
+                {{ form.category }}
+
+                {% for error in form.category.errors %}
+                    <small class="field-error">
+                        {{ error }}
+                    </small>
+                {% endfor %}
+            </div>
+
+            <div class="time-field time-duration-field">
+                <label>
+                    Time
+                </label>
+
+                <div class="time-duration-inputs">
+                    <div>
+                        {{ form.hours }}
+                        <span>hours</span>
+                    </div>
+
+                    <div>
+                        {{ form.minutes }}
+                        <span>minutes</span>
+                    </div>
+                </div>
+
+                {% for error in form.hours.errors %}
+                    <small class="field-error">
+                        {{ error }}
+                    </small>
+                {% endfor %}
+
+                {% for error in form.minutes.errors %}
+                    <small class="field-error">
+                        {{ error }}
+                    </small>
+                {% endfor %}
+            </div>
+
+            <div class="time-field full">
+                <label
+                    for="{{ form.description.id_for_label }}"
+                >
+                    Description
+                </label>
+
+                {{ form.description }}
+
+                <small>
+                    Optional — add a short note
+                    about what you worked on.
+                </small>
+
+                {% for error in form.description.errors %}
+                    <small class="field-error">
+                        {{ error }}
+                    </small>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <div class="time-form-actions">
+        <a
+            class="button secondary"
+            href="{% url 'timekeeping:extra_work_list' studio.slug %}"
+        >
+            Cancel
+        </a>
+
+        <button
+            class="button primary"
+            type="submit"
+        >
+            Log Extra Work
+        </button>
+    </div>
+</form>
+{% endblock %}

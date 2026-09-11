@@ -1,0 +1,320 @@
+{% extends "marketing/base.html" %}
+
+{% block title %}
+Contact | Encore Performance Suite
+{% endblock %}
+
+{% block content %}
+<main class="inner-marketing-page">
+    <section class="inner-hero contact-hero">
+        <span class="marketing-kicker">
+            Contact
+        </span>
+
+        <h1>
+            Start on your own, or talk with us first.
+        </h1>
+
+        <p>
+            You do not need a sales call to use Encore. If you already know
+            what you want, create your studio account online. If you have
+            questions, want a walkthrough, or need help planning a switch,
+            send us a message here.
+        </p>
+
+        <div class="hero-actions">
+            <a
+                class="marketing-button primary large"
+                href="{% url 'accounts:register' %}"
+            >
+                Start Your Studio
+            </a>
+
+            <a
+                class="marketing-button ghost large"
+                href="#contact-form"
+            >
+                Contact Encore
+            </a>
+        </div>
+    </section>
+
+    <section class="contact-path-grid contact-path-grid-clean">
+        <article class="contact-card">
+            <span class="marketing-kicker">Demo</span>
+
+            <h2>See Encore with your studio in mind.</h2>
+
+            <p>
+                Request a focused walkthrough built around your studio size,
+                current software, pain points, and the Encore tools most
+                relevant to you.
+            </p>
+
+            <ul class="contact-list">
+                <li>Talk through your current workflow</li>
+                <li>See administrator, teacher, and family experiences</li>
+                <li>Review pricing and plan fit</li>
+                <li>Discuss onboarding or migration needs</li>
+            </ul>
+
+            <a
+                class="text-link"
+                href="#contact-form"
+            >
+                Request a Demo →
+            </a>
+        </article>
+
+        <article class="contact-card">
+            <span class="marketing-kicker">Sales & Questions</span>
+
+            <h2>Not sure which plan fits?</h2>
+
+            <p>
+                Ask about Essentials, Pro, Drawing Board, studio size,
+                subscription rules, or how Encore compares with your
+                current setup.
+            </p>
+
+            <a
+                class="text-link"
+                href="#contact-form"
+            >
+                Ask Encore →
+            </a>
+        </article>
+
+        <article class="contact-card">
+            <span class="marketing-kicker">Onboarding & Migration</span>
+
+            <h2>Planning a switch?</h2>
+
+            <p>
+                We can talk through setup, data migration, class
+                configuration, staff access, and a practical path from
+                your current software to Encore.
+            </p>
+
+            <a
+                class="text-link"
+                href="#contact-form"
+            >
+                Discuss Onboarding →
+            </a>
+        </article>
+
+        <article class="contact-card">
+            <span class="marketing-kicker">Existing Customers</span>
+
+            <h2>Already using Encore?</h2>
+
+            <p>
+                Sign in to your studio workspace or use the secure contact
+                form below for account, billing, or technical questions.
+            </p>
+
+            <a
+                class="marketing-button ghost large"
+                href="{% url 'accounts:login' %}"
+            >
+                Sign In
+            </a>
+        </article>
+    </section>
+
+    <section
+        id="contact-form"
+        class="secure-contact-section"
+    >
+        <div class="secure-contact-copy">
+            <span class="marketing-kicker">
+                Contact Encore
+            </span>
+
+            <h2>Send us a message.</h2>
+
+            <p>
+                Your message is sent securely through Encore. Our public
+                email address is not exposed on this page.
+            </p>
+
+            <div class="secure-contact-points">
+                <span>
+                    <strong>Spam protected</strong>
+                    Automated junk is filtered before it reaches our inbox.
+                </span>
+
+                <span>
+                    <strong>Reply directly</strong>
+                    When we respond, it goes to the email address you provide.
+                </span>
+            </div>
+        </div>
+
+        <div class="secure-contact-form-card">
+            {% if contact_sent %}
+                <div class="contact-success">
+                    <strong>Message received.</strong>
+                    <span>
+                        Thanks for contacting Encore. We'll get back to you
+                        as soon as we can.
+                    </span>
+                </div>
+            {% endif %}
+
+            {% if contact_send_error %}
+                <div class="contact-error-banner">
+                    {{ contact_send_error }}
+                </div>
+            {% endif %}
+
+            <form
+                method="post"
+                class="secure-contact-form"
+                novalidate
+            >
+                {% csrf_token %}
+
+                <input
+                    type="hidden"
+                    name="contact_form_token"
+                    value="{{ contact_form_token }}"
+                >
+
+                <div
+                    class="contact-honeypot"
+                    aria-hidden="true"
+                >
+                    <label for="{{ form.website.id_for_label }}">
+                        Website
+                    </label>
+                    {{ form.website }}
+                </div>
+
+                <div class="contact-form-grid">
+                    <div class="contact-field">
+                        <label for="{{ form.name.id_for_label }}">
+                            Name
+                        </label>
+                        {{ form.name }}
+
+                        {% for error in form.name.errors %}
+                            <small class="contact-field-error">
+                                {{ error }}
+                            </small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="contact-field">
+                        <label for="{{ form.studio_name.id_for_label }}">
+                            Studio Name
+                        </label>
+                        {{ form.studio_name }}
+
+                        {% for error in form.studio_name.errors %}
+                            <small class="contact-field-error">
+                                {{ error }}
+                            </small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="contact-field">
+                        <label for="{{ form.email.id_for_label }}">
+                            Email
+                        </label>
+                        {{ form.email }}
+
+                        {% for error in form.email.errors %}
+                            <small class="contact-field-error">
+                                {{ error }}
+                            </small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="contact-field">
+                        <label for="{{ form.phone.id_for_label }}">
+                            Phone
+                            <span>Optional</span>
+                        </label>
+                        {{ form.phone }}
+
+                        {% for error in form.phone.errors %}
+                            <small class="contact-field-error">
+                                {{ error }}
+                            </small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="contact-field full">
+                        <label for="{{ form.reason.id_for_label }}">
+                            What can we help with?
+                        </label>
+                        {{ form.reason }}
+
+                        {% for error in form.reason.errors %}
+                            <small class="contact-field-error">
+                                {{ error }}
+                            </small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="contact-field full">
+                        <label for="{{ form.message.id_for_label }}">
+                            Message
+                        </label>
+                        {{ form.message }}
+
+                        {% for error in form.message.errors %}
+                            <small class="contact-field-error">
+                                {{ error }}
+                            </small>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {% if form.non_field_errors %}
+                    <div class="contact-error-banner">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <button
+                    type="submit"
+                    class="marketing-button primary large contact-submit"
+                >
+                    Send Message
+                </button>
+
+                <p class="contact-privacy-note">
+                    This form is protected against automated spam and abuse.
+                </p>
+            </form>
+        </div>
+    </section>
+
+    <section class="contact-bottom">
+        <div>
+            <span class="marketing-kicker">
+                Want the quick answer?
+            </span>
+
+            <h2>Check the FAQ first.</h2>
+
+            <p>
+                We cover pricing, subscriptions, features, Drawing Board,
+                payments, registration, cancellation, and getting started.
+            </p>
+        </div>
+
+        <a
+            class="marketing-button ghost large"
+            href="{% url 'marketing:faq' %}"
+        >
+            Browse FAQ
+        </a>
+    </section>
+</main>
+{% endblock %}

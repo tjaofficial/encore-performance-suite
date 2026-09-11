@@ -1,0 +1,711 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}
+{{ page_title }} | Encore Performance Suite
+{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/encore_class_form.css' %}"
+>
+{% endblock %}
+
+{% block topbar_title %}
+Class Manager
+{% endblock %}
+
+{% block content %}
+<section class="class-form-header">
+    <div>
+        <a
+            class="class-form-back"
+            href="{% if class_instance %}{% url 'classes:class_detail' studio.slug class_instance.id %}{% else %}{% url 'classes:class_list' studio.slug %}{% endif %}"
+        >
+            ←
+            {% if class_instance %}
+                Back to Class Dashboard
+            {% else %}
+                Back to Classes
+            {% endif %}
+        </a>
+
+        <p class="class-form-kicker">
+            {% if class_instance %}
+                Edit Class
+            {% else %}
+                New Class
+            {% endif %}
+        </p>
+
+        <h1>
+            {% if class_instance %}
+                {{ class_instance.name }}
+            {% else %}
+                Create a Class
+            {% endif %}
+        </h1>
+
+        <p>
+            Set up class information, teaching staff, enrollment rules,
+            and the weekly meeting schedule.
+        </p>
+    </div>
+
+    {% if class_instance %}
+        <div class="class-form-status">
+            <span>CLASS ID</span>
+            <strong>{{ class_instance.class_id }}</strong>
+        </div>
+    {% endif %}
+</section>
+
+<form
+    method="post"
+    class="encore-class-form"
+    id="encore-class-form"
+    novalidate
+>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+        <div class="form-alert error">
+            {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if formset.non_form_errors %}
+        <div class="form-alert error">
+            {% for error in formset.non_form_errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="class-form-layout">
+        <main class="class-form-main">
+            <section class="class-form-card">
+                <div class="class-form-card-heading">
+                    <span>01</span>
+                    <div>
+                        <h2>Class Information</h2>
+                        <p>
+                            Give the class its identity and connect it to
+                            the correct season and class type.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="form-grid two-column">
+                    <div class="field-group">
+                        <label for="{{ form.class_id.id_for_label }}">
+                            Class ID
+                            <b>*</b>
+                        </label>
+                        {{ form.class_id }}
+                        {% for error in form.class_id.errors %}
+                            <small class="field-error">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="field-group">
+                        <label for="{{ form.name.id_for_label }}">
+                            Class Name
+                            <b>*</b>
+                        </label>
+                        {{ form.name }}
+                        {% for error in form.name.errors %}
+                            <small class="field-error">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="field-group">
+                        <label for="{{ form.season.id_for_label }}">
+                            Season
+                            <b>*</b>
+                        </label>
+                        {{ form.season }}
+                        {% for error in form.season.errors %}
+                            <small class="field-error">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="field-group">
+                        <label for="{{ form.class_type.id_for_label }}">
+                            Class Type
+                            <b>*</b>
+                        </label>
+                        {{ form.class_type }}
+                        {% for error in form.class_type.errors %}
+                            <small class="field-error">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="field-group full">
+                        <label for="{{ form.description.id_for_label }}">
+                            Description
+                        </label>
+                        {{ form.description }}
+                        {% for error in form.description.errors %}
+                            <small class="field-error">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="field-group full">
+                        <label for="{{ form.dress_code.id_for_label }}">
+                            Dress Code
+                        </label>
+                        {{ form.dress_code }}
+                        {% if form.dress_code.help_text %}
+                            <small>{{ form.dress_code.help_text }}</small>
+                        {% endif %}
+                        {% for error in form.dress_code.errors %}
+                            <small class="field-error">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+
+            <section class="class-form-card">
+                <div class="class-form-card-heading">
+                    <span>02</span>
+                    <div>
+                        <h2>Teaching Staff</h2>
+                        <p>
+                            Assign the primary instructor and, if needed,
+                            an assistant instructor.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="form-grid two-column">
+                    <div class="field-group">
+                        <label for="{{ form.instructor.id_for_label }}">
+                            Instructor
+                            <b>*</b>
+                        </label>
+                        {{ form.instructor }}
+                        {% for error in form.instructor.errors %}
+                            <small class="field-error">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="field-group">
+                        <label for="{{ form.assistant_instructor.id_for_label }}">
+                            Assistant Instructor
+                        </label>
+                        {{ form.assistant_instructor }}
+                        {% for error in form.assistant_instructor.errors %}
+                            <small class="field-error">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+
+            <section class="class-form-card">
+                <div class="class-form-card-heading">
+                    <span>03</span>
+                    <div>
+                        <h2>Schedule & Location</h2>
+                        <p>
+                            Add one or more weekly class meetings.
+                            Select the studio room used for each meeting.
+                        </p>
+                    </div>
+                </div>
+
+                {{ formset.management_form }}
+
+                <div
+                    id="class-meeting-list"
+                    class="class-meeting-editor"
+                    data-form-prefix="{{ formset.prefix }}"
+                >
+                    {% for meeting_form in formset.forms %}
+                        <div
+                            class="class-meeting-row"
+                            data-meeting-form
+                        >
+                            {% for hidden in meeting_form.hidden_fields %}
+                                {{ hidden }}
+                            {% endfor %}
+
+                            <div class="meeting-row-number">
+                                <span>Meeting</span>
+                                <strong data-meeting-number>
+                                    {{ forloop.counter }}
+                                </strong>
+                            </div>
+
+                            <div class="meeting-fields">
+                                <div class="field-group">
+                                    <label for="{{ meeting_form.day_of_week.id_for_label }}">
+                                        Day
+                                    </label>
+                                    {{ meeting_form.day_of_week }}
+                                    {% for error in meeting_form.day_of_week.errors %}
+                                        <small class="field-error">{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+
+                                <div class="field-group">
+                                    <label for="{{ meeting_form.start_time.id_for_label }}">
+                                        Start Time
+                                    </label>
+                                    {{ meeting_form.start_time }}
+                                    {% for error in meeting_form.start_time.errors %}
+                                        <small class="field-error">{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+
+                                <div class="field-group">
+                                    <label for="{{ meeting_form.duration_minutes.id_for_label }}">
+                                        Duration
+                                    </label>
+                                    <div class="duration-input">
+                                        {{ meeting_form.duration_minutes }}
+                                        <span>min</span>
+                                    </div>
+                                    {% for error in meeting_form.duration_minutes.errors %}
+                                        <small class="field-error">{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+
+                                <div class="field-group">
+                                    <label
+                                        class="field-label-with-help"
+                                        for="{{ meeting_form.room.id_for_label }}"
+                                    >
+                                        <span>Room</span>
+
+                                        <span
+                                            class="field-help-tooltip"
+                                            tabindex="0"
+                                            aria-label="Room information"
+                                        >
+                                            <span class="field-help-icon">i</span>
+
+                                            <span
+                                                class="field-help-popup"
+                                                role="tooltip"
+                                            >
+                                                Choose a studio room. If the room belongs to a physical location,
+                                                Encore uses that location automatically.
+                                            </span>
+                                        </span>
+                                    </label>
+
+                                    {{ meeting_form.room }}
+
+                                    {% for error in meeting_form.room.errors %}
+                                        <small class="field-error">{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+
+                                <div class="field-group meeting-note-field">
+                                    <label for="{{ meeting_form.notes.id_for_label }}">
+                                        Note
+                                    </label>
+                                    {{ meeting_form.notes }}
+                                    {% for error in meeting_form.notes.errors %}
+                                        <small class="field-error">{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+
+                                <label class="compact-check">
+                                    {{ meeting_form.is_active }}
+                                    <span>
+                                        <strong>Active</strong>
+                                        <small>Include this meeting in the schedule.</small>
+                                    </span>
+                                </label>
+                            </div>
+
+                            <div class="meeting-delete">
+                                {% if meeting_form.DELETE %}
+                                    <label>
+                                        {{ meeting_form.DELETE }}
+                                        <span>Remove</span>
+                                    </label>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <template id="empty-meeting-template">
+                    <div
+                        class="class-meeting-row"
+                        data-meeting-form
+                    >
+                        {% for hidden in formset.empty_form.hidden_fields %}
+                            {{ hidden }}
+                        {% endfor %}
+
+                        <div class="meeting-row-number">
+                            <span>Meeting</span>
+                            <strong data-meeting-number></strong>
+                        </div>
+
+                        <div class="meeting-fields">
+                            <div class="field-group">
+                                <label for="{{ formset.empty_form.day_of_week.id_for_label }}">
+                                    Day
+                                </label>
+                                {{ formset.empty_form.day_of_week }}
+                            </div>
+
+                            <div class="field-group">
+                                <label for="{{ formset.empty_form.start_time.id_for_label }}">
+                                    Start Time
+                                </label>
+                                {{ formset.empty_form.start_time }}
+                            </div>
+
+                            <div class="field-group">
+                                <label for="{{ formset.empty_form.duration_minutes.id_for_label }}">
+                                    Duration
+                                </label>
+                                <div class="duration-input">
+                                    {{ formset.empty_form.duration_minutes }}
+                                    <span>min</span>
+                                </div>
+                            </div>
+
+                            <div class="field-group">
+                                <label
+                                    class="field-label-with-help"
+                                    for="{{ formset.empty_form.room.id_for_label }}"
+                                >
+                                    <span>Room</span>
+
+                                    <span
+                                        class="field-help-tooltip"
+                                        tabindex="0"
+                                        aria-label="Room information"
+                                    >
+                                        <span class="field-help-icon">i</span>
+
+                                        <span
+                                            class="field-help-popup"
+                                            role="tooltip"
+                                        >
+                                            Choose a studio room. If the room belongs to a physical location,
+                                            Encore uses that location automatically.
+                                        </span>
+                                    </span>
+                                </label>
+
+                                {{ formset.empty_form.room }}
+                            </div>
+
+                            <div class="field-group meeting-note-field">
+                                <label for="{{ formset.empty_form.notes.id_for_label }}">
+                                    Note
+                                </label>
+                                {{ formset.empty_form.notes }}
+                            </div>
+
+                            <label class="compact-check">
+                                {{ formset.empty_form.is_active }}
+                                <span>
+                                    <strong>Active</strong>
+                                    <small>Include this meeting in the schedule.</small>
+                                </span>
+                            </label>
+                        </div>
+
+                        <div class="meeting-delete">
+                            <button
+                                type="button"
+                                class="remove-new-meeting"
+                                data-remove-new-meeting
+                            >
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                </template>
+
+                <button
+                    type="button"
+                    class="add-meeting-button"
+                    id="add-class-meeting"
+                >
+                    <span>＋</span>
+                    Add Another Meeting
+                </button>
+            </section>
+
+            <section class="class-form-card">
+                <div class="class-form-card-heading">
+                    <span>04</span>
+                    <div>
+                        <h2>Tuition & Billing</h2>
+                        <p>
+                            Set what this class costs and how Encore should
+                            bill that tuition when a student enrolls.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="form-grid two-column">
+                    <div class="field-group">
+                        <label for="{{ form.tuition_amount.id_for_label }}">
+                            Class Tuition
+                        </label>
+
+                        <div class="money-input">
+                            <span>$</span>
+                            {{ form.tuition_amount }}
+                        </div>
+
+                        {% if form.tuition_amount.help_text %}
+                            <small>
+                                {{ form.tuition_amount.help_text }}
+                            </small>
+                        {% endif %}
+
+                        {% for error in form.tuition_amount.errors %}
+                            <small class="field-error">
+                                {{ error }}
+                            </small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="field-group">
+                        <label for="{{ form.tuition_plan.id_for_label }}">
+                            Tuition Billing Policy
+                        </label>
+
+                        {{ form.tuition_plan }}
+
+                        {% if form.tuition_plan.help_text %}
+                            <small>
+                                {{ form.tuition_plan.help_text }}
+                            </small>
+                        {% endif %}
+
+                        {% for error in form.tuition_plan.errors %}
+                            <small class="field-error">
+                                {{ error }}
+                            </small>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="form-alert info">
+                    <p>
+                        <strong>Class Tuition</strong> is the price of this class.
+                        The <strong>Tuition Billing Policy</strong> controls how
+                        often that amount is billed, such as monthly or for the
+                        full season.
+                    </p>
+                </div>
+            </section>
+
+            <section class="class-form-card">
+                <div class="class-form-card-heading">
+                    <span>05</span>
+                    <div>
+                        <h2>Enrollment</h2>
+                        <p>
+                            Set capacity, age requirements, prerequisites,
+                            registration status, and drop-in rules.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="form-grid three-column">
+                    <div class="field-group">
+                        <label for="{{ form.capacity.id_for_label }}">
+                            Capacity
+                        </label>
+                        {{ form.capacity }}
+                        {% for error in form.capacity.errors %}
+                            <small class="field-error">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="field-group">
+                        <label for="{{ form.min_age.id_for_label }}">
+                            Minimum Age
+                        </label>
+                        {{ form.min_age }}
+                        {% for error in form.min_age.errors %}
+                            <small class="field-error">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="field-group">
+                        <label for="{{ form.max_age.id_for_label }}">
+                            Maximum Age
+                        </label>
+                        {{ form.max_age }}
+                        {% for error in form.max_age.errors %}
+                            <small class="field-error">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="field-group">
+                        <label for="{{ form.gender_restriction.id_for_label }}">
+                            Gender Restriction
+                        </label>
+                        {{ form.gender_restriction }}
+                        {% for error in form.gender_restriction.errors %}
+                            <small class="field-error">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="field-group full span-two">
+                        <label for="{{ form.prerequisites.id_for_label }}">
+                            Prerequisite Classes
+                        </label>
+                        {{ form.prerequisites }}
+                        <small>
+                            Hold Command / Ctrl to select multiple classes.
+                        </small>
+                        {% for error in form.prerequisites.errors %}
+                            <small class="field-error">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="class-toggle-grid">
+                    <label class="setting-toggle-card">
+                        {{ form.is_active }}
+                        <span>
+                            <strong>Active Class</strong>
+                            <small>
+                                Show this class throughout Encore.
+                            </small>
+                        </span>
+                    </label>
+
+                    <label class="setting-toggle-card">
+                        {{ form.registration_open }}
+                        <span>
+                            <strong>Registration Open</strong>
+                            <small>
+                                Allow students to enroll while registration is available.
+                            </small>
+                        </span>
+                    </label>
+
+                    <label class="setting-toggle-card">
+                        {{ form.allow_drop_ins }}
+                        <span>
+                            <strong>Allow Drop-Ins</strong>
+                            <small>
+                                Allow attendance without full enrollment.
+                            </small>
+                        </span>
+                    </label>
+                </div>
+
+                <div
+                    class="drop-in-price-panel"
+                    id="drop-in-price-panel"
+                >
+                    <div class="field-group">
+                        <label for="{{ form.drop_in_price.id_for_label }}">
+                            Drop-In Price
+                        </label>
+                        <div class="money-input">
+                            <span>$</span>
+                            {{ form.drop_in_price }}
+                        </div>
+                        {% for error in form.drop_in_price.errors %}
+                            <small class="field-error">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+
+            <section class="class-form-card">
+                <div class="class-form-card-heading">
+                    <span>06</span>
+                    <div>
+                        <h2>Internal Notes</h2>
+                        <p>
+                            Optional notes for administrators and staff.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <label for="{{ form.notes.id_for_label }}">
+                        Notes
+                    </label>
+                    {{ form.notes }}
+                    {% for error in form.notes.errors %}
+                        <small class="field-error">{{ error }}</small>
+                    {% endfor %}
+                </div>
+            </section>
+        </main>
+
+        <aside class="class-form-sidebar">
+            <section class="class-form-save-card">
+                <span class="sidebar-kicker">
+                    {% if class_instance %}
+                        Update Class
+                    {% else %}
+                        Create Class
+                    {% endif %}
+                </span>
+
+                <h2>
+                    {% if class_instance %}
+                        Save your changes
+                    {% else %}
+                        Ready to create it?
+                    {% endif %}
+                </h2>
+
+                <p>
+                    Required fields are marked with an asterisk.
+                    You can edit the class again from its dashboard.
+                </p>
+
+                <button
+                    class="button primary class-form-submit"
+                    type="submit"
+                >
+                    {% if class_instance %}
+                        Save Changes
+                    {% else %}
+                        Create Class
+                    {% endif %}
+                </button>
+
+                <a
+                    class="button secondary class-form-cancel"
+                    href="{% if class_instance %}{% url 'classes:class_detail' studio.slug class_instance.id %}{% else %}{% url 'classes:class_list' studio.slug %}{% endif %}"
+                >
+                    Cancel
+                </a>
+            </section>
+
+            <section class="class-form-tip-card">
+                <span>ENCORE TIP</span>
+                <strong>Schedule first, details second.</strong>
+                <p>
+                    Add every regular weekly meeting now so calendars,
+                    attendance, and the class dashboard all start correctly.
+                </p>
+            </section>
+        </aside>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script
+    src="{% static 'js/encore_class_form.js' %}"
+    defer
+></script>
+{% endblock %}

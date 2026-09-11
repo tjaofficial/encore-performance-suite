@@ -1,0 +1,114 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}
+{{ page_title }} | Encore
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_resources.css' %}">
+{% endblock %}
+
+{% block topbar_title %}
+{{ page_title }}
+{% endblock %}
+
+{% block content %}
+<section class="resource-heading">
+    <div>
+        <a
+            class="back-link"
+            href="{% url 'resources:resource_list' studio.slug %}"
+        >
+            ← Back to Class Resources
+        </a>
+
+        <p class="eyebrow">
+            Class Resources
+        </p>
+
+        <h1>
+            {{ page_title }}
+        </h1>
+
+        <p>
+            Upload music/documents or connect an external video/resource.
+        </p>
+    </div>
+</section>
+
+<div class="resource-tip">
+    <strong>For class videos:</strong>
+
+    <span>
+        use a YouTube/Vimeo/external URL instead of uploading the video file.
+        Music and documents can be uploaded directly to Encore.
+    </span>
+</div>
+
+<form
+    method="post"
+    enctype="multipart/form-data"
+    class="resource-form"
+>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+        <div class="form-errors">
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
+
+    <section class="resource-form-card">
+        <div class="form-grid">
+            {% for field in form %}
+                <div
+                    class="field-group
+                    {% if field.name == 'description' %}full{% endif %}"
+                >
+                    {% if field.field.widget.input_type == "checkbox" %}
+                        <label class="checkbox-line">
+                            {{ field }}
+
+                            <span>
+                                {{ field.label }}
+                            </span>
+                        </label>
+                    {% else %}
+                        {{ field.label_tag }}
+                        {{ field }}
+                    {% endif %}
+
+                    {% if field.help_text %}
+                        <small>
+                            {{ field.help_text }}
+                        </small>
+                    {% endif %}
+
+                    {% for error in field.errors %}
+                        <small class="field-error">
+                            {{ error }}
+                        </small>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <div class="form-actions">
+        <a
+            class="button secondary"
+            href="{% url 'resources:resource_list' studio.slug %}"
+        >
+            Cancel
+        </a>
+
+        <button
+            class="button primary"
+            type="submit"
+        >
+            Save Resource
+        </button>
+    </div>
+</form>
+{% endblock %}

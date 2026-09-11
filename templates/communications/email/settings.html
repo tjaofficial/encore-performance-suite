@@ -1,0 +1,44 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+{% block title %}Email Settings | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_communications.css' %}">{% endblock %}
+{% block topbar_title %}Email Settings{% endblock %}
+{% block content %}
+<section class="communication-heading">
+    <div>
+        <p class="eyebrow">Email Manager</p>
+        <h1>Settings</h1>
+        <p>Review sender identities, SES configuration, and addresses Encore should not send to.</p>
+    </div>
+</section>
+{% include "communications/email/_nav.html" %}
+<section class="email-manager-grid">
+    <article class="email-panel">
+        <div class="email-panel-heading"><div><span class="card-kicker">Sender Identity</span><h2>Encore Email</h2></div></div>
+        <dl class="email-detail-list">
+            <div><dt>Default Name</dt><dd>{{ email_config.from_name }}</dd></div>
+            <div><dt>Notifications From</dt><dd>{{ email_config.no_reply }}</dd></div>
+            <div><dt>Reply-To / Information</dt><dd>{{ email_config.reply_to }}</dd></div>
+            <div><dt>SES Region</dt><dd>{{ email_config.region }}</dd></div>
+            <div><dt>Configuration Set</dt><dd>{{ email_config.configuration_set }}</dd></div>
+        </dl>
+    </article>
+    <article class="email-panel">
+        <div class="email-panel-heading"><div><span class="card-kicker">Deliverability</span><h2>Suppression List</h2></div></div>
+        <p class="email-panel-copy">
+            Hard bounces, complaints, unsubscribes, and manually blocked addresses
+            are excluded before a campaign sends.
+        </p>
+        <div class="email-recipient-list">
+            {% for suppression in suppressions %}
+                <div>
+                    <span><strong>{{ suppression.email }}</strong><small>{{ suppression.get_reason_display }}</small></span>
+                    <b class="email-status status-suppressed">Suppressed</b>
+                </div>
+            {% empty %}
+                <div class="empty-state">No suppressed addresses.</div>
+            {% endfor %}
+        </div>
+    </article>
+</section>
+{% endblock %}

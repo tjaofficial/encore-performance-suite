@@ -1,0 +1,158 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>
+        {% block title %}Encore Performance Suite{% endblock %}
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_marketing.css' %}"
+    >
+    <link
+        rel="icon"
+        type="image/png"
+        href="{% static 'images/icon.png' %}"
+    >
+</head>
+
+<body>
+    <header class="marketing-header">
+        <a
+            class="marketing-logo"
+            href="{% url 'marketing:home' %}"
+        >
+            <img
+                src="{% static 'images/logo.png' %}"
+                alt="Encore Performance Suite"
+            >
+        </a>
+
+        <nav aria-label="Primary navigation">
+            <a href="{% url 'marketing:features' %}">
+                Features
+            </a>
+
+            <a href="{% url 'marketing:pricing' %}">
+                Pricing
+            </a>
+
+            <a href="{% url 'marketing:faq' %}">
+                FAQ
+            </a>
+
+            <a href="{% url 'marketing:contact' %}">
+                Contact
+            </a>
+        </nav>
+
+        <div class="header-actions">
+            <a
+                class="marketing-button ghost"
+                href="{% url 'accounts:login' %}"
+            >
+                Sign In
+            </a>
+
+            <a
+                class="marketing-button primary"
+                href="{% url 'accounts:register' %}"
+            >
+                Start Your Studio
+            </a>
+        </div>
+    </header>
+
+    {% block content %}{% endblock %}
+
+    <footer class="marketing-footer">
+        <div class="footer-brand">
+            <img
+                src="{% static 'images/logo.png' %}"
+                alt="Encore Performance Suite"
+            >
+
+            <p>
+                Modern studio management for dance and performance studios —
+                from registration and attendance to communication,
+                choreography, costumes, and the work behind the curtain.
+            </p>
+
+            <a
+                class="marketing-button primary footer-start"
+                href="{% url 'accounts:register' %}"
+            >
+                Start Your Studio
+            </a>
+        </div>
+
+        <div class="footer-links-grid">
+            <div>
+                <strong>Product</strong>
+
+                <a href="{% url 'marketing:features' %}">
+                    Features
+                </a>
+
+                <a href="{% url 'marketing:pricing' %}">
+                    Pricing
+                </a>
+
+                <a href="{% url 'marketing:features' %}#drawing-board">
+                    Drawing Board
+                </a>
+            </div>
+
+            <div>
+                <strong>Resources</strong>
+
+                <a href="{% url 'marketing:faq' %}">
+                    FAQ
+                </a>
+
+                <a href="{% url 'marketing:contact' %}">
+                    Contact
+                </a>
+
+                <a href="{% url 'accounts:login' %}">
+                    Sign In
+                </a>
+            </div>
+
+            <div>
+                <strong>Get Started</strong>
+
+                <a href="{% url 'accounts:register' %}">
+                    Start Your Studio
+                </a>
+
+                <a href="{% url 'marketing:contact' %}#demo">
+                    Book a Demo
+                </a>
+
+                <a href="mailto:info@encoreperformancesuite.com">
+                    Email Encore
+                </a>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <span>
+                © {% now "Y" %} Encore Performance Suite
+            </span>
+
+            <span>
+                Privacy Policy and Terms of Service will be added before public launch.
+            </span>
+        </div>
+    </footer>
+</body>
+</html>

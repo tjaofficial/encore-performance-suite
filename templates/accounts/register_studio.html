@@ -1,0 +1,168 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Start Encore | Encore Performance Suite</title>
+    <link rel="stylesheet" href="{% static 'css/encore_login.css' %}">
+    <link rel="stylesheet" href="{% static 'css/encore_signup.css' %}">
+</head>
+<body>
+<main class="signup-shell">
+    <section class="signup-brand-panel">
+        <div>
+            <p class="eyebrow">Encore Performance Suite</p>
+            <h1>Start running your studio with Encore.</h1>
+            <p>
+                Choose a plan, complete secure checkout, and your studio
+                account activates immediately.
+            </p>
+        </div>
+
+        <div class="signup-price-note">
+            <strong>Monthly billing. Cancel anytime.</strong>
+            <span>No free trial. Your subscription begins at signup.</span>
+        </div>
+    </section>
+
+    <section class="signup-form-panel">
+        <div class="signup-card">
+            <div class="signup-heading">
+                <p class="eyebrow">Create Your Studio</p>
+                <h2>Choose your Encore plan</h2>
+                <p>
+                    New studios begin in the 0–100 student-record band.
+                    Encore automatically adjusts your band at future billing cycles.
+                </p>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="form-error"><p>{{ message }}</p></div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post" class="signup-form">
+                {% csrf_token %}
+
+                <div class="signup-grid">
+                    <label>
+                        <span>First Name</span>
+                        {{ form.first_name }}
+                        {{ form.first_name.errors }}
+                    </label>
+
+                    <label>
+                        <span>Last Name</span>
+                        {{ form.last_name }}
+                        {{ form.last_name.errors }}
+                    </label>
+
+                    <label class="full">
+                        <span>Email</span>
+                        {{ form.email }}
+                        {{ form.email.errors }}
+                    </label>
+
+                    <label>
+                        <span>Password</span>
+                        {{ form.password }}
+                        {{ form.password.errors }}
+                    </label>
+
+                    <label>
+                        <span>Confirm Password</span>
+                        {{ form.password_confirm }}
+                        {{ form.password_confirm.errors }}
+                    </label>
+
+                    <label class="full">
+                        <span>Studio Name</span>
+                        {{ form.studio_name }}
+                        {{ form.studio_name.errors }}
+                    </label>
+
+                    <label>
+                        <span>Studio Email</span>
+                        {{ form.studio_email }}
+                    </label>
+
+                    <label>
+                        <span>Studio Phone</span>
+                        {{ form.studio_phone }}
+                    </label>
+                </div>
+
+                <div class="plan-section">
+                    <h3>1. Choose your plan</h3>
+                    <div class="plan-card-grid">
+                        {% for value, label in form.plan_tier.field.choices %}
+                            <label class="select-card">
+                                <input
+                                    type="radio"
+                                    name="plan_tier"
+                                    value="{{ value }}"
+                                    {% if form.plan_tier.value == value %}checked{% endif %}
+                                >
+                                <strong>{{ label }}</strong>
+                                {% if value == "essentials" %}
+                                    <span>Core studio management</span>
+                                {% else %}
+                                    <span>Advanced operations + automation</span>
+                                {% endif %}
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="plan-section">
+                    <h3>2. Choose how you use Encore</h3>
+                    <div class="plan-card-grid">
+                        {% for value, label in form.payment_mode.field.choices %}
+                            <label class="select-card">
+                                <input
+                                    type="radio"
+                                    name="payment_mode"
+                                    value="{{ value }}"
+                                    {% if form.payment_mode.value == value %}checked{% endif %}
+                                >
+                                <strong>{{ label }}</strong>
+                                {% if value == "software_payments" %}
+                                    <span>Lower software price + payment processing</span>
+                                {% else %}
+                                    <span>Use Encore without Encore Payments</span>
+                                {% endif %}
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <label class="addon-card">
+                    {{ form.drawing_board_enabled }}
+                    <span>
+                        <strong>Drawing Board</strong>
+                        <small>Premium choreography and formation tools · $39/month</small>
+                    </span>
+                </label>
+
+                <label class="terms-line">
+                    {{ form.agree_to_terms }}
+                    <span>{{ form.agree_to_terms.label }}</span>
+                </label>
+
+                <button class="signup-button" type="submit">
+                    Continue to Secure Checkout
+                </button>
+            </form>
+
+            <p class="signup-login-link">
+                Already have Encore?
+                <a href="{% url 'accounts:login' %}">Sign in</a>
+            </p>
+        </div>
+    </section>
+</main>
+</body>
+</html>

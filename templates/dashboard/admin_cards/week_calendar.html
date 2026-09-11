@@ -1,0 +1,32 @@
+<article class="admin-dashboard-card admin-week-card">
+    <div class="card-heading">
+        <div>
+            <span class="card-kicker">Studio Calendar</span>
+            <h2>This Week</h2>
+        </div>
+
+        <a href="{% url 'scheduling:calendar' studio.slug %}">
+            Open Calendar
+        </a>
+    </div>
+
+    <div class="admin-week-grid admin-card-scroll">
+        {% for day in week_schedule %}
+            <div class="admin-week-day">
+                <div class="admin-week-day-heading">
+                    <span>{{ day.date|date:"D" }}</span>
+                    <strong>{{ day.date|date:"j" }}</strong>
+                </div>
+
+                {% for item in day.items %}
+                    <div class="admin-week-item type-{{ item.kind }}">
+                        <strong>{{ item.time|time:"g:i" }}</strong>
+                        <span>{{ item.title }}</span>
+                    </div>
+                {% empty %}
+                    <small>—</small>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </div>
+</article>

@@ -1,0 +1,13 @@
+{% if studio and studio.settings.logo %}
+    <img
+        class="tenant-studio-logo"
+        src="{{ studio.settings.logo.url }}"
+        alt="{{ studio.name }}"
+    >
+{% else %}
+    <img
+        class="encore-sidebar-logo"
+        src="{% static 'images/logo.png' %}"
+        alt="Encore Performance Suite"
+    >
+{% endif %}

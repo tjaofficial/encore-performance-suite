@@ -1,0 +1,170 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Evaluations | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_evaluations.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_list_views.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Student Evaluations{% endblock %}
+
+{% block content %}
+<section class="evaluation-heading">
+    <div>
+        <p class="eyebrow">Progress</p>
+        <h1>Student Evaluations</h1>
+        <p>
+            Track progress, teacher feedback, and goals over time.
+        </p>
+    </div>
+
+    <div class="list-heading-actions">
+        {% include "includes/list_view_toggle.html" with list_view_label="Evaluation display" %}
+
+        <a
+            class="button primary"
+            href="{% url 'evaluations:evaluation_create' studio.slug %}"
+        >
+            + New Evaluation
+        </a>
+    </div>
+</section>
+
+<form method="get" class="evaluation-filters">
+    <div>
+        <label>Search</label>
+        <input
+            type="search"
+            name="q"
+            value="{{ filters.q }}"
+            placeholder="Student or class..."
+        >
+    </div>
+
+    <div>
+        <label>Status</label>
+        <select name="status">
+            <option value="">All</option>
+
+            {% for value, label in status_choices %}
+                <option
+                    value="{{ value }}"
+                    {% if filters.status == value %}selected{% endif %}
+                >
+                    {{ label }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="filter-actions">
+        <button class="button primary" type="submit">Filter</button>
+        <a
+            class="button secondary"
+            href="{% url 'evaluations:evaluation_list' studio.slug %}"
+        >
+            Reset
+        </a>
+    </div>
+</form>
+
+{% if view_mode == "table" %}
+<section class="encore-list-table-card">
+    <div class="encore-list-table-wrap">
+        <table class="encore-list-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Student</th>
+                    <th>Class</th>
+                    <th>Instructor</th>
+                    <th>Template</th>
+                    <th>Status</th>
+                    <th class="action-cell">Open</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for evaluation in evaluations %}
+                    <tr>
+                        <td>{{ evaluation.evaluation_date|date:"M j, Y" }}</td>
+                        <td>
+                            <a
+                                class="primary-cell"
+                                href="{% url 'evaluations:evaluation_detail' studio.slug evaluation.id %}"
+                            >
+                                {{ evaluation.student.first_name }}
+                                {{ evaluation.student.last_name }}
+                            </a>
+                        </td>
+                        <td>{{ evaluation.class_instance.name }}</td>
+                        <td>{{ evaluation.instructor.full_name }}</td>
+                        <td>{{ evaluation.template.name }}</td>
+                        <td>
+                            <div class="table-badges">
+                                <span class="status-pill status-{{ evaluation.status }}">
+                                    {{ evaluation.get_status_display }}
+                                </span>
+                            </div>
+                        </td>
+                        <td class="action-cell">
+                            <a href="{% url 'evaluations:evaluation_detail' studio.slug evaluation.id %}">
+                                Open →
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td class="empty-cell" colspan="7">
+                            No evaluations found.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% else %}
+<section class="evaluation-grid">
+    {% for evaluation in evaluations %}
+        <a
+            class="evaluation-card"
+            href="{% url 'evaluations:evaluation_detail' studio.slug evaluation.id %}"
+        >
+            <div class="evaluation-card-top">
+                <div>
+                    <span class="card-kicker">
+                        {{ evaluation.evaluation_date|date:"M j, Y" }}
+                    </span>
+
+                    <h2>
+                        {{ evaluation.student.first_name }}
+                        {{ evaluation.student.last_name }}
+                    </h2>
+
+                    <p>
+                        {{ evaluation.class_instance.name }}
+                        ·
+                        {{ evaluation.instructor.full_name }}
+                    </p>
+                </div>
+
+                <span class="status-pill status-{{ evaluation.status }}">
+                    {{ evaluation.get_status_display }}
+                </span>
+            </div>
+
+            <div class="evaluation-meta">
+                <span>{{ evaluation.template.name }}</span>
+                <span>View evaluation →</span>
+            </div>
+        </a>
+    {% empty %}
+        <div class="empty-state">
+            No evaluations found.
+        </div>
+    {% endfor %}
+</section>
+{% endif %}
+{% endblock %}

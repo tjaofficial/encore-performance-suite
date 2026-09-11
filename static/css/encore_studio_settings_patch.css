@@ -1,0 +1,14 @@
+.encore-color-input {
+    width: 100%;
+    min-height: 48px;
+    padding: 4px;
+    border: 1px solid var(--encore-border);
+    border-radius: 10px;
+    background: #fff;
+    cursor: pointer;
+}
+
+.settings-color-preview {
+    display: flex;
+    gap: 10px;
+}

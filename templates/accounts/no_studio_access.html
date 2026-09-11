@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>No Studio Access | Encore Performance Suite</title>
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_login.css' %}"
+    >
+</head>
+
+<body>
+    <main class="simple-shell">
+        <section class="simple-card">
+            <div class="brand-mark">E</div>
+
+            <p class="eyebrow">Encore Performance Suite</p>
+
+            <h1>No studio access assigned</h1>
+
+            <p>
+                Your account exists, but it is not currently attached
+                to an active studio membership.
+            </p>
+
+            <a href="{% url 'accounts:logout' %}">
+                Sign out
+            </a>
+        </section>
+    </main>
+</body>
+</html>

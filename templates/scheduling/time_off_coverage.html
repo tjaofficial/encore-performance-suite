@@ -1,0 +1,153 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Assign Substitute Coverage | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_calendar.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Substitute Coverage{% endblock %}
+
+{% block content %}
+<section class="time-off-page">
+    <header class="time-off-page-header">
+        <div>
+            <a
+                class="time-off-back-link"
+                href="{% url 'scheduling:time_off_admin_review' studio.slug time_off_request.id %}"
+            >
+                ← Back to Review
+            </a>
+
+            <p class="eyebrow">Required Coverage</p>
+
+            <h1>Assign Substitute Teachers</h1>
+
+            <p>
+                {{ time_off_request.instructor.full_name }}
+                has approved time off that affects scheduled classes.
+                Every class occurrence below needs coverage.
+            </p>
+        </div>
+    </header>
+
+    <form
+        method="post"
+        class="time-off-form-card"
+    >
+        {% csrf_token %}
+
+        {% regroup occurrence_rows by time_off_date.date as date_groups %}
+
+        {% for group in date_groups %}
+            <section class="coverage-date-group">
+                <header>
+                    <span>Approved Date</span>
+                    <h2>{{ group.grouper|date:"l, F j, Y" }}</h2>
+                </header>
+
+                <div class="coverage-occurrence-list">
+                    {% for row in group.list %}
+                        <div class="coverage-occurrence-row">
+                            <div>
+                                <strong>
+                                    {{ row.class_instance.name }}
+                                </strong>
+
+                                <span>
+                                    {{ row.meeting.start_time|time:"g:i A" }}
+                                    ·
+                                    {{ row.meeting.duration_minutes }} min
+                                </span>
+
+                                {% if row.meeting.room %}
+                                    <small>
+                                        {{ row.meeting.room.name }}
+                                        {% if row.meeting.room.location %}
+                                            · {{ row.meeting.room.location.name }}
+                                        {% endif %}
+                                    </small>
+                                {% elif row.meeting.location %}
+                                    <small>
+                                        {{ row.meeting.location.name }}
+                                    </small>
+                                {% endif %}
+                            </div>
+
+                            <label>
+                                <span class="coverage-field-heading">
+                                    Substitute Teacher
+
+                                    {% if row.unavailable_count %}
+                                        <span
+                                            class="sub-availability-info"
+                                            tabindex="0"
+                                            aria-label="{{ row.unavailable_count }} unavailable substitute teachers"
+                                        >
+                                            i
+
+                                            <span class="sub-availability-popover">
+                                                <strong>
+                                                    {{ row.unavailable_count }}
+                                                    unavailable
+                                                </strong>
+
+                                                {% for unavailable in row.unavailable_substitutes %}
+                                                    <span class="sub-conflict-row">
+                                                        <b>
+                                                            {{ unavailable.instructor.full_name }}
+                                                        </b>
+
+                                                        {% for reason in unavailable.reasons %}
+                                                            <small>
+                                                                {{ reason }}
+                                                            </small>
+                                                        {% endfor %}
+                                                    </span>
+                                                {% endfor %}
+                                            </span>
+                                        </span>
+                                    {% endif %}
+                                </span>
+
+                                {{ row.substitute_field }}
+                                {{ row.substitute_field.errors }}
+
+                                {% if row.available_count == 0 %}
+                                    <small class="coverage-no-substitutes">
+                                        No conflict-free substitute teachers are available.
+                                    </small>
+                                {% endif %}
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+            </section>
+        {% endfor %}
+
+        <div class="coverage-required-note">
+            Approval cannot be finalized until every affected class
+            occurrence has a substitute teacher. Encore automatically
+            removes teachers who have schedule conflicts or approved
+            time off from each substitute list.
+        </div>
+
+        <div class="time-off-form-actions">
+            <a
+                class="button secondary"
+                href="{% url 'scheduling:time_off_admin_review' studio.slug time_off_request.id %}"
+            >
+                Back
+            </a>
+
+            <button
+                type="submit"
+                class="button primary"
+            >
+                Save Coverage & Finalize
+            </button>
+        </div>
+    </form>
+</section>
+{% endblock %}

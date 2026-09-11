@@ -1,0 +1,121 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Teacher Time Off | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_calendar.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Teacher Time Off{% endblock %}
+
+{% block content %}
+<section class="time-off-page">
+    <header class="time-off-page-header">
+        <div>
+            <a
+                class="time-off-back-link"
+                href="{% url 'scheduling:calendar' studio.slug %}"
+            >
+                ← Back to Calendar
+            </a>
+
+            <p class="eyebrow">Calendar Management</p>
+
+            <h1>Teacher Time Off</h1>
+
+            <p>
+                Review requests, approve or deny individual dates,
+                and assign substitute coverage.
+            </p>
+        </div>
+    </header>
+
+    <nav class="time-off-filter-tabs">
+        <a
+            class="{% if status_filter == 'pending' %}active{% endif %}"
+            href="?status=pending"
+        >
+            Pending
+        </a>
+
+        <a
+            class="{% if status_filter == 'approved' %}active{% endif %}"
+            href="?status=approved"
+        >
+            Approved
+        </a>
+
+        <a
+            class="{% if status_filter == 'partial' %}active{% endif %}"
+            href="?status=partial"
+        >
+            Partial
+        </a>
+
+        <a
+            class="{% if status_filter == 'denied' %}active{% endif %}"
+            href="?status=denied"
+        >
+            Denied
+        </a>
+
+        <a
+            class="{% if status_filter == 'all' %}active{% endif %}"
+            href="?status=all"
+        >
+            All
+        </a>
+    </nav>
+
+    <section class="time-off-request-list">
+        {% for item in requests %}
+            <article class="time-off-request-card">
+                <div class="time-off-request-main">
+                    <div class="time-off-request-avatar">
+                        {{ item.instructor.first_name|first }}
+                        {{ item.instructor.last_name|first }}
+                    </div>
+
+                    <div>
+                        <span class="time-off-status status-{{ item.status }}">
+                            {{ item.get_status_display }}
+                        </span>
+
+                        <h2>{{ item.instructor.full_name }}</h2>
+
+                        <p>{{ item.reason }}</p>
+
+                        {% if item.notes %}
+                            <small>{{ item.notes|truncatechars:140 }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="time-off-request-dates">
+                    {% for requested_date in item.dates.all %}
+                        <span class="date-status-{{ requested_date.status }}">
+                            {{ requested_date.date|date:"M j" }}
+                            ·
+                            {{ requested_date.get_status_display }}
+                        </span>
+                    {% endfor %}
+                </div>
+
+                <div class="time-off-request-actions">
+                    <a
+                        class="button secondary"
+                        href="{% url 'scheduling:time_off_admin_review' studio.slug item.id %}"
+                    >
+                        Review Request
+                    </a>
+                </div>
+            </article>
+        {% empty %}
+            <div class="time-off-empty-state">
+                No time off requests match this filter.
+            </div>
+        {% endfor %}
+    </section>
+</section>
+{% endblock %}

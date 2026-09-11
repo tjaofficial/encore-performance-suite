@@ -1,0 +1,314 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Measurements · {{ class_instance.name }} | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_costumes_measurements.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Measurements{% endblock %}
+
+{% block content %}
+<section class="wardrobe-page-header">
+    <div>
+        <a
+            class="wardrobe-back-link"
+            href="{% url 'classes:class_detail' studio.slug class_instance.id %}"
+        >
+            ← Back to {{ class_instance.name }}
+        </a>
+
+        <p class="eyebrow">Class Measurements</p>
+
+        <h1>Measurements</h1>
+
+        <p>
+            Measure the roster quickly. Fields save automatically,
+            and completing a student advances you to the next dancer.
+        </p>
+    </div>
+
+    <div class="measurement-progress-card">
+        <strong>
+            <span data-complete-count>{{ counts.complete }}</span>
+            / {{ counts.total }}
+        </strong>
+        <span>Current & Complete</span>
+    </div>
+</section>
+
+<section class="measurement-toolbar">
+    <label class="measurement-search">
+        <span>Search</span>
+        <input
+            type="search"
+            placeholder="Find a student..."
+            data-measurement-search
+        >
+    </label>
+
+    <div class="measurement-filters" data-measurement-filters>
+        <button type="button" class="active" data-filter="all">
+            All
+            <span>{{ counts.total }}</span>
+        </button>
+
+        <button type="button" data-filter="not_started">
+            Not Started
+            <span>{{ counts.not_started }}</span>
+        </button>
+
+        <button type="button" data-filter="in_progress">
+            In Progress
+            <span>{{ counts.in_progress }}</span>
+        </button>
+
+        <button type="button" data-filter="complete">
+            Complete
+            <span>{{ counts.complete }}</span>
+        </button>
+
+        <button type="button" data-filter="needs_remeasurement">
+            Needs Remeasurement
+            <span>{{ counts.needs_remeasurement }}</span>
+        </button>
+    </div>
+</section>
+
+<section
+    class="measurement-roster"
+    data-measurement-roster
+>
+    {% for row in measurement_rows %}
+        <article
+            class="measurement-student-card state-{{ row.state }}"
+            data-measurement-card
+            data-state="{{ row.state }}"
+            data-student-name="{{ row.student.first_name|lower }} {{ row.student.last_name|lower }}"
+            data-save-url="{% url 'costumes:measurement_autosave' studio.slug class_instance.id row.student.id %}"
+            data-complete-url="{% url 'costumes:measurement_complete' studio.slug class_instance.id row.student.id %}"
+            data-new-url="{% url 'costumes:measurement_start_new' studio.slug class_instance.id row.student.id %}"
+        >
+            <button
+                class="measurement-card-summary"
+                type="button"
+                data-measurement-toggle
+            >
+                <span class="measurement-status-icon">
+                    {% if row.state == "complete" %}
+                        ✓
+                    {% elif row.state == "needs_remeasurement" %}
+                        !
+                    {% elif row.state == "in_progress" %}
+                        …
+                    {% else %}
+                        ○
+                    {% endif %}
+                </span>
+
+                <span class="measurement-student-name">
+                    <strong>
+                        {{ row.student.first_name }}
+                        {{ row.student.last_name }}
+                    </strong>
+
+                    <small data-state-label>
+                        {% if row.state == "complete" %}
+                            Complete
+                            {% if row.current.measured_at %}
+                                · {{ row.current.measured_at|date:"M j, Y" }}
+                            {% endif %}
+                        {% elif row.state == "needs_remeasurement" %}
+                            Needs Remeasurement
+                            {% if row.current.measured_at %}
+                                · Last measured {{ row.current.measured_at|date:"M j, Y" }}
+                            {% endif %}
+                        {% elif row.state == "in_progress" %}
+                            In Progress · Autosaved
+                        {% else %}
+                            Not Started
+                        {% endif %}
+                    </small>
+                </span>
+
+                <span class="measurement-card-chevron">⌄</span>
+            </button>
+
+            <div class="measurement-card-body" data-measurement-body hidden>
+                <div
+                    class="measurement-completed-summary"
+                    data-current-summary
+                    {% if row.state == "not_started" or row.state == "in_progress" %}hidden{% endif %}
+                >
+                    {% if row.current %}
+                        <div class="measurement-current-grid">
+                            <span><b>Bust</b>{{ row.current.bust|default:"—" }}</span>
+                            <span><b>Waist</b>{{ row.current.waist|default:"—" }}</span>
+                            <span><b>Hips</b>{{ row.current.hips|default:"—" }}</span>
+                            <span><b>Girth</b>{{ row.current.girth|default:"—" }}</span>
+                            <span><b>Inseam</b>{{ row.current.inseam|default:"—" }}</span>
+                            <span><b>Outseam</b>{{ row.current.outseam|default:"—" }}</span>
+                            <span><b>Height</b>{{ row.current.height|default:"—" }}</span>
+                            <span><b>Clothing</b>{{ row.current.clothing_size|default:"—" }}</span>
+                            <span><b>Shoe</b>{{ row.current.shoe_size|default:"—" }}</span>
+                        </div>
+
+                        <button
+                            type="button"
+                            class="button secondary"
+                            data-start-new-measurements
+                        >
+                            Start New Measurements
+                        </button>
+                    {% endif %}
+                </div>
+
+                <div
+                    class="measurement-edit-panel"
+                    data-edit-panel
+                    {% if row.state == "complete" or row.state == "needs_remeasurement" %}hidden{% endif %}
+                >
+                    <div class="measurement-input-grid">
+                        <label>
+                            <span>Bust</span>
+                            <input
+                                type="number"
+                                step="0.01"
+                                inputmode="decimal"
+                                data-measurement-field="bust"
+                                value="{% if row.draft %}{{ row.draft.bust|default_if_none:'' }}{% endif %}"
+                            >
+                        </label>
+
+                        <label>
+                            <span>Waist</span>
+                            <input
+                                type="number"
+                                step="0.01"
+                                inputmode="decimal"
+                                data-measurement-field="waist"
+                                value="{% if row.draft %}{{ row.draft.waist|default_if_none:'' }}{% endif %}"
+                            >
+                        </label>
+
+                        <label>
+                            <span>Hips</span>
+                            <input
+                                type="number"
+                                step="0.01"
+                                inputmode="decimal"
+                                data-measurement-field="hips"
+                                value="{% if row.draft %}{{ row.draft.hips|default_if_none:'' }}{% endif %}"
+                            >
+                        </label>
+
+                        <label>
+                            <span>Girth</span>
+                            <input
+                                type="number"
+                                step="0.01"
+                                inputmode="decimal"
+                                data-measurement-field="girth"
+                                value="{% if row.draft %}{{ row.draft.girth|default_if_none:'' }}{% endif %}"
+                            >
+                        </label>
+
+                        <label>
+                            <span>Inseam</span>
+                            <input
+                                type="number"
+                                step="0.01"
+                                inputmode="decimal"
+                                data-measurement-field="inseam"
+                                value="{% if row.draft %}{{ row.draft.inseam|default_if_none:'' }}{% endif %}"
+                            >
+                        </label>
+
+                        <label>
+                            <span>Outseam</span>
+                            <input
+                                type="number"
+                                step="0.01"
+                                inputmode="decimal"
+                                data-measurement-field="outseam"
+                                value="{% if row.draft %}{{ row.draft.outseam|default_if_none:'' }}{% endif %}"
+                            >
+                        </label>
+
+                        <label>
+                            <span>Height</span>
+                            <input
+                                type="number"
+                                step="0.01"
+                                inputmode="decimal"
+                                data-measurement-field="height"
+                                value="{% if row.draft %}{{ row.draft.height|default_if_none:'' }}{% endif %}"
+                            >
+                        </label>
+
+                        <label>
+                            <span>Clothing Size</span>
+                            <input
+                                type="text"
+                                data-measurement-field="clothing_size"
+                                value="{% if row.draft %}{{ row.draft.clothing_size }}{% endif %}"
+                            >
+                        </label>
+
+                        <label>
+                            <span>Shoe Size</span>
+                            <input
+                                type="text"
+                                data-measurement-field="shoe_size"
+                                value="{% if row.draft %}{{ row.draft.shoe_size }}{% endif %}"
+                            >
+                        </label>
+
+                        <label class="wide">
+                            <span>Other Size Information</span>
+                            <textarea
+                                rows="2"
+                                data-measurement-field="other_size_info"
+                            >{% if row.draft %}{{ row.draft.other_size_info }}{% endif %}</textarea>
+                        </label>
+
+                        <label class="wide">
+                            <span>Measurement Notes</span>
+                            <textarea
+                                rows="2"
+                                data-measurement-field="notes"
+                            >{% if row.draft %}{{ row.draft.notes }}{% endif %}</textarea>
+                        </label>
+                    </div>
+
+                    <div class="measurement-card-actions">
+                        <span
+                            class="measurement-save-state"
+                            data-save-state
+                        >
+                            Changes save automatically
+                        </span>
+
+                        <button
+                            type="button"
+                            class="button primary"
+                            data-complete-measurements
+                        >
+                            Complete Measurements
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </article>
+    {% empty %}
+        <div class="wardrobe-empty-state">
+            No active students are enrolled in this class.
+        </div>
+    {% endfor %}
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/encore_measurements.js' %}" defer></script>
+{% endblock %}

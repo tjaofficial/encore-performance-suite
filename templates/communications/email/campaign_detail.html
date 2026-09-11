@@ -1,0 +1,81 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+{% block title %}{{ campaign.name }} | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_communications.css' %}">{% endblock %}
+{% block topbar_title %}Email Campaign{% endblock %}
+{% block content %}
+<section class="communication-heading">
+    <div>
+        <a class="back-link" href="{% url 'communications:email_campaign_list' studio.slug %}">← Back to Campaigns</a>
+        <p class="eyebrow">{{ campaign.get_status_display }}</p>
+        <h1>{{ campaign.name }}</h1>
+        <p>{{ campaign.subject }}</p>
+    </div>
+    <div class="email-header-actions">
+        {% if campaign.status == "draft" or campaign.status == "scheduled" or campaign.status == "failed" or campaign.status == "partial_failed" %}
+            <a
+                class="button secondary"
+                href="{% url 'communications:email_campaign_edit' studio.slug campaign.id %}"
+            >
+                Edit
+            </a>
+        {% endif %}
+
+        {% if campaign.status == "scheduled" %}
+            <form method="post" action="{% url 'communications:email_campaign_cancel' studio.slug campaign.id %}">
+                {% csrf_token %}
+                <button class="button secondary" type="submit">
+                    Cancel Scheduled Email
+                </button>
+            </form>
+        {% endif %}
+
+        {% if can_send %}
+            <form method="post" action="{% url 'communications:email_campaign_send' studio.slug campaign.id %}">
+                {% csrf_token %}
+                <button class="button primary" type="submit">
+                    Send Campaign
+                </button>
+            </form>
+        {% endif %}
+    </div>
+</section>
+{% include "communications/email/_nav.html" %}
+{% if messages %}
+<div class="message-stack">{% for message in messages %}<div class="message-banner">{{ message }}</div>{% endfor %}</div>
+{% endif %}
+<section class="email-stat-grid">
+    <article><span>Recipients</span><strong>{{ campaign.total_recipients }}</strong><small>Total resolved audience</small></article>
+    <article><span>Sent</span><strong>{{ campaign.sent_count }}</strong><small>Accepted by SES</small></article>
+    <article><span>Delivered</span><strong>{{ campaign.delivered_count }}</strong><small>Recipient server accepted</small></article>
+    <article><span>Opened</span><strong>{{ campaign.opened_count }}</strong><small>Provider-reported opens</small></article>
+</section>
+<section class="email-manager-grid">
+    <article class="email-panel">
+        <div class="email-panel-heading"><div><span class="card-kicker">Message</span><h2>Email Content</h2></div></div>
+        <dl class="email-detail-list">
+            <div><dt>Audience</dt><dd>{{ campaign.get_recipient_mode_display }}</dd></div>
+            <div><dt>Sender</dt><dd>{{ campaign.get_sender_type_display }}</dd></div>
+            {% if campaign.scheduled_for %}<div><dt>Scheduled</dt><dd>{{ campaign.scheduled_for|date:"M j, Y · g:i A" }}</dd></div>{% endif %}
+            {% if campaign.sent_at %}<div><dt>Sent</dt><dd>{{ campaign.sent_at|date:"M j, Y · g:i A" }}</dd></div>{% endif %}
+        </dl>
+        <div class="email-message-preview">{{ campaign.html_body|safe }}</div>
+    </article>
+    <article class="email-panel">
+        <div class="email-panel-heading"><div><span class="card-kicker">Delivery</span><h2>Recipient Status</h2></div></div>
+        <div class="email-recipient-list">
+            {% for recipient in recipients %}
+                <div>
+                    <span>
+                        <strong>{{ recipient.display_name|default:recipient.email }}</strong>
+                        <small>{{ recipient.email }}</small>
+                    </span>
+                    <b class="email-status status-{{ recipient.status }}">{{ recipient.get_status_display }}</b>
+                </div>
+            {% empty %}
+                <div class="empty-state">No recipients were resolved.</div>
+            {% endfor %}
+        </div>
+    </article>
+</section>
+{% endblock %}

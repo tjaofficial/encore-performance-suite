@@ -1,0 +1,51 @@
+{% if encore_latest_announcements %}
+<section class="dashboard-announcement-section">
+    <div class="dashboard-announcement-heading">
+        <div>
+            <span class="card-kicker">
+                Latest Updates
+            </span>
+
+            <h2>
+                Announcements
+            </h2>
+        </div>
+
+        <a
+            href="{% url 'communications:notification_center' studio.slug %}"
+        >
+            View All
+            {% if encore_unread_notification_count %}
+                <span class="notification-count">
+                    {{ encore_unread_notification_count }}
+                </span>
+            {% endif %}
+        </a>
+    </div>
+
+    <div class="dashboard-announcement-list">
+        {% for row in encore_latest_announcements %}
+            <a
+                class="dashboard-announcement-row
+                {% if not row.is_read %}unread{% endif %}
+                priority-{{ row.announcement.priority }}"
+                href="{% url 'communications:announcement_detail' studio.slug row.announcement.id %}"
+            >
+                <div>
+                    <span>
+                        {{ row.announcement.get_audience_display }}
+                    </span>
+
+                    <strong>
+                        {{ row.announcement.title }}
+                    </strong>
+                </div>
+
+                <small>
+                    {{ row.announcement.publish_at|date:"M j" }}
+                </small>
+            </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}

@@ -1,0 +1,73 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+{% block title %}{{ template.name }} | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_tasks.css' %}">{% endblock %}
+{% block topbar_title %}Task Templates{% endblock %}
+{% block content %}
+<section class="template-detail-header">
+    <div>
+        <a class="task-back-link" href="{% url 'tasks:template_list' studio.slug %}">← Back to Task Templates</a>
+        <p class="eyebrow">{{ template.get_visibility_display }}</p>
+        <h1>{{ template.name }}</h1>
+        <p>{{ template.description }}</p>
+    </div>
+    <div class="template-detail-actions">
+        {% if can_manage %}
+            <a class="button secondary" href="{% url 'tasks:template_edit' studio.slug template.id %}">Edit Template</a>
+            <a class="button secondary" href="{% url 'tasks:template_trigger_add' studio.slug template.id %}">+ Add Trigger</a>
+        {% endif %}
+        <form method="post" action="{% url 'tasks:template_run' studio.slug template.id %}">
+            {% csrf_token %}
+            <select name="class_id" class="encore-input">
+                <option value="">No specific class</option>
+                {% for class_instance in studio.classes.all %}
+                    <option value="{{ class_instance.id }}">{{ class_instance.name }}</option>
+                {% endfor %}
+            </select>
+            <button class="button primary" type="submit">Run Template Now</button>
+        </form>
+    </div>
+</section>
+
+<section class="template-detail-grid">
+    <article class="task-form-card">
+        <div class="task-form-section-heading"><span>Tasks</span><strong>{{ template.items.count }} Task Definitions</strong></div>
+        <div class="template-definition-list">
+        {% for item in template.items.all %}
+            <div>
+                <span>{{ item.order }}</span>
+                <div>
+                    <strong>{{ item.title }}</strong>
+                    <small>{{ item.get_audience_type_display }} · {{ item.get_priority_display }} · {{ item.get_due_rule_display }}</small>
+                </div>
+            </div>
+        {% empty %}
+            <p>No task definitions.</p>
+        {% endfor %}
+        </div>
+    </article>
+
+    <article class="task-form-card">
+        <div class="task-form-section-heading"><span>Triggers</span><strong>When should this run?</strong></div>
+        <div class="template-trigger-list">
+        {% for trigger in template.triggers.all %}
+            <div><strong>{{ trigger.get_trigger_type_display }}</strong><span>{% if trigger.is_enabled %}Enabled{% else %}Disabled{% endif %}</span></div>
+        {% empty %}<p>No triggers configured.</p>{% endfor %}
+        </div>
+    </article>
+
+    <article class="task-form-card full-card">
+        <div class="task-form-section-heading"><span>History</span><strong>Recent Runs</strong></div>
+        <div class="template-run-list">
+        {% for run in recent_runs %}
+            <div>
+                <strong>{{ run.started_at|date:"M j, Y g:i A" }}</strong>
+                <span>{{ run.get_status_display }}</span>
+                <span>{{ run.target_label|default:"Manual / scheduled" }}</span>
+                <span>{{ run.tasks_created_count }} tasks</span>
+            </div>
+        {% empty %}<p>This template has not run yet.</p>{% endfor %}
+        </div>
+    </article>
+</section>
+{% endblock %}

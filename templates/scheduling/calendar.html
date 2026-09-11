@@ -1,0 +1,970 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>{{ studio.name }} Calendar | Encore Performance Suite</title>
+
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/index.global.min.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_calendar.css' %}"
+    >
+</head>
+
+<body
+    data-calendar-feed-url="{% url 'scheduling:calendar_feed' studio.slug %}"
+    data-event-create-url="{% url 'scheduling:event_create' studio.slug %}"
+    data-category-create-url="{% url 'scheduling:category_create' studio.slug %}"
+    data-preference-url="{% url 'scheduling:preference_update' studio.slug %}"
+    data-task-create-url="{% url 'tasks:task_create' studio.slug %}"
+    data-role="{{ role }}"
+    data-default-view="{{ preference.default_view }}"
+    data-first-day="{{ preference.week_starts_on }}"
+    data-show-weekends="{% if preference.show_weekends %}1{% else %}0{% endif %}"
+>
+    {{ preference.source_visibility|json_script:"calendar-source-visibility" }}
+
+    <div class="calendar-app">
+        <aside class="calendar-sidebar">
+            <div class="calendar-brand">
+                <span class="calendar-brand-mark">E</span>
+
+                <div>
+                    <strong>Encore Calendar</strong>
+                    <small>{{ studio.name }}</small>
+                </div>
+            </div>
+
+            {% if can_create_main or can_create_personal %}
+                <div class="calendar-create-wrap">
+                    <button
+                        type="button"
+                        class="calendar-create-button"
+                        data-create-menu-toggle
+                    >
+                        <span>＋</span>
+                        Create
+                        <small>⌄</small>
+                    </button>
+
+                    <div
+                        class="calendar-create-menu"
+                        data-create-menu
+                        hidden
+                    >
+                        <button
+                            type="button"
+                            data-create-event
+                        >
+                            <span>▣</span>
+                            Event
+                        </button>
+
+                        <a href="{% url 'tasks:task_create' studio.slug %}">
+                            <span>✓</span>
+                            Task
+                        </a>
+
+                        {% if role == "teacher" %}
+                            <a
+                                href="{% url 'scheduling:time_off_request_create' studio.slug %}"
+                            >
+                                <span>◷</span>
+                                Request Time Off
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="calendar-sidebar-scroll">
+                <section class="calendar-source-section">
+                    <div class="calendar-section-heading">
+                        <strong>My Calendars</strong>
+                    </div>
+
+                    <label class="calendar-source-row">
+                        <input
+                            type="checkbox"
+                            data-source-toggle="main"
+                            checked
+                        >
+                        <span
+                            class="source-swatch"
+                            style="--swatch:#2E3CF1"
+                        ></span>
+                        <span>Main Events</span>
+                    </label>
+
+                    <div
+                        class="calendar-subsource-list"
+                        data-main-category-list
+                    >
+                        {% for category in main_categories %}
+                            <label>
+                                <input
+                                    type="checkbox"
+                                    data-category-toggle="{{ category.id }}"
+                                    checked
+                                >
+                                <span
+                                    class="source-swatch"
+                                    style="--swatch:{{ category.color }}"
+                                ></span>
+                                <span>{{ category.name }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+
+                    {% if can_create_personal %}
+                        <label class="calendar-source-row">
+                            <input
+                                type="checkbox"
+                                data-source-toggle="personal"
+                                checked
+                            >
+                            <span
+                                class="source-swatch"
+                                style="--swatch:#0197FC"
+                            ></span>
+                            <span>My Personal Calendar</span>
+                        </label>
+
+                        <div
+                            class="calendar-subsource-list"
+                            data-personal-category-list
+                        >
+                            {% for category in personal_categories %}
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        data-category-toggle="{{ category.id }}"
+                                        checked
+                                    >
+                                    <span
+                                        class="source-swatch"
+                                        style="--swatch:{{ category.color }}"
+                                    ></span>
+                                    <span>{{ category.name }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <label class="calendar-source-row">
+                        <input
+                            type="checkbox"
+                            data-source-toggle="classes"
+                            checked
+                        >
+                        <span
+                            class="source-swatch"
+                            style="--swatch:#0E169D"
+                        ></span>
+                        <span>Classes</span>
+                    </label>
+
+                    <details class="calendar-nested-group">
+                        <summary>By Class</summary>
+
+                        <div class="calendar-subsource-list">
+                            {% for class_instance in visible_classes %}
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        data-class-toggle="{{ class_instance.id }}"
+                                        checked
+                                    >
+                                    <span>{{ class_instance.name }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                    </details>
+
+                    {% if role == "administrator" and instructors %}
+                        <details class="calendar-nested-group">
+                            <summary>By Teacher</summary>
+
+                            <div class="calendar-subsource-list">
+                                {% for instructor in instructors %}
+                                    <label>
+                                        <input
+                                            type="checkbox"
+                                            data-instructor-toggle="{{ instructor.id }}"
+                                            checked
+                                        >
+                                        <span>
+                                            {{ instructor.first_name }}
+                                            {{ instructor.last_name }}
+                                        </span>
+                                    </label>
+                                {% endfor %}
+                            </div>
+                        </details>
+                    {% endif %}
+
+                    <label class="calendar-source-row">
+                        <input
+                            type="checkbox"
+                            data-source-toggle="tasks"
+                            checked
+                        >
+                        <span
+                            class="source-swatch"
+                            style="--swatch:#1663FF"
+                        ></span>
+                        <span>Tasks</span>
+                    </label>
+
+                    {% if role == "administrator" or role == "teacher" %}
+                        <label class="calendar-source-row">
+                            <input
+                                type="checkbox"
+                                data-source-toggle="absences"
+                                checked
+                            >
+                            <span
+                                class="source-swatch"
+                                style="--swatch:#CF6685"
+                            ></span>
+                            <span>Absences</span>
+                        </label>
+
+                        <div class="calendar-source-row calendar-source-parent">
+                            <span></span>
+                            <span
+                                class="source-swatch"
+                                style="--swatch:#169C90"
+                            ></span>
+                            <strong>Teacher Time Off</strong>
+                        </div>
+
+                        <div class="calendar-subsource-list">
+                            <label>
+                                <input
+                                    type="checkbox"
+                                    data-source-toggle="time_off_requested"
+                                    checked
+                                >
+                                <span
+                                    class="source-swatch"
+                                    style="--swatch:#C48620"
+                                ></span>
+                                <span>Requested</span>
+                            </label>
+
+                            <label>
+                                <input
+                                    type="checkbox"
+                                    data-source-toggle="time_off_approved"
+                                    checked
+                                >
+                                <span
+                                    class="source-swatch"
+                                    style="--swatch:#169C90"
+                                ></span>
+                                <span>Approved</span>
+                            </label>
+                        </div>
+
+                        <label class="calendar-source-row">
+                            <input
+                                type="checkbox"
+                                data-source-toggle="substitutes"
+                                checked
+                            >
+                            <span
+                                class="source-swatch"
+                                style="--swatch:#7A5AF8"
+                            ></span>
+                            <span>Substitute Classes</span>
+                        </label>
+
+                        {% if role == "administrator" %}
+                            <a
+                                class="calendar-sidebar-manage-link"
+                                href="{% url 'scheduling:time_off_admin_list' studio.slug %}"
+                            >
+                                Manage Time Off Requests
+                                {% if pending_time_off_count %}
+                                    <span>{{ pending_time_off_count }}</span>
+                                {% endif %}
+                            </a>
+                        {% else %}
+                            <a
+                                class="calendar-sidebar-manage-link"
+                                href="{% url 'scheduling:time_off_request_create' studio.slug %}"
+                            >
+                                + Request Time Off
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                </section>
+
+                <section class="calendar-sidebar-actions">
+                    <button
+                        type="button"
+                        data-open-settings
+                    >
+                        ⚙ Calendar Settings
+                    </button>
+                </section>
+            </div>
+        </aside>
+
+        <main class="calendar-main">
+            <header class="calendar-topbar">
+                <div>
+                    <p class="eyebrow">Calendar</p>
+                    <h1>{{ studio.name }}</h1>
+                </div>
+
+                <div class="calendar-topbar-actions">
+                    {% if role == "administrator" %}
+                        <a
+                            class="calendar-dashboard-link"
+                            href="{% url 'dashboard:admin_dashboard' studio.slug %}"
+                        >
+                            ← Dashboard
+                        </a>
+                    {% elif role == "teacher" %}
+                        <a
+                            class="calendar-dashboard-link"
+                            href="{% url 'dashboard:teacher_dashboard' studio.slug %}"
+                        >
+                            ← Dashboard
+                        </a>
+                    {% elif role == "family" %}
+                        <a
+                            class="calendar-dashboard-link"
+                            href="{% url 'dashboard:family_dashboard' studio.slug %}"
+                        >
+                            ← Dashboard
+                        </a>
+                    {% elif role == "student" %}
+                        <a
+                            class="calendar-dashboard-link"
+                            href="{% url 'dashboard:student_dashboard' studio.slug %}"
+                        >
+                            ← Dashboard
+                        </a>
+                    {% endif %}
+
+                    <div class="calendar-role-pill">
+                        {{ role|title }} View
+                    </div>
+                </div>
+            </header>
+
+            <section class="calendar-surface">
+                <div id="encore-calendar"></div>
+            </section>
+        </main>
+    </div>
+
+    <div
+        class="calendar-popover"
+        data-event-popover
+        hidden
+    >
+        <div class="calendar-popover-actions">
+            <button
+                type="button"
+                title="Edit"
+                data-popover-edit
+                hidden
+            >
+                ✎
+            </button>
+
+            <button
+                type="button"
+                title="Delete"
+                data-popover-delete
+                hidden
+                aria-label="Delete event"
+            >
+                <svg
+                    viewBox="0 0 24 24"
+                    width="16"
+                    height="16"
+                    aria-hidden="true"
+                    focusable="false"
+                >
+                    <path
+                        d="M9 3h6l1 2h4v2H4V5h4l1-2Zm-2 6h10l-1 11H8L7 9Zm3 2v7h2v-7h-2Zm4 0v7h2v-7h-2Z"
+                        fill="currentColor"
+                    />
+                </svg>
+            </button>
+
+            <button
+                type="button"
+                data-popover-close
+                aria-label="Close"
+            >
+                ×
+            </button>
+        </div>
+
+        <span
+            class="calendar-popover-dot"
+            data-popover-dot
+        ></span>
+
+        <div class="calendar-popover-copy">
+            <small data-popover-type></small>
+            <h2 data-popover-title></h2>
+            <p data-popover-time></p>
+            <p data-popover-location hidden></p>
+            <p data-popover-description hidden></p>
+
+            <a
+                href="#"
+                class="calendar-popover-link"
+                data-popover-detail-link
+                hidden
+            >
+                Open →
+            </a>
+        </div>
+    </div>
+
+    <div
+        class="calendar-modal"
+        data-event-editor
+        hidden
+    >
+        <div
+            class="calendar-modal-backdrop"
+            data-close-editor
+        ></div>
+
+        <div class="calendar-editor-panel">
+            <header class="calendar-editor-header">
+                <button
+                    type="button"
+                    data-close-editor
+                >
+                    ×
+                </button>
+
+                <h2 data-editor-title>Add Event</h2>
+
+                <button
+                    type="submit"
+                    form="calendar-event-form"
+                    class="calendar-save-button"
+                >
+                    Save
+                </button>
+            </header>
+
+            <form
+                id="calendar-event-form"
+                class="calendar-event-form"
+                data-calendar-event-form
+            >
+                {% csrf_token %}
+
+                <input
+                    type="hidden"
+                    name="event_id"
+                    data-event-id
+                >
+
+                <label class="calendar-title-field">
+                    <input
+                        type="text"
+                        name="title"
+                        placeholder="Add title"
+                        required
+                    >
+                </label>
+
+                <div class="calendar-editor-row split">
+                    <label>
+                        <span>Event Type</span>
+
+                        <select
+                            name="scope"
+                            data-event-scope
+                        >
+                            {% if can_create_main %}
+                                <option value="main">
+                                    Main Event
+                                </option>
+                            {% endif %}
+
+                            {% if can_create_personal %}
+                                <option value="personal">
+                                    Personal Event
+                                </option>
+                            {% endif %}
+                        </select>
+                    </label>
+
+                    <label>
+                        <span>Category</span>
+
+                        <select
+                            name="category"
+                            data-category-select
+                        >
+                            <option value="">
+                                No category
+                            </option>
+
+                            {% for category in main_categories %}
+                                <option
+                                    value="{{ category.id }}"
+                                    data-category-scope="main"
+                                >
+                                    {{ category.name }}
+                                </option>
+                            {% endfor %}
+
+                            {% for category in personal_categories %}
+                                <option
+                                    value="{{ category.id }}"
+                                    data-category-scope="personal"
+                                >
+                                    {{ category.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                </div>
+
+                <div class="calendar-editor-row date-row">
+                    <label>
+                        <span>Starts</span>
+                        <input
+                            type="datetime-local"
+                            name="start_at"
+                            required
+                        >
+                    </label>
+
+                    <span>to</span>
+
+                    <label>
+                        <span>Ends</span>
+                        <input
+                            type="datetime-local"
+                            name="end_at"
+                            required
+                        >
+                    </label>
+                </div>
+
+                <label class="calendar-check-row">
+                    <input
+                        type="checkbox"
+                        name="all_day"
+                        value="1"
+                    >
+                    <span>All day</span>
+                </label>
+
+                <label>
+                    <span>Repeats</span>
+
+                    <select
+                        name="recurrence_preset"
+                        data-recurrence-preset
+                    >
+                        <option value="none">Does not repeat</option>
+                        <option value="daily">Daily</option>
+                        <option value="weekdays">Every weekday</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="yearly">Annually</option>
+                        <option value="custom">Custom...</option>
+                    </select>
+                </label>
+
+                <label>
+                    <span>Location</span>
+                    <input
+                        type="text"
+                        name="location"
+                        placeholder="Add location"
+                    >
+                </label>
+
+                <label>
+                    <span>Description</span>
+                    <textarea
+                        name="description"
+                        rows="4"
+                        placeholder="Add description"
+                    ></textarea>
+                </label>
+
+                <label>
+                    <span>Notes</span>
+                    <textarea
+                        name="notes"
+                        rows="3"
+                        placeholder="Internal notes"
+                    ></textarea>
+                </label>
+
+                <input
+                    type="hidden"
+                    name="event_type"
+                    value="general"
+                >
+
+                {% if can_create_main %}
+                    <label
+                        class="calendar-check-row"
+                        data-public-row
+                    >
+                        <input
+                            type="checkbox"
+                            name="is_public"
+                            value="1"
+                        >
+                        <span>
+                            Show on public calendar widget
+                        </span>
+                    </label>
+                {% endif %}
+
+                <div
+                    class="calendar-form-errors"
+                    data-event-errors
+                    hidden
+                ></div>
+            </form>
+        </div>
+    </div>
+
+    <div
+        class="calendar-modal"
+        data-recurrence-modal
+        hidden
+    >
+        <div
+            class="calendar-modal-backdrop"
+            data-close-recurrence
+        ></div>
+
+        <div class="recurrence-dialog">
+            <h2>Custom recurrence</h2>
+
+            <div class="recurrence-row">
+                <span>Repeat every</span>
+
+                <input
+                    type="number"
+                    min="1"
+                    value="1"
+                    name="custom_interval"
+                    form="calendar-event-form"
+                >
+
+                <select
+                    name="custom_frequency"
+                    form="calendar-event-form"
+                >
+                    <option value="daily">day</option>
+                    <option value="weekly" selected>week</option>
+                    <option value="monthly">month</option>
+                    <option value="yearly">year</option>
+                </select>
+            </div>
+
+            <div class="recurrence-weekdays">
+                <span>Repeat on</span>
+
+                <div>
+                    <label><input type="checkbox" name="custom_weekdays" value="6" form="calendar-event-form"><span>S</span></label>
+                    <label><input type="checkbox" name="custom_weekdays" value="0" form="calendar-event-form"><span>M</span></label>
+                    <label><input type="checkbox" name="custom_weekdays" value="1" form="calendar-event-form"><span>T</span></label>
+                    <label><input type="checkbox" name="custom_weekdays" value="2" form="calendar-event-form"><span>W</span></label>
+                    <label><input type="checkbox" name="custom_weekdays" value="3" form="calendar-event-form"><span>T</span></label>
+                    <label><input type="checkbox" name="custom_weekdays" value="4" form="calendar-event-form"><span>F</span></label>
+                    <label><input type="checkbox" name="custom_weekdays" value="5" form="calendar-event-form"><span>S</span></label>
+                </div>
+            </div>
+
+            <div class="recurrence-ends">
+                <span>Ends</span>
+
+                <label>
+                    <input
+                        type="radio"
+                        name="custom_end_type"
+                        value="never"
+                        checked
+                        form="calendar-event-form"
+                    >
+                    Never
+                </label>
+
+                <label>
+                    <input
+                        type="radio"
+                        name="custom_end_type"
+                        value="on_date"
+                        form="calendar-event-form"
+                    >
+                    On
+
+                    <input
+                        type="date"
+                        name="custom_end_date"
+                        form="calendar-event-form"
+                    >
+                </label>
+
+                <label>
+                    <input
+                        type="radio"
+                        name="custom_end_type"
+                        value="after_count"
+                        form="calendar-event-form"
+                    >
+                    After
+
+                    <input
+                        type="number"
+                        min="1"
+                        name="custom_occurrence_count"
+                        form="calendar-event-form"
+                    >
+
+                    occurrences
+                </label>
+            </div>
+
+            <div class="recurrence-actions">
+                <button
+                    type="button"
+                    data-close-recurrence
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="button"
+                    class="calendar-save-button"
+                    data-save-recurrence
+                >
+                    Done
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div
+        class="calendar-settings-drawer"
+        data-settings-drawer
+        hidden
+    >
+        <div
+            class="calendar-settings-backdrop"
+            data-close-settings
+        ></div>
+
+        <aside class="calendar-settings-panel">
+            <header>
+                <div>
+                    <small>Calendar</small>
+                    <h2>Settings</h2>
+                </div>
+
+                <button
+                    type="button"
+                    data-close-settings
+                >
+                    ×
+                </button>
+            </header>
+
+            <form data-calendar-settings-form>
+                {% csrf_token %}
+
+                <section>
+                    <h3>View options</h3>
+
+                    <label class="calendar-setting-row">
+                        <input
+                            type="checkbox"
+                            name="show_weekends"
+                            value="1"
+                            {% if preference.show_weekends %}checked{% endif %}
+                        >
+                        <span>Show weekends</span>
+                    </label>
+
+                    <label class="calendar-setting-row">
+                        <input
+                            type="checkbox"
+                            name="show_completed_tasks"
+                            value="1"
+                            {% if preference.show_completed_tasks %}checked{% endif %}
+                        >
+                        <span>Show completed tasks</span>
+                    </label>
+
+                    <label class="calendar-setting-row">
+                        <input
+                            type="checkbox"
+                            name="dim_past_events"
+                            value="1"
+                            {% if preference.dim_past_events %}checked{% endif %}
+                        >
+                        <span>Reduce brightness of past events</span>
+                    </label>
+
+                    <label>
+                        <span>Start week on</span>
+
+                        <select name="week_starts_on">
+                            <option
+                                value="0"
+                                {% if preference.week_starts_on == 0 %}selected{% endif %}
+                            >
+                                Sunday
+                            </option>
+
+                            <option
+                                value="1"
+                                {% if preference.week_starts_on == 1 %}selected{% endif %}
+                            >
+                                Monday
+                            </option>
+                        </select>
+                    </label>
+
+                    <label>
+                        <span>Default view</span>
+
+                        <select name="default_view">
+                            <option value="dayGridMonth" {% if preference.default_view == "dayGridMonth" %}selected{% endif %}>Month</option>
+                            <option value="timeGridWeek" {% if preference.default_view == "timeGridWeek" %}selected{% endif %}>Week</option>
+                            <option value="timeGridDay" {% if preference.default_view == "timeGridDay" %}selected{% endif %}>Day</option>
+                            <option value="listWeek" {% if preference.default_view == "listWeek" %}selected{% endif %}>Agenda</option>
+                        </select>
+                    </label>
+                </section>
+
+                {% if can_create_personal %}
+                    <section>
+                        <h3>Event Categories</h3>
+
+                        <div
+                            class="settings-category-list"
+                            data-settings-category-list
+                        >
+                            {% if role == "administrator" %}
+                                {% for category in main_categories %}
+                                    <div>
+                                        <span
+                                            class="source-swatch"
+                                            style="--swatch:{{ category.color }}"
+                                        ></span>
+                                        <span>
+                                            {{ category.name }}
+                                            <small>Main</small>
+                                        </span>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+
+                            {% for category in personal_categories %}
+                                <div>
+                                    <span
+                                        class="source-swatch"
+                                        style="--swatch:{{ category.color }}"
+                                    ></span>
+                                    <span>
+                                        {{ category.name }}
+                                        <small>Personal</small>
+                                    </span>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="settings-new-category">
+                            {% if role == "administrator" %}
+                                <select data-new-category-scope>
+                                    <option value="personal">Personal</option>
+                                    <option value="main">Main Event</option>
+                                </select>
+                            {% endif %}
+
+                            <input
+                                type="text"
+                                placeholder="Category name"
+                                data-new-category-name
+                            >
+
+                            <input
+                                type="color"
+                                value="#0197FC"
+                                data-new-category-color
+                            >
+
+                            <button
+                                type="button"
+                                data-add-category
+                            >
+                                + Add
+                            </button>
+                        </div>
+                    </section>
+                {% endif %}
+
+                <section>
+                    <h3>Import & Export</h3>
+
+                    <p>
+                        Calendar import/export is reserved for the next calendar layer.
+                        The settings area is ready for it without faking an unfinished action.
+                    </p>
+                </section>
+
+                <footer>
+                    <button
+                        type="button"
+                        data-close-settings
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="calendar-save-button"
+                    >
+                        Save Settings
+                    </button>
+                </footer>
+            </form>
+        </aside>
+    </div>
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/index.global.min.js"
+    ></script>
+
+    <script
+        src="{% static 'js/encore_calendar.js' %}"
+        defer
+    ></script>
+</body>
+</html>

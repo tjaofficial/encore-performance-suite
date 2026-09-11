@@ -1,0 +1,235 @@
+
+/* =========================================================
+   Reusable Cards / Table List View Controls
+   ========================================================= */
+
+.list-heading-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.encore-list-view-toggle {
+    display: inline-flex;
+    gap: 3px;
+    padding: 3px;
+    border: 1px solid var(--encore-border);
+    border-radius: 11px;
+    background: var(--encore-surface);
+}
+
+.encore-list-view-toggle a {
+    display: inline-flex;
+    min-height: 34px;
+    align-items: center;
+    gap: 6px;
+    padding: 0 10px;
+    border-radius: 8px;
+    color: var(--encore-muted);
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.encore-list-view-toggle a:hover {
+    color: var(--encore-primary);
+}
+
+.encore-list-view-toggle a.active {
+    background: var(--encore-primary-soft);
+    color: var(--encore-primary);
+}
+
+.encore-list-view-toggle span {
+    font-size: 0.78rem;
+}
+
+.encore-list-table-card {
+    overflow: hidden;
+    border: 1px solid var(--encore-border);
+    border-radius: 16px;
+    background: var(--encore-surface);
+    box-shadow: var(--encore-shadow);
+}
+
+.encore-list-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.encore-list-table {
+    width: 100%;
+    min-width: 900px;
+    border-collapse: collapse;
+}
+
+.encore-list-table th,
+.encore-list-table td {
+    padding: 12px 11px;
+    border-bottom: 1px solid var(--encore-border);
+    text-align: left;
+    vertical-align: middle;
+}
+
+.encore-list-table th {
+    background:
+        color-mix(
+            in srgb,
+            var(--encore-primary) 2.5%,
+            #fff
+        );
+    color: var(--encore-muted);
+    font-size: 0.62rem;
+    font-weight: 850;
+    letter-spacing: 0.035em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.encore-list-table td {
+    color: var(--encore-muted);
+    font-size: 0.72rem;
+}
+
+.encore-list-table tbody tr:hover {
+    background:
+        color-mix(
+            in srgb,
+            var(--encore-primary) 3%,
+            #fff
+        );
+}
+
+.encore-list-table .primary-cell,
+.encore-list-table .action-cell a {
+    color: var(--encore-primary-deep);
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.encore-list-table .action-cell {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.encore-list-table .action-cell a {
+    color: var(--encore-primary);
+}
+
+.encore-list-table .numeric-cell {
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.encore-list-table .empty-cell {
+    padding: 30px;
+    text-align: center;
+}
+
+.encore-list-table .table-badges {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.encore-list-table .table-badges .status-pill,
+.encore-list-table .table-badges .priority-pill {
+    font-size: 0.58rem;
+}
+
+.notification-section {
+    display: grid;
+    gap: 10px;
+    margin-top: 24px;
+}
+
+.notification-section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.notification-section-heading h2 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.notification-section-heading span {
+    color: var(--encore-muted);
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.task-notification-row {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    padding: 14px;
+    border: 1px solid var(--encore-border);
+    border-radius: 14px;
+    background: var(--encore-surface);
+    color: inherit;
+    text-decoration: none;
+}
+
+.task-notification-row.unread {
+    border-color:
+        color-mix(
+            in srgb,
+            var(--encore-primary) 35%,
+            var(--encore-border)
+        );
+    background:
+        color-mix(
+            in srgb,
+            var(--encore-primary) 4%,
+            #fff
+        );
+}
+
+.task-notification-icon {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border-radius: 10px;
+    background: var(--encore-primary-soft);
+    color: var(--encore-primary);
+    font-weight: 900;
+}
+
+.task-notification-copy {
+    display: grid;
+    gap: 3px;
+}
+
+.task-notification-copy strong {
+    color: var(--encore-primary-deep);
+    font-size: 0.82rem;
+}
+
+.task-notification-copy p,
+.task-notification-copy small {
+    margin: 0;
+    color: var(--encore-muted);
+}
+
+.task-notification-copy p {
+    font-size: 0.72rem;
+}
+
+.task-notification-copy small {
+    font-size: 0.62rem;
+}
+
+@media (max-width: 700px) {
+    .list-heading-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}

@@ -1,0 +1,329 @@
+.portal-heading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 26px;
+}
+
+.portal-heading h1 {
+    margin: 0;
+    font-size: clamp(2rem, 4vw, 3.25rem);
+    letter-spacing: -0.045em;
+}
+
+.portal-heading p:last-child {
+    margin: 10px 0 0;
+    color: var(--encore-muted);
+}
+
+.student-card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+.portal-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.portal-grid.wide-left {
+    grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.6fr);
+}
+
+.portal-card {
+    min-width: 0;
+    padding: 22px;
+    border: 1px solid var(--encore-border);
+    border-radius: 20px;
+    background: var(--encore-surface);
+    box-shadow: var(--encore-shadow);
+}
+
+.student-card-heading {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.student-card-heading h2 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.student-card-heading p {
+    margin: 5px 0 0;
+    color: var(--encore-muted);
+    font-size: 0.8rem;
+}
+
+.student-avatar.large {
+    display: grid;
+    width: 52px;
+    min-width: 52px;
+    height: 52px;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--encore-primary-soft);
+    color: var(--encore-primary);
+    font-size: 1.1rem;
+    font-weight: 850;
+}
+
+.mini-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.mini-metrics > div {
+    display: grid;
+    gap: 4px;
+    padding: 12px;
+    border-radius: 12px;
+    background: #faf8f5;
+}
+
+.mini-metrics span {
+    color: var(--encore-muted);
+    font-size: 0.68rem;
+    font-weight: 750;
+    text-transform: uppercase;
+}
+
+.mini-metrics strong {
+    font-size: 1.25rem;
+}
+
+.class-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.class-chip {
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: var(--encore-primary-soft);
+    color: var(--encore-primary);
+    font-size: 0.72rem;
+    font-weight: 750;
+}
+
+.student-card-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 18px;
+}
+
+.card-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+.card-heading h2 {
+    margin: 3px 0 0;
+    font-size: 1.15rem;
+}
+
+.card-heading a {
+    color: var(--encore-primary);
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.card-kicker {
+    color: var(--encore-muted);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.event-line,
+.class-line,
+.attendance-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--encore-border);
+}
+
+.event-line > div:last-child,
+.class-line > div,
+.attendance-line > div {
+    display: grid;
+    gap: 3px;
+}
+
+.event-line span,
+.class-line span,
+.attendance-line span,
+.muted-copy {
+    color: var(--encore-muted);
+    font-size: 0.8rem;
+}
+
+.event-date {
+    min-width: 56px;
+    color: var(--encore-primary);
+    font-weight: 850;
+}
+
+.portal-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.portal-metrics.four {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.status-pill {
+    display: inline-flex;
+    padding: 6px 9px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.status-present {
+    background: rgba(62, 121, 98, 0.12);
+    color: #3e7962;
+}
+
+.status-absent {
+    background: rgba(177, 74, 74, 0.12);
+    color: #a13f3f;
+}
+
+.status-late {
+    background: rgba(181, 106, 63, 0.12);
+    color: #a55d32;
+}
+
+.status-excused {
+    background: rgba(90, 89, 156, 0.12);
+    color: #575696;
+}
+
+.status-left_early {
+    background: rgba(122, 63, 99, 0.12);
+    color: var(--encore-primary);
+}
+
+.attendance-history-list {
+    display: grid;
+}
+
+.history-row {
+    display: grid;
+    grid-template-columns: 54px minmax(0, 1fr) auto;
+    gap: 14px;
+    align-items: center;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--encore-border);
+}
+
+.history-date {
+    display: grid;
+    width: 48px;
+    height: 50px;
+    place-items: center;
+    align-content: center;
+    border-radius: 11px;
+    background: var(--encore-primary-soft);
+    color: var(--encore-primary);
+    line-height: 1;
+}
+
+.history-date strong {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+}
+
+.history-date span {
+    margin-top: 3px;
+    font-size: 1rem;
+    font-weight: 850;
+}
+
+.history-main {
+    display: grid;
+    gap: 3px;
+}
+
+.history-main span,
+.history-main small {
+    color: var(--encore-muted);
+    font-size: 0.77rem;
+}
+
+.empty-state {
+    padding: 24px;
+    border-radius: 14px;
+    background: #faf8f5;
+    color: var(--encore-muted);
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+.sidebar-logout {
+    margin-top: 8px;
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 0.72rem;
+    font-weight: 750;
+    text-decoration: none;
+}
+
+.sidebar-logout:hover {
+    color: #fff;
+}
+
+@media (max-width: 1100px) {
+    .student-card-grid,
+    .portal-grid,
+    .portal-grid.wide-left {
+        grid-template-columns: 1fr;
+    }
+
+    .portal-metrics,
+    .portal-metrics.four {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 700px) {
+    .portal-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .portal-metrics,
+    .portal-metrics.four {
+        grid-template-columns: 1fr;
+    }
+
+    .mini-metrics {
+        grid-template-columns: 1fr;
+    }
+
+    .history-row {
+        grid-template-columns: 54px minmax(0, 1fr);
+    }
+
+    .history-row > .status-pill {
+        grid-column: 2;
+        justify-self: start;
+    }
+}

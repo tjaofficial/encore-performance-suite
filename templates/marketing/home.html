@@ -1,0 +1,259 @@
+{% extends "marketing/base.html" %}
+
+{% block title %}
+Encore Performance Suite
+{% endblock %}
+
+{% block content %}
+<main>
+    <section class="hero">
+        <div class="hero-copy">
+            <span class="marketing-kicker">
+                Built for dance & performance studios
+            </span>
+
+            <h1>
+                Run the studio.
+                <span>Keep the creativity.</span>
+            </h1>
+
+            <p>
+                Encore brings students, families, classes, teachers,
+                registration, attendance, communication, tasks,
+                reporting, choreography, costumes, and performance prep
+                into one modern system.
+            </p>
+
+            <div class="hero-actions">
+                <a
+                    class="marketing-button primary large"
+                    href="{% url 'accounts:register' %}"
+                >
+                    Start Your Studio
+                </a>
+
+                <a
+                    class="marketing-button ghost large"
+                    href="{% url 'marketing:features' %}"
+                >
+                    Explore Features
+                </a>
+            </div>
+
+            <p class="hero-subnote">
+                Monthly billing. No required demo. No free trial.
+                Your studio account activates after secure checkout.
+            </p>
+        </div>
+
+        <div class="hero-product-card">
+            <div class="fake-window">
+                <div class="fake-window-bar">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+
+                <div class="fake-sidebar">
+                    <div class="fake-logo-line"></div>
+                    <div class="fake-nav-line active"></div>
+                    <div class="fake-nav-line"></div>
+                    <div class="fake-nav-line"></div>
+                    <div class="fake-nav-line"></div>
+                </div>
+
+                <div class="fake-dashboard">
+                    <div class="fake-title"></div>
+
+                    <div class="fake-metrics">
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                    </div>
+
+                    <div class="fake-panels">
+                        <div></div>
+                        <div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="trust-strip">
+        <span>Students & Families</span>
+        <span>Classes</span>
+        <span>Attendance</span>
+        <span>Registration</span>
+        <span>Email</span>
+        <span>Choreography</span>
+        <span>Costumes</span>
+        <span>Reporting</span>
+    </section>
+
+    <section class="marketing-section">
+        <div class="section-heading center">
+            <span class="marketing-kicker">
+                One connected workflow
+            </span>
+
+            <h2>
+                Less tab-hopping.
+                More studio-running.
+            </h2>
+
+            <p>
+                Encore connects the data and workflows that actually belong together.
+            </p>
+        </div>
+
+        <div class="feature-grid">
+            <article>
+                <span class="feature-icon">◎</span>
+                <h3>Students & Families</h3>
+                <p>
+                    Keep student records, guardians, enrollments,
+                    attendance, communication, and portals connected.
+                </p>
+            </article>
+
+            <article>
+                <span class="feature-icon">◇</span>
+                <h3>Classes & Registration</h3>
+                <p>
+                    Manage seasons, schedules, capacity, waitlists,
+                    registration, locations, rooms, and instructors.
+                </p>
+            </article>
+
+            <article>
+                <span class="feature-icon">✦</span>
+                <h3>Teacher Tools</h3>
+                <p>
+                    Give instructors rosters, attendance, evaluations,
+                    resources, tasks, time-off requests, and class tools.
+                </p>
+            </article>
+
+            <article>
+                <span class="feature-icon">◌</span>
+                <h3>Communication</h3>
+                <p>
+                    Send announcements and emails with class-aware targeting,
+                    templates, scheduling, automation, and analytics.
+                </p>
+            </article>
+
+            <article>
+                <span class="feature-icon">▦</span>
+                <h3>Studio Operations</h3>
+                <p>
+                    Use tasks, dashboards, calendars, substitutes,
+                    reports, locations, and customizable workflows.
+                </p>
+            </article>
+
+            <article>
+                <span class="feature-icon">♫</span>
+                <h3>Performance Management</h3>
+                <p>
+                    Organize dances, music, costumes, measurements,
+                    class resources, evaluations, and choreography.
+                </p>
+            </article>
+        </div>
+
+        <div class="section-actions center-actions">
+            <a
+                class="marketing-button ghost large"
+                href="{% url 'marketing:features' %}"
+            >
+                See Every Feature
+            </a>
+
+            <a
+                class="marketing-button primary large"
+                href="{% url 'accounts:register' %}"
+            >
+                Start Your Studio
+            </a>
+        </div>
+    </section>
+
+    <section class="home-drawing-board">
+        <div class="home-drawing-board-copy">
+            <span class="marketing-kicker light">
+                Drawing Board
+            </span>
+
+            <h2>
+                Plan the stage before your dancers ever step on it.
+            </h2>
+
+            <p>
+                Drawing Board is Encore's premium choreography workspace for
+                planning formations, dancer positions, movement ideas, and
+                performance layouts in one visual place.
+            </p>
+
+            <div class="drawing-price-pill">
+                $39/month add-on
+            </div>
+
+            <div class="hero-actions">
+                <a
+                    class="marketing-button white large"
+                    href="{% url 'marketing:features' %}#drawing-board"
+                >
+                    Explore Drawing Board
+                </a>
+
+                <a
+                    class="marketing-button outline-light large"
+                    href="{% url 'accounts:register' %}"
+                >
+                    Start Your Studio
+                </a>
+            </div>
+        </div>
+
+        <div class="drawing-placeholder compact">
+            <span>Drawing Board Screenshot Placeholder</span>
+            <small>Replace with product screenshot later</small>
+        </div>
+    </section>
+
+    <section class="marketing-cta">
+        <div>
+            <span class="marketing-kicker">
+                Ready when you are
+            </span>
+
+            <h2>
+                Your studio software should feel like it was built this decade.
+            </h2>
+
+            <p>
+                Start on your own, or talk with us if you want help deciding
+                which plan fits your studio.
+            </p>
+        </div>
+
+        <div class="cta-actions">
+            <a
+                class="marketing-button primary large"
+                href="{% url 'accounts:register' %}"
+            >
+                Start Your Studio
+            </a>
+
+            <a
+                class="marketing-button outline-light large"
+                href="{% url 'marketing:contact' %}#demo"
+            >
+                Book a Demo
+            </a>
+        </div>
+    </section>
+</main>
+{% endblock %}

@@ -1,0 +1,354 @@
+
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Subscription & Billing | Encore{% endblock %}
+{% block topbar_title %}Subscription & Billing{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_subscription.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="settings-page-layout">
+    {% include "includes/settings_nav.html" %}
+
+    <section class="subscription-content">
+        <div class="subscription-heading">
+            <div>
+                <p class="eyebrow">Encore Subscription</p>
+                <h1>Subscription & Billing</h1>
+                <p>
+                    Manage your Encore plan, student band, Drawing Board,
+                    and subscription status.
+                </p>
+            </div>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="subscription-message">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        {% for notice in notices %}
+            <article class="subscription-notice">
+                <div>
+                    <strong>{{ notice.title }}</strong>
+                    <p>{{ notice.message }}</p>
+                </div>
+                <a href="{% url 'billing:mark_subscription_notice_read' studio.slug notice.id %}">
+                    Dismiss
+                </a>
+            </article>
+        {% endfor %}
+
+        <section class="subscription-summary-grid">
+            <article>
+                <span>Current Plan</span>
+                <strong>{{ subscription.get_plan_tier_display }}</strong>
+                {% if subscription.pending_plan_tier %}
+                    <small>
+                        Changes next cycle to
+                        {{ subscription.pending_plan_tier|title }}
+                    </small>
+                {% endif %}
+            </article>
+
+            <article>
+                <span>Student Records</span>
+                <strong>{{ student_count }}</strong>
+                <small>Every non-deleted student record counts</small>
+            </article>
+
+            <article>
+                <span>Monthly Software</span>
+                <strong>${{ subscription.current_monthly_price }}</strong>
+                <small>{{ subscription.get_payment_mode_display }}</small>
+            </article>
+
+            <article>
+                <span>Status</span>
+                <strong>{{ subscription.get_status_display }}</strong>
+                {% if subscription.current_period_end %}
+                    <small>
+                        Renews {{ subscription.current_period_end|date:"M j, Y" }}
+                    </small>
+                {% endif %}
+            </article>
+        </section>
+
+        <section class="subscription-card">
+            <div class="subscription-card-heading">
+                <div>
+                    <p class="eyebrow">Plan</p>
+                    <h2>Essentials or Pro</h2>
+                </div>
+            </div>
+
+            <form
+                method="post"
+                action="{% url 'billing:change_subscription_plan' studio.slug %}"
+                class="subscription-inline-form"
+            >
+                {% csrf_token %}
+                {{ plan_form.plan_tier }}
+                <button class="button primary" type="submit">
+                    Change Plan
+                </button>
+            </form>
+
+            <p class="subscription-help">
+                Upgrades take effect immediately and are prorated.
+                Downgrades take effect at the next billing cycle.
+            </p>
+        </section>
+
+        <section class="subscription-card">
+            <div class="subscription-card-heading">
+                <div>
+                    <p class="eyebrow">Add-On</p>
+                    <h2>Drawing Board</h2>
+                </div>
+                <strong>$39/month</strong>
+            </div>
+
+            <form
+                method="post"
+                action="{% url 'billing:change_drawing_board' studio.slug %}"
+                class="subscription-toggle-form"
+            >
+                {% csrf_token %}
+                <label>
+                    {{ drawing_form.enabled }}
+                    <span>
+                        {% if subscription.drawing_board_enabled %}
+                            Drawing Board is active
+                        {% else %}
+                            Add Drawing Board
+                        {% endif %}
+                    </span>
+                </label>
+
+                <button class="button primary" type="submit">
+                    Save
+                </button>
+            </form>
+
+            <p class="subscription-help">
+                Adding Drawing Board takes effect immediately and is prorated.
+                Removing it takes effect at your next billing cycle.
+            </p>
+        </section>
+
+        <section class="subscription-card">
+            <div class="subscription-card-heading">
+                <div>
+                    <p class="eyebrow">Student Pricing</p>
+                    <h2>Pricing Bands</h2>
+                </div>
+            </div>
+
+            <div class="subscription-price-table">
+                <div class="price-table-head">
+                    <span>Student Records</span>
+                    <span>Essentials</span>
+                    <span>Essentials + Payments</span>
+                    <span>Pro</span>
+                    <span>Pro + Payments</span>
+                </div>
+
+                {% for row in pricing_rows %}
+                    <div class="price-table-row {% if row.key == subscription.student_band %}current{% endif %}">
+                        <span>{{ row.label }}</span>
+                        <span>${{ row.essentials_software }}</span>
+                        <span>${{ row.essentials_payments }}</span>
+                        <span>${{ row.pro_software }}</span>
+                        <span>${{ row.pro_payments }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <p class="subscription-help">
+                Encore reviews total student records automatically.
+                If your studio moves into a different band, the new price
+                begins at the next billing cycle and Encore sends an in-app
+                notice and email before the change.
+            </p>
+        </section>
+
+        <section class="subscription-card">
+            <div class="subscription-card-heading">
+                <div>
+                    <p class="eyebrow">Family Payments</p>
+                    <h2>Stripe Payments</h2>
+                </div>
+
+                {% if subscription.payments_connected %}
+                    <strong>Connected</strong>
+                {% endif %}
+            </div>
+
+            {% if subscription.payment_mode == "software_payments" %}
+                {% if subscription.payments_connected %}
+                    <p class="subscription-help">
+                        {{ studio.name }} can accept secure online registration
+                        payments through its connected Stripe account.
+                    </p>
+
+                    <div class="subscription-summary-grid stripe-connect-status-grid">
+                        <article>
+                            <span>Account Setup</span>
+                            <strong>
+                                {% if subscription.stripe_connect_details_submitted %}
+                                    Complete
+                                {% else %}
+                                    Needs Attention
+                                {% endif %}
+                            </strong>
+                        </article>
+
+                        <article>
+                            <span>Card Payments</span>
+                            <strong>
+                                {% if subscription.stripe_connect_charges_enabled %}
+                                    Enabled
+                                {% else %}
+                                    Pending
+                                {% endif %}
+                            </strong>
+                        </article>
+
+                        <article>
+                            <span>Payouts</span>
+                            <strong>
+                                {% if subscription.stripe_connect_payouts_enabled %}
+                                    Enabled
+                                {% else %}
+                                    Pending
+                                {% endif %}
+                            </strong>
+                        </article>
+                    </div>
+
+                    <a
+                        class="button secondary"
+                        href="{% url 'billing:stripe_connect_start' studio.slug %}"
+                    >
+                        Update Stripe Account
+                    </a>
+                {% else %}
+                    <p class="subscription-help">
+                        Connect the studio's Stripe account before the registration
+                        widget can collect tuition and registration fees.
+                    </p>
+
+                    <a
+                        class="button primary"
+                        href="{% url 'billing:stripe_connect_start' studio.slug %}"
+                    >
+                        Connect Stripe Payments
+                    </a>
+                {% endif %}
+            {% else %}
+                <p class="subscription-help">
+                    Online family payments are available with Encore
+                    Software + Payments. Change the payment mode before
+                    connecting a studio payment account.
+                </p>
+            {% endif %}
+        </section>
+
+        <section class="subscription-card danger">
+            <div class="subscription-card-heading">
+                <div>
+                    <p class="eyebrow">Cancellation</p>
+                    <h2>Cancel Encore</h2>
+                </div>
+            </div>
+
+            {% if subscription.cancel_at_period_end %}
+                <p>
+                    Cancellation is scheduled for the end of the current billing period.
+                    You can remove the scheduled cancellation at any time before then.
+                </p>
+
+                <form
+                    method="post"
+                    action="{% url 'billing:resume_studio_subscription' studio.slug %}"
+                    class="cancel-form"
+                >
+                    {% csrf_token %}
+                    <button class="button primary" type="submit">
+                        Keep My Subscription
+                    </button>
+                </form>
+            {% else %}
+                <button
+                    class="button secondary"
+                    type="button"
+                    data-open-cancel-modal
+                >
+                    Cancel Subscription
+                </button>
+            {% endif %}
+        </section>
+    </section>
+</div>
+
+<dialog
+    id="cancel-subscription-modal"
+    class="subscription-modal"
+>
+    <form
+        method="post"
+        action="{% url 'billing:cancel_studio_subscription' studio.slug %}"
+        class="subscription-modal-card"
+    >
+        {% csrf_token %}
+
+        <button
+            class="subscription-modal-close"
+            type="button"
+            aria-label="Close cancellation confirmation"
+            data-close-cancel-modal
+        >
+            ×
+        </button>
+
+        <p class="eyebrow">Confirm Cancellation</p>
+        <h2>Cancel your Encore subscription?</h2>
+
+        <p>
+            Your studio will keep full access through the end of the current
+            billing period. After that, the subscription will stop renewing.
+        </p>
+
+        <label class="subscription-confirm-check">
+            {{ cancel_form.confirm }}
+            <span>{{ cancel_form.confirm.label }}</span>
+        </label>
+
+        <div class="subscription-modal-actions">
+            <button
+                class="button secondary"
+                type="button"
+                data-close-cancel-modal
+            >
+                Never Mind
+            </button>
+
+            <button
+                class="button danger-button"
+                type="submit"
+            >
+                Confirm Cancellation
+            </button>
+        </div>
+    </form>
+</dialog>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/encore_subscription.js' %}" defer></script>
+{% endblock %}

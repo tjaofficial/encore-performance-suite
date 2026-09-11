@@ -1,0 +1,94 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+{% block title %}Automated Emails | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_communications.css' %}">{% endblock %}
+{% block topbar_title %}Automated Emails{% endblock %}
+{% block content %}
+<section class="communication-heading">
+    <div>
+        <p class="eyebrow">Email Manager</p>
+        <h1>Automated Emails</h1>
+        <p>Control the editable defaults Encore uses when important studio actions happen.</p>
+    </div>
+</section>
+{% include "communications/email/_nav.html" %}
+<div class="communication-tip">
+    <strong>Triggers and content stay separate.</strong>
+    <span>
+        A trigger decides when Encore should send. The selected template decides
+        what the email says, so the studio can customize the message without breaking the workflow.
+    </span>
+</div>
+{% if template_automation_rules %}
+<section class="automation-rule-section">
+    <div class="email-panel-heading">
+        <div>
+            <span class="card-kicker">Template Automations</span>
+            <h2>Customizable Rules</h2>
+        </div>
+    </div>
+
+    <section class="automation-stack">
+        {% for rule in template_automation_rules %}
+            <article class="automation-card">
+                <div>
+                    <span class="automation-state {% if rule.enabled %}enabled{% else %}disabled{% endif %}">
+                        {% if rule.enabled %}Enabled{% else %}Disabled{% endif %}
+                    </span>
+                    <h2>{{ rule.name|default:rule.template.name }}</h2>
+                    <p>{{ rule.get_trigger_type_display }} · Template: {{ rule.template.name }}</p>
+                </div>
+
+                <div class="automation-meta">
+                    <span>{{ rule.get_audience_type_display }}</span>
+                    <span>{{ rule.get_timing_mode_display }}</span>
+                </div>
+
+                <a class="button secondary"
+                   href="{% url 'communications:email_template_edit' studio.slug rule.template.id %}">
+                    Configure
+                </a>
+            </article>
+        {% endfor %}
+    </section>
+</section>
+{% endif %}
+
+<div class="email-panel-heading automation-legacy-heading">
+    <div>
+        <span class="card-kicker">Encore Defaults</span>
+        <h2>System Workflow Emails</h2>
+    </div>
+</div>
+
+<section class="automation-stack">
+    {% for automation in automation_rows %}
+        <article class="automation-card">
+            <div>
+                <span class="automation-state {% if automation.enabled %}enabled{% else %}disabled{% endif %}">
+                    {% if automation.enabled %}Enabled{% else %}Disabled{% endif %}
+                </span>
+                <h2>{{ automation.get_trigger_display }}</h2>
+                <p>
+                    {% if automation.template %}
+                        {{ automation.template.name }} · {{ automation.template.subject }}
+                    {% else %}
+                        No template selected.
+                    {% endif %}
+                </p>
+            </div>
+            <div class="automation-meta">
+                <span>{{ automation.get_sender_type_display }}</span>
+                <span>
+                    {% if automation.delay_minutes %}
+                        Delay {{ automation.delay_minutes }} min
+                    {% else %}
+                        Send immediately
+                    {% endif %}
+                </span>
+            </div>
+            <a class="button secondary" href="{% url 'communications:email_automation_edit' studio.slug automation.id %}">Configure</a>
+        </article>
+    {% endfor %}
+</section>
+{% endblock %}

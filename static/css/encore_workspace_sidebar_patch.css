@@ -1,0 +1,12 @@
+.workspace-switch-link {
+    display: inline-block;
+    margin-top: 8px;
+    color: rgba(255, 255, 255, 0.62);
+    font-size: 0.7rem;
+    font-weight: 750;
+    text-decoration: none;
+}
+
+.workspace-switch-link:hover {
+    color: #fff;
+}

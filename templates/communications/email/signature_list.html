@@ -1,0 +1,33 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+{% block title %}Email Signatures | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_communications.css' %}">{% endblock %}
+{% block topbar_title %}Email Signatures{% endblock %}
+{% block content %}
+<section class="communication-heading">
+    <div>
+        <p class="eyebrow">Email Manager</p>
+        <h1>Signatures</h1>
+        <p>Create signatures for the studio, front desk, competition team, or individual communication styles.</p>
+    </div>
+    <a class="button primary" href="{% url 'communications:email_signature_create' studio.slug %}">+ New Signature</a>
+</section>
+{% include "communications/email/_nav.html" %}
+<section class="email-template-grid">
+    {% for signature in signatures %}
+        <article class="email-template-card">
+            <div class="email-template-card-top">
+                <span class="email-template-category">Signature</span>
+                {% if signature.is_default %}<span class="system-pill">Default</span>{% endif %}
+            </div>
+            <h2>{{ signature.name }}</h2>
+            <div class="signature-preview">{{ signature.body|linebreaksbr }}</div>
+            <div class="email-template-actions">
+                <a class="button secondary" href="{% url 'communications:email_signature_edit' studio.slug signature.id %}">Edit</a>
+            </div>
+        </article>
+    {% empty %}
+        <div class="empty-state">No signatures yet.</div>
+    {% endfor %}
+</section>
+{% endblock %}

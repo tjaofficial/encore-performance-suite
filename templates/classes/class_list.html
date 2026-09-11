@@ -1,0 +1,471 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}
+    Classes | Encore Performance Suite
+{% endblock %}
+
+{% block extra_css %}
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_classes_manager.css' %}"
+    >
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_list_views.css' %}"
+    >
+{% endblock %}
+
+{% block topbar_title %}
+    Class Manager
+{% endblock %}
+
+{% block content %}
+<section class="manager-heading">
+    <div>
+        <p class="eyebrow">
+            {% if role == "teacher" %}
+                My Classes
+            {% else %}
+                Class Manager
+            {% endif %}
+        </p>
+
+        <h1>
+            {% if role == "teacher" %}
+                My Classes
+            {% else %}
+                Classes
+            {% endif %}
+        </h1>
+
+        <p>
+            {% if role == "teacher" %}
+                Open your assigned classes and class workspaces.
+            {% else %}
+                Manage schedules, instructors, capacity, registration,
+                requirements, and tuition.
+            {% endif %}
+        </p>
+    </div>
+
+    <div class="class-manager-heading-actions">
+        {% include "includes/list_view_toggle.html" with list_view_label="Class display" %}
+
+        {% if role == "administrator" %}
+            <a
+                class="button primary"
+                href="{% url 'classes:class_create' studio.slug %}"
+            >
+                + Add Class
+            </a>
+        {% endif %}
+    </div>
+</section>
+
+<form
+    method="get"
+    class="filter-panel"
+>
+    <input
+        type="hidden"
+        name="view"
+        value="{{ view_mode }}"
+    >
+
+    <input
+        type="hidden"
+        name="sort"
+        value="{{ sort_key }}"
+    >
+
+    <input
+        type="hidden"
+        name="direction"
+        value="{{ sort_direction }}"
+    >
+
+    <div class="search-field">
+        <label for="class-search">
+            Search
+        </label>
+
+        <input
+            id="class-search"
+            type="search"
+            name="q"
+            value="{{ filters.q }}"
+            placeholder="Class ID, name, instructor..."
+        >
+    </div>
+
+    <div>
+        <label for="season-filter">
+            Season
+        </label>
+
+        <select
+            id="season-filter"
+            name="season"
+        >
+            <option value="">
+                All Seasons
+            </option>
+
+            {% for season in seasons %}
+                <option
+                    value="{{ season.id }}"
+                    {% if filters.season == season.id|stringformat:"s" %}selected{% endif %}
+                >
+                    {{ season.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div>
+        <label for="type-filter">
+            Class Type
+        </label>
+
+        <select
+            id="type-filter"
+            name="type"
+        >
+            <option value="">
+                All Types
+            </option>
+
+            {% for class_type in class_types %}
+                <option
+                    value="{{ class_type.id }}"
+                    {% if filters.type == class_type.id|stringformat:"s" %}selected{% endif %}
+                >
+                    {{ class_type.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    {% if role == "administrator" %}
+        <div>
+            <label for="instructor-filter">
+                Instructor
+            </label>
+
+            <select
+                id="instructor-filter"
+                name="instructor"
+            >
+                <option value="">
+                    All Instructors
+                </option>
+
+                {% for instructor in instructors %}
+                    <option
+                        value="{{ instructor.id }}"
+                        {% if filters.instructor == instructor.id|stringformat:"s" %}selected{% endif %}
+                    >
+                        {{ instructor.full_name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+    {% endif %}
+
+    <div>
+        <label for="status-filter">
+            Status
+        </label>
+
+        <select
+            id="status-filter"
+            name="status"
+        >
+            <option value="">
+                All
+            </option>
+
+            <option
+                value="active"
+                {% if filters.status == "active" %}selected{% endif %}
+            >
+                Active
+            </option>
+
+            <option
+                value="inactive"
+                {% if filters.status == "inactive" %}selected{% endif %}
+            >
+                Inactive
+            </option>
+
+            <option
+                value="registration_open"
+                {% if filters.status == "registration_open" %}selected{% endif %}
+            >
+                Registration Open
+            </option>
+        </select>
+    </div>
+
+    <div class="filter-actions">
+        <button
+            class="button primary"
+            type="submit"
+        >
+            Filter
+        </button>
+
+        <a
+            class="button secondary"
+            href="{{ reset_url }}"
+        >
+            Reset
+        </a>
+    </div>
+</form>
+
+{% if view_mode == "table" %}
+    <section class="class-table-card">
+        <div class="class-table-wrap">
+            <table class="class-manager-table">
+                <thead>
+                    <tr>
+                        {% for column in table_columns %}
+                            <th>
+                                <a
+                                    href="{{ column.url }}"
+                                    class="{% if column.is_active %}active{% endif %}"
+                                >
+                                    <span>
+                                        {{ column.label }}
+                                    </span>
+
+                                    <span class="sort-indicator">
+                                        {% if column.is_active %}
+                                            {% if column.direction == "asc" %}
+                                                ↑
+                                            {% else %}
+                                                ↓
+                                            {% endif %}
+                                        {% else %}
+                                            ↕
+                                        {% endif %}
+                                    </span>
+                                </a>
+                            </th>
+                        {% endfor %}
+
+                        <th class="class-table-action-heading">
+                            Open
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for item in class_rows %}
+                        <tr>
+                            <td>
+                                <a
+                                    class="class-table-code"
+                                    href="{% url 'classes:class_detail' studio.slug item.class.id %}"
+                                >
+                                    {{ item.class.class_id }}
+                                </a>
+                            </td>
+
+                            <td>
+                                <a
+                                    class="class-table-name"
+                                    href="{% url 'classes:class_detail' studio.slug item.class.id %}"
+                                >
+                                    {{ item.class.name }}
+                                </a>
+                            </td>
+
+                            <td>
+                                {{ item.class.class_type.name }}
+                            </td>
+
+                            <td>
+                                {{ item.class.season.name }}
+                            </td>
+
+                            <td>
+                                {{ item.class.instructor.full_name }}
+                            </td>
+
+                            <td class="numeric-cell">
+                                {{ item.class.active_enrollment_count }}
+                                /
+                                {{ item.class.capacity }}
+                            </td>
+
+                            <td class="numeric-cell">
+                                {{ item.class.waitlist_count }}
+                            </td>
+
+                            <td class="numeric-cell">
+                                {{ item.remaining }}
+                            </td>
+
+                            <td class="capacity-table-cell">
+                                <div class="table-capacity-value">
+                                    <strong>
+                                        {{ item.percent_full }}%
+                                    </strong>
+
+                                    <div class="table-progress-track">
+                                        <span
+                                            style="width: {{ item.percent_full }}%;"
+                                        ></span>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td>
+                                <div class="table-status-stack">
+                                    {% if item.class.is_active %}
+                                        <span class="status-pill active">
+                                            Active
+                                        </span>
+                                    {% else %}
+                                        <span class="status-pill inactive">
+                                            Inactive
+                                        </span>
+                                    {% endif %}
+
+                                    {% if item.class.registration_open %}
+                                        <span class="status-pill registration">
+                                            Registration Open
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </td>
+
+                            <td class="class-table-action-cell">
+                                <a
+                                    href="{% url 'classes:class_detail' studio.slug item.class.id %}"
+                                >
+                                    Open →
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td
+                                class="class-table-empty"
+                                colspan="11"
+                            >
+                                No classes matched your filters.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+{% else %}
+    <section class="class-grid">
+        {% for item in class_rows %}
+            <a
+                class="class-card"
+                href="{% url 'classes:class_detail' studio.slug item.class.id %}"
+            >
+                <div class="class-card-top">
+                    <div>
+                        <span class="class-code">
+                            {{ item.class.class_id }}
+                        </span>
+
+                        <h2>
+                            {{ item.class.name }}
+                        </h2>
+
+                        <p>
+                            {{ item.class.class_type.name }}
+                            ·
+                            {{ item.class.season.name }}
+                        </p>
+                    </div>
+
+                    <div class="status-stack">
+                        {% if item.class.is_active %}
+                            <span class="status-pill active">
+                                Active
+                            </span>
+                        {% else %}
+                            <span class="status-pill inactive">
+                                Inactive
+                            </span>
+                        {% endif %}
+
+                        {% if item.class.registration_open %}
+                            <span class="status-pill registration">
+                                Registration Open
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="class-meta-grid">
+                    <div>
+                        <span>Instructor</span>
+
+                        <strong>
+                            {{ item.class.instructor.full_name }}
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Enrollment</span>
+
+                        <strong>
+                            {{ item.class.active_enrollment_count }}
+                            /
+                            {{ item.class.capacity }}
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Waitlist</span>
+
+                        <strong>
+                            {{ item.class.waitlist_count }}
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Available</span>
+
+                        <strong>
+                            {{ item.remaining }}
+                        </strong>
+                    </div>
+                </div>
+
+                <div class="capacity-area">
+                    <div class="capacity-label">
+                        <span>Capacity</span>
+                        <strong>
+                            {{ item.percent_full }}%
+                        </strong>
+                    </div>
+
+                    <div class="progress-track">
+                        <div
+                            class="progress-fill"
+                            style="width: {{ item.percent_full }}%;"
+                        ></div>
+                    </div>
+                </div>
+            </a>
+        {% empty %}
+            <div class="empty-state full-width">
+                No classes matched your filters.
+            </div>
+        {% endfor %}
+    </section>
+{% endif %}
+{% endblock %}

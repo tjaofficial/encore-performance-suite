@@ -1,0 +1,22 @@
+{% if studio %}
+    {% with studio_settings=studio.settings %}
+        <style>
+            :root {
+                --studio-primary:
+                    {{ studio_settings.primary_color|default:"#1663FF" }};
+                --studio-accent:
+                    {{ studio_settings.accent_color|default:"#0197FC" }};
+                --encore-primary:
+                    {{ studio_settings.primary_color|default:"#1663FF" }};
+                --encore-accent:
+                    {{ studio_settings.accent_color|default:"#0197FC" }};
+                --encore-primary-soft:
+                    color-mix(
+                        in srgb,
+                        {{ studio_settings.primary_color|default:"#1663FF" }} 10%,
+                        transparent
+                    );
+            }
+        </style>
+    {% endwith %}
+{% endif %}

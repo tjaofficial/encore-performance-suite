@@ -1,0 +1,60 @@
+<article class="dashboard-widget teacher-card-shell">
+    <div class="widget-heading">
+        <div class="widget-title-group">
+            <span class="widget-icon">◫</span>
+
+            <span class="widget-kicker">
+                Upcoming Events
+            </span>
+        </div>
+
+        <a
+            class="teacher-card-action"
+            href="{% url 'scheduling:calendar' studio.slug %}"
+        >
+            View Calendar
+        </a>
+    </div>
+
+    <div class="teacher-event-list">
+        {% for event in upcoming_teacher_events %}
+            <div class="teacher-event-row">
+                <div class="teacher-event-date">
+                    <strong>
+                        {{ event.start_at|date:"M j" }}
+                    </strong>
+
+                    <span>
+                        {{ event.start_at|date:"D" }}
+                    </span>
+                </div>
+
+                <div class="teacher-event-copy">
+                    <strong>
+                        {{ event.title }}
+                    </strong>
+
+                    <span>
+                        {% if event.all_day %}
+                            All day
+                        {% else %}
+                            {{ event.start_at|time:"g:i A" }}
+                        {% endif %}
+
+                        {% if event.location %}
+                            · {{ event.location }}
+                        {% endif %}
+                    </span>
+                </div>
+
+                <span class="teacher-event-type">
+                    {{ event.get_event_type_display }}
+                </span>
+            </div>
+        {% empty %}
+            <div class="teacher-card-empty">
+                No upcoming events.
+            </div>
+        {% endfor %}
+    </div>
+</article>

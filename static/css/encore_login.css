@@ -1,0 +1,281 @@
+:root {
+    --encore-bg: #f6f2ec;
+    --encore-surface: #ffffff;
+    --encore-dark: #211d24;
+    --encore-text: #211f26;
+    --encore-muted: #716b74;
+    --encore-border: #e7e0d7;
+    --encore-primary: #7a3f63;
+    --encore-primary-dark: #5c2d49;
+    --encore-primary-soft: #f2e7ed;
+    --encore-shadow: 0 24px 70px rgba(32, 24, 30, 0.1);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    min-height: 100%;
+}
+
+body {
+    background: var(--encore-bg);
+    color: var(--encore-text);
+    font-family:
+        Inter,
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+}
+
+.login-shell {
+    display: grid;
+    min-height: 100vh;
+    grid-template-columns: minmax(420px, 0.95fr) minmax(520px, 1.05fr);
+}
+
+.login-brand-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 46px;
+    background:
+        radial-gradient(
+            circle at 20% 20%,
+            rgba(122, 63, 99, 0.35),
+            transparent 28rem
+        ),
+        var(--encore-dark);
+    color: #fff;
+}
+
+.brand-wrap {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+.brand-mark {
+    display: grid;
+    width: 48px;
+    height: 48px;
+    place-items: center;
+    border-radius: 14px;
+    background: var(--encore-primary);
+    color: #fff;
+    font-family: Georgia, serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+}
+
+.brand-name,
+.brand-subtitle {
+    margin: 0;
+}
+
+.brand-name {
+    font-weight: 900;
+    letter-spacing: 0.15em;
+}
+
+.brand-subtitle {
+    margin-top: 2px;
+    color: rgba(255, 255, 255, 0.58);
+    font-size: 0.78rem;
+}
+
+.brand-copy {
+    max-width: 600px;
+}
+
+.brand-copy .eyebrow {
+    color: #d9abc8;
+}
+
+.brand-copy h1 {
+    margin: 0;
+    font-size: clamp(2.7rem, 5vw, 5rem);
+    line-height: 0.98;
+    letter-spacing: -0.055em;
+}
+
+.brand-copy > p:last-child {
+    max-width: 520px;
+    margin: 24px 0 0;
+    color: rgba(255, 255, 255, 0.68);
+    font-size: 1rem;
+    line-height: 1.7;
+}
+
+.login-form-panel {
+    display: grid;
+    place-items: center;
+    padding: 40px;
+}
+
+.login-card {
+    width: min(460px, 100%);
+}
+
+.login-heading {
+    margin-bottom: 28px;
+}
+
+.eyebrow {
+    margin: 0 0 8px;
+    color: var(--encore-primary);
+    font-size: 0.72rem;
+    font-weight: 850;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.login-heading h2,
+.simple-card h1 {
+    margin: 0;
+    font-size: clamp(2rem, 4vw, 3rem);
+    letter-spacing: -0.04em;
+}
+
+.login-heading > p:last-child,
+.login-help,
+.simple-card p {
+    color: var(--encore-muted);
+    line-height: 1.6;
+}
+
+.login-form {
+    display: grid;
+    gap: 18px;
+}
+
+.login-form label {
+    display: grid;
+    gap: 7px;
+}
+
+.login-form label > span {
+    font-size: 0.8rem;
+    font-weight: 800;
+}
+
+.login-form input {
+    width: 100%;
+    min-height: 50px;
+    padding: 0 14px;
+    border: 1px solid var(--encore-border);
+    border-radius: 12px;
+    background: var(--encore-surface);
+    color: var(--encore-text);
+    font: inherit;
+    outline: none;
+}
+
+.login-form input:focus {
+    border-color: var(--encore-primary);
+    box-shadow: 0 0 0 3px var(--encore-primary-soft);
+}
+
+.password-field {
+    position: relative;
+}
+
+.password-field input {
+    padding-right: 70px;
+}
+
+.password-field button {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+    border: 0;
+    background: transparent;
+    color: var(--encore-primary);
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.login-button {
+    min-height: 50px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--encore-primary);
+    color: #fff;
+    font: inherit;
+    font-weight: 850;
+    cursor: pointer;
+}
+
+.login-button:hover {
+    background: var(--encore-primary-dark);
+}
+
+.form-error {
+    margin-bottom: 18px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #f8e8e8;
+    color: #963f3f;
+    font-size: 0.82rem;
+}
+
+.form-error p {
+    margin: 0;
+}
+
+.login-help {
+    margin: 22px 0 0;
+    font-size: 0.8rem;
+    text-align: center;
+}
+
+.simple-shell {
+    display: grid;
+    min-height: 100vh;
+    place-items: center;
+    padding: 24px;
+}
+
+.simple-card {
+    width: min(560px, 100%);
+    padding: 38px;
+    border: 1px solid var(--encore-border);
+    border-radius: 22px;
+    background: var(--encore-surface);
+    box-shadow: var(--encore-shadow);
+}
+
+.simple-card .brand-mark {
+    margin-bottom: 22px;
+}
+
+.simple-card a {
+    color: var(--encore-primary);
+    font-weight: 800;
+}
+
+@media (max-width: 900px) {
+    .login-shell {
+        grid-template-columns: 1fr;
+    }
+
+    .login-brand-panel {
+        min-height: 340px;
+        padding: 30px;
+    }
+
+    .brand-copy h1 {
+        font-size: clamp(2.3rem, 10vw, 4rem);
+    }
+
+    .login-form-panel {
+        padding: 34px 22px 48px;
+    }
+}

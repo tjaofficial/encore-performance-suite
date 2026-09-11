@@ -1,0 +1,57 @@
+<article class="dashboard-widget teacher-card-shell">
+    <div class="widget-heading">
+        <div class="widget-title-group">
+            <span class="widget-icon">◷</span>
+
+            <span class="widget-kicker">
+                Time & Extra Work
+            </span>
+        </div>
+
+        <a
+            class="teacher-card-action"
+            href="{% url 'timekeeping:extra_work_list' studio.slug %}"
+        >
+            View All
+        </a>
+    </div>
+
+    <div class="teacher-extra-work-list">
+        {% for entry in recent_extra_work %}
+            <div class="teacher-extra-work-row">
+                <div class="extra-work-mini-date">
+                    {{ entry.work_date|date:"M j" }}
+                </div>
+
+                <div class="extra-work-mini-copy">
+                    <strong>
+                        {{ entry.get_category_display }}
+                    </strong>
+
+                    <span>
+                        {% if entry.description %}
+                            {{ entry.description|truncatechars:48 }}
+                        {% else %}
+                            Extra work
+                        {% endif %}
+                    </span>
+                </div>
+
+                <strong class="extra-work-mini-duration">
+                    {{ entry.duration_display }}
+                </strong>
+            </div>
+        {% empty %}
+            <div class="teacher-card-empty">
+                No extra work logged yet.
+            </div>
+        {% endfor %}
+    </div>
+
+    <a
+        class="teacher-card-footer-action"
+        href="{% url 'timekeeping:extra_work_create' studio.slug %}"
+    >
+        + Log Extra Work
+    </a>
+</article>

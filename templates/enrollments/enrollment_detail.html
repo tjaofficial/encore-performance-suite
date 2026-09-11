@@ -1,0 +1,210 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Enrollment Details | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_staff_enrollment.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Enrollment Details{% endblock %}
+
+{% block content %}
+<section class="manager-heading">
+    <div>
+        <a
+            class="back-link"
+            href="{% url 'enrollments:enrollment_list' studio.slug %}"
+        >
+            ← Back to Enrollments
+        </a>
+
+        <p class="eyebrow">Enrollment</p>
+
+        <h1>
+            {{ enrollment.student.first_name }}
+            {{ enrollment.student.last_name }}
+        </h1>
+
+        <p>
+            {{ enrollment.class_instance.class_id }}
+            ·
+            {{ enrollment.class_instance.name }}
+        </p>
+    </div>
+
+    <a
+        class="button primary"
+        href="{% url 'enrollments:enrollment_edit' studio.slug enrollment.id %}"
+    >
+        Edit Enrollment
+    </a>
+</section>
+
+{% if messages %}
+<div class="message-stack">
+    {% for message in messages %}
+        <div class="message-banner">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<section class="detail-grid">
+    <article class="manager-card">
+        <div class="card-heading">
+            <div>
+                <span class="card-kicker">Student</span>
+                <h2>Student Information</h2>
+            </div>
+        </div>
+
+        <dl class="details-list">
+            <div>
+                <dt>Student</dt>
+                <dd>
+                    <a
+                        href="{% url 'students:student_detail' studio.slug enrollment.student.id %}"
+                    >
+                        {{ enrollment.student.first_name }}
+                        {{ enrollment.student.last_name }}
+                    </a>
+                </dd>
+            </div>
+
+            <div>
+                <dt>Age</dt>
+                <dd>{{ enrollment.student.age }}</dd>
+            </div>
+
+            <div>
+                <dt>Family</dt>
+                <dd>
+                    {% if enrollment.student.family %}
+                        <a
+                            href="{% url 'families:family_detail' studio.slug enrollment.student.family.id %}"
+                        >
+                            {{ enrollment.student.family }}
+                        </a>
+                    {% else %}
+                        Standalone
+                    {% endif %}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Enrollment Blocked</dt>
+                <dd>
+                    {{ enrollment.student.enrollment_blocked|yesno:"Yes,No" }}
+                </dd>
+            </div>
+        </dl>
+    </article>
+
+    <article class="manager-card">
+        <div class="card-heading">
+            <div>
+                <span class="card-kicker">Class</span>
+                <h2>Class Information</h2>
+            </div>
+        </div>
+
+        <dl class="details-list">
+            <div>
+                <dt>Class</dt>
+                <dd>
+                    <a
+                        href="{% url 'classes:class_detail' studio.slug enrollment.class_instance.id %}"
+                    >
+                        {{ enrollment.class_instance.class_id }}
+                        ·
+                        {{ enrollment.class_instance.name }}
+                    </a>
+                </dd>
+            </div>
+
+            <div>
+                <dt>Season</dt>
+                <dd>{{ enrollment.class_instance.season.name }}</dd>
+            </div>
+
+            <div>
+                <dt>Instructor</dt>
+                <dd>
+                    {{ enrollment.class_instance.instructor.full_name }}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Class Type</dt>
+                <dd>
+                    {{ enrollment.class_instance.class_type.name }}
+                </dd>
+            </div>
+        </dl>
+    </article>
+
+    <article class="manager-card span-2">
+        <div class="card-heading">
+            <div>
+                <span class="card-kicker">Registration</span>
+                <h2>Enrollment Status</h2>
+            </div>
+        </div>
+
+        <dl class="details-list">
+            <div>
+                <dt>Status</dt>
+                <dd>{{ enrollment.get_status_display }}</dd>
+            </div>
+
+            <div>
+                <dt>Source</dt>
+                <dd>{{ enrollment.get_source_display }}</dd>
+            </div>
+
+            <div>
+                <dt>Tuition</dt>
+                <dd>
+                    {% if enrollment.tuition_amount %}
+                        ${{ enrollment.tuition_amount }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Enrolled</dt>
+                <dd>
+                    {{ enrollment.enrolled_at|date:"M j, Y g:i A" }}
+                </dd>
+            </div>
+
+            {% if enrollment.waitlisted_at %}
+            <div>
+                <dt>Waitlisted</dt>
+                <dd>
+                    {{ enrollment.waitlisted_at|date:"M j, Y g:i A" }}
+                </dd>
+            </div>
+            {% endif %}
+
+            {% if enrollment.dropped_at %}
+            <div>
+                <dt>Dropped</dt>
+                <dd>
+                    {{ enrollment.dropped_at|date:"M j, Y g:i A" }}
+                </dd>
+            </div>
+            {% endif %}
+
+            <div>
+                <dt>Notes</dt>
+                <dd>
+                    {{ enrollment.notes|default:"No notes."|linebreaksbr }}
+                </dd>
+            </div>
+        </dl>
+    </article>
+</section>
+{% endblock %}

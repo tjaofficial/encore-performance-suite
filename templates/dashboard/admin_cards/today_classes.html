@@ -1,0 +1,39 @@
+<article class="admin-dashboard-card admin-today-classes-card">
+    <div class="card-heading">
+        <div>
+            <span class="card-kicker">Today</span>
+            <h2>Today's Classes</h2>
+        </div>
+        <a href="/admin/classes/class/">View Classes</a>
+    </div>
+
+    {% if today_classes %}
+        <div class="admin-compact-list admin-card-scroll">
+            {% for item in today_classes %}
+                <div class="admin-class-row">
+                    <div class="admin-time-badge">
+                        {{ item.meeting.start_time|time:"g:i A" }}
+                    </div>
+
+                    <div class="admin-row-copy">
+                        <strong>{{ item.class.name }}</strong>
+                        <span>
+                            {{ item.class.instructor.full_name }}
+                            {% if item.location %}
+                                · {{ item.location.name }}
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <small>
+                        {{ item.enrollment_count }}/{{ item.class.capacity }}
+                    </small>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            No classes scheduled today.
+        </div>
+    {% endif %}
+</article>

@@ -1,0 +1,99 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Choose Workspace | Encore Performance Suite</title>
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_workspace.css' %}"
+    >
+</head>
+
+<body>
+    <main class="workspace-shell">
+        <header class="workspace-header">
+            <div class="brand-wrap">
+                <div class="brand-mark">E</div>
+
+                <div>
+                    <p class="brand-name">ENCORE</p>
+                    <p class="brand-subtitle">Performance Suite</p>
+                </div>
+            </div>
+
+            <div class="account-actions">
+                <span>{{ request.user.email }}</span>
+
+                <a href="{% url 'accounts:logout' %}">
+                    Sign Out
+                </a>
+            </div>
+        </header>
+
+        <section class="workspace-content">
+            <div class="workspace-heading">
+                <p class="eyebrow">Choose Workspace</p>
+
+                <h1>How are you using Encore right now?</h1>
+
+                <p>
+                    Your account has more than one role.
+                    Choose the workspace you want to enter.
+                </p>
+            </div>
+
+            <div class="workspace-grid">
+                {% for item in workspace_cards %}
+                    <a
+                        class="workspace-card {% if item.is_current %}current{% endif %}"
+                        href="{% url 'accounts:select_workspace' item.membership.id %}"
+                    >
+                        <div class="workspace-card-top">
+                            <div class="role-icon role-{{ item.role }}">
+                                {% if item.role == "administrator" %}
+                                    A
+                                {% elif item.role == "teacher" %}
+                                    T
+                                {% elif item.role == "family" %}
+                                    F
+                                {% else %}
+                                    S
+                                {% endif %}
+                            </div>
+
+                            {% if item.is_current %}
+                                <span class="current-pill">
+                                    Current
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <div class="workspace-card-body">
+                            <span class="studio-name">
+                                {{ item.studio.name }}
+                            </span>
+
+                            <h2>{{ item.role_label }}</h2>
+
+                            <p>{{ item.description }}</p>
+                        </div>
+
+                        <div class="workspace-card-footer">
+                            Enter Workspace
+                            <span>→</span>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
+</body>
+</html>

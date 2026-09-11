@@ -1,0 +1,37 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+{% block title %}{{ automation.get_trigger_display }} | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_communications.css' %}">{% endblock %}
+{% block topbar_title %}Automated Email{% endblock %}
+{% block content %}
+<section class="communication-heading">
+    <div>
+        <a class="back-link" href="{% url 'communications:email_automations' studio.slug %}">← Back to Automated Emails</a>
+        <p class="eyebrow">Automation</p>
+        <h1>{{ automation.get_trigger_display }}</h1>
+        <p>Customize whether this email runs, what template it uses, and who receives it.</p>
+    </div>
+</section>
+{% include "communications/email/_nav.html" %}
+<form method="post" class="communication-form">
+    {% csrf_token %}
+    <section class="communication-form-card">
+        <div class="form-grid">
+            {% for field in form %}
+                <div class="field-group">
+                    {% if field.field.widget.input_type == "checkbox" %}
+                        <label class="checkbox-line">{{ field }}<span>{{ field.label }}</span></label>
+                    {% else %}
+                        {{ field.label_tag }}{{ field }}
+                    {% endif %}
+                    {% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+    <div class="form-actions">
+        <a class="button secondary" href="{% url 'communications:email_automations' studio.slug %}">Cancel</a>
+        <button class="button primary" type="submit">Save Automation</button>
+    </div>
+</form>
+{% endblock %}

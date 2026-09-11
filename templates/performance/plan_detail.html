@@ -1,0 +1,271 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}
+{{ plan.title|default:plan.class_instance.name }} | Encore
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_performance.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Performance Plan{% endblock %}
+
+{% block content %}
+<section class="performance-heading">
+    <div>
+        <a
+            class="back-link"
+            href="{% url 'performance:plan_list' studio.slug %}"
+        >
+            ← Back to Performance Tools
+        </a>
+
+        <p class="eyebrow">
+            {{ plan.class_instance.class_id }}
+            ·
+            {{ plan.class_instance.season.name }}
+        </p>
+
+        <h1>
+            {{ plan.title|default:plan.class_instance.name }}
+        </h1>
+
+        <p>
+            {{ plan.class_instance.name }}
+            {% if plan.song_title %}
+                ·
+                {{ plan.song_title }}
+                {% if plan.artist %}
+                    — {{ plan.artist }}
+                {% endif %}
+            {% endif %}
+        </p>
+    </div>
+
+    <div class="performance-heading-actions">
+        <a class="button secondary" href="{% url 'performance:plan_edit' studio.slug plan.id %}">Edit Plan</a>
+        <a class="button primary" href="{% url 'performance:drawing_board_for_plan' studio.slug plan.id %}">Open Drawing Board</a>
+    </div>
+</section>
+
+{% if messages %}
+<div class="message-stack">
+    {% for message in messages %}
+        <div class="message-banner">
+            {{ message }}
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<section class="performance-overview-grid">
+    <article class="performance-panel">
+        <span class="card-kicker">Routine</span>
+        <h2>Choreography Notes</h2>
+
+        <p class="long-copy">
+            {{ plan.choreography_notes|default:"No choreography notes yet."|linebreaksbr }}
+        </p>
+    </article>
+
+    <article class="performance-panel">
+        <span class="card-kicker">Teacher</span>
+        <h2>Internal Notes</h2>
+
+        <p class="long-copy">
+            {{ plan.teacher_notes|default:"No teacher notes yet."|linebreaksbr }}
+        </p>
+    </article>
+
+    <article class="performance-panel">
+        <span class="card-kicker">Show</span>
+        <h2>Performance Notes</h2>
+
+        <p class="long-copy">
+            {{ plan.performance_notes|default:"No performance notes yet."|linebreaksbr }}
+        </p>
+    </article>
+
+    <article class="performance-panel prep-progress-card">
+        <span class="card-kicker">Readiness</span>
+        <h2>Performance Prep</h2>
+
+        <strong class="progress-number">
+            {{ prep_progress_percent }}%
+        </strong>
+
+        <div class="progress-track">
+            <span
+                style="width: {{ prep_progress_percent }}%;"
+            ></span>
+        </div>
+
+        <p>
+            {{ prep_complete_count }}
+            of
+            {{ prep_total_count }}
+            prep items complete
+        </p>
+    </article>
+</section>
+
+<section class="performance-section">
+    <div class="section-heading">
+        <div>
+            <span class="card-kicker">Staging</span>
+            <h2>Formations</h2>
+        </div>
+
+        <a
+            class="button secondary"
+            href="{% url 'performance:formation_add' studio.slug plan.id %}"
+        >
+            + Formation
+        </a>
+    </div>
+
+    <div class="formation-grid">
+        {% for formation in formations %}
+            <a
+                class="formation-card"
+                href="{% url 'performance:drawing_board_for_plan' studio.slug plan.id %}?formation={{ formation.id }}"
+            >
+                <span class="formation-order">
+                    {{ formation.sequence_order }}
+                </span>
+
+                <div>
+                    <strong>{{ formation.name }} · {{ formation.time_display }}</strong>
+
+                    {% if formation.section_label %}
+                        <span>{{ formation.section_label }}</span>
+                    {% endif %}
+
+                    {% if formation.positions %}
+                        <p>
+                            {{ formation.positions|length }}
+                            dancer position{{ formation.positions|length|pluralize }}
+                            saved
+                        </p>
+                    {% elif formation.notes %}
+                        <p>{{ formation.notes }}</p>
+                    {% else %}
+                        <p>Open the drawing board →</p>
+                    {% endif %}
+                </div>
+
+                <span class="performance-arrow">→</span>
+            </a>
+        {% empty %}
+            <div class="empty-state">
+                No formations yet.
+            </div>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="performance-section">
+    <div class="section-heading">
+        <div>
+            <span class="card-kicker">Production</span>
+            <h2>Lighting Cues</h2>
+        </div>
+
+        <a
+            class="button secondary"
+            href="{% url 'performance:lighting_add' studio.slug plan.id %}"
+        >
+            + Lighting Cue
+        </a>
+    </div>
+
+    <div class="cue-list">
+        {% for cue in lighting_cues %}
+            <a
+                class="cue-row"
+                href="{% url 'performance:lighting_edit' studio.slug plan.id cue.id %}"
+            >
+                <span class="cue-number">
+                    {{ cue.cue_number }}
+                </span>
+
+                <div class="cue-main">
+                    <strong>{{ cue.name }}</strong>
+
+                    <span>
+                        {% if cue.timing %}
+                            {{ cue.timing }}
+                        {% endif %}
+
+                        {% if cue.color_notes %}
+                            · {{ cue.color_notes }}
+                        {% endif %}
+                    </span>
+                </div>
+
+                <div class="cue-action">
+                    {{ cue.action|default:"No action notes."|truncatechars:90 }}
+                </div>
+
+                <span class="performance-arrow">→</span>
+            </a>
+        {% empty %}
+            <div class="empty-state">
+                No lighting cues yet.
+            </div>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="performance-section">
+    <div class="section-heading">
+        <div>
+            <span class="card-kicker">Checklist</span>
+            <h2>Recital / Performance Prep</h2>
+        </div>
+
+        <a
+            class="button secondary"
+            href="{% url 'performance:prep_add' studio.slug plan.id %}"
+        >
+            + Prep Item
+        </a>
+    </div>
+
+    <div class="prep-grid">
+        {% for item in prep_items %}
+            <a
+                class="prep-card {% if item.is_complete %}complete{% endif %}"
+                href="{% url 'performance:prep_edit' studio.slug plan.id item.id %}"
+            >
+                <span class="prep-check">
+                    {% if item.is_complete %}
+                        ✓
+                    {% else %}
+                        ○
+                    {% endif %}
+                </span>
+
+                <div>
+                    <span class="resource-type">
+                        {{ item.get_category_display }}
+                    </span>
+
+                    <strong>{{ item.title }}</strong>
+
+                    {% if item.due_date %}
+                        <small>
+                            Due {{ item.due_date|date:"M j, Y" }}
+                        </small>
+                    {% endif %}
+                </div>
+            </a>
+        {% empty %}
+            <div class="empty-state">
+                No preparation items yet.
+            </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

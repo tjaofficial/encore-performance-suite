@@ -1,0 +1,28 @@
+.billing-source-note {
+    display: grid;
+    gap: 5px;
+    margin-bottom: 18px;
+    padding: 14px 16px;
+    border: 1px solid rgba(122, 63, 99, 0.15);
+    border-radius: 13px;
+    background: var(--encore-primary-soft);
+}
+
+.billing-source-note strong {
+    color: var(--encore-primary);
+    font-size: 0.82rem;
+}
+
+.billing-source-note span {
+    color: var(--encore-muted);
+    font-size: 0.78rem;
+    line-height: 1.55;
+}
+
+.locked-schedule {
+    cursor: default;
+}
+
+.locked-schedule:hover {
+    transform: none;
+}

@@ -1,0 +1,285 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Add Costume · {{ class_instance.name }} | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_costumes_measurements.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Add Costume{% endblock %}
+
+{% block content %}
+<section class="wardrobe-page-header">
+    <div>
+        <a
+            class="wardrobe-back-link"
+            href="{% url 'costumes:costume_list' studio.slug class_instance.id %}"
+        >
+            ← Back to Costumes
+        </a>
+
+        <p class="eyebrow">Costumes</p>
+
+        <h1>Add Costume</h1>
+
+        <p>
+            Connect the costume to a Dance, add visual references,
+            links, instructions, and student communication.
+        </p>
+    </div>
+</section>
+
+<form
+    method="post"
+    enctype="multipart/form-data"
+    class="costume-form"
+>
+    {% csrf_token %}
+
+    <section class="wardrobe-form-card">
+        <div class="wardrobe-section-heading">
+            <span>Costume</span>
+            <strong>Costume Information</strong>
+        </div>
+
+        <div class="wardrobe-form-grid">
+            <label>
+                <span>{{ form.dance.label }}</span>
+                {{ form.dance }}
+            </label>
+
+            <label>
+                <span>{{ form.name.label }}</span>
+                {{ form.name }}
+            </label>
+
+            <label class="full">
+                <span>{{ form.student_notes.label }}</span>
+                {{ form.student_notes }}
+                <small>
+                    Students and guardians assigned to this costume can read this.
+                </small>
+            </label>
+
+            <label class="full">
+                <span>{{ form.internal_notes.label }}</span>
+                {{ form.internal_notes }}
+                <small>
+                    Staff only.
+                </small>
+            </label>
+        </div>
+    </section>
+
+    <section class="wardrobe-form-card">
+        <div class="wardrobe-section-heading">
+            <span>Visual References</span>
+            <strong>Costume Photos</strong>
+            <p>
+                Add as many supporting photos as needed.
+            </p>
+        </div>
+
+        <div class="costume-upload-grid">
+            <label>
+                <span>Front</span>
+                <input
+                    type="file"
+                    name="front_images"
+                    accept="image/*"
+                    multiple
+                >
+            </label>
+
+            <label>
+                <span>Back</span>
+                <input
+                    type="file"
+                    name="back_images"
+                    accept="image/*"
+                    multiple
+                >
+            </label>
+
+            <label>
+                <span>Shoes</span>
+                <input
+                    type="file"
+                    name="shoe_images"
+                    accept="image/*"
+                    multiple
+                >
+            </label>
+
+            <label>
+                <span>Accessories</span>
+                <input
+                    type="file"
+                    name="accessory_images"
+                    accept="image/*"
+                    multiple
+                >
+            </label>
+
+            <label>
+                <span>Other</span>
+                <input
+                    type="file"
+                    name="other_images"
+                    accept="image/*"
+                    multiple
+                >
+            </label>
+        </div>
+    </section>
+
+    <section class="wardrobe-form-card">
+        <div class="wardrobe-section-heading">
+            <span>Purchase Information</span>
+            <strong>Costume Links</strong>
+        </div>
+
+        {{ link_formset.management_form }}
+
+        <div
+            class="costume-link-list"
+            data-costume-link-list
+        >
+            {% for link_form in link_formset.forms %}
+                <div class="costume-link-row">
+                    {% for hidden in link_form.hidden_fields %}
+                        {{ hidden }}
+                    {% endfor %}
+
+                    <label>
+                        <span>Label</span>
+                        {{ link_form.label }}
+                    </label>
+
+                    <label>
+                        <span>URL</span>
+                        {{ link_form.url }}
+                    </label>
+
+                    <label>
+                        <span>Notes</span>
+                        {{ link_form.notes }}
+                    </label>
+
+                    {% if link_form.DELETE %}
+                        <label class="costume-link-delete">
+                            {{ link_form.DELETE }}
+                            <span>Remove</span>
+                        </label>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <button
+            type="button"
+            class="button secondary compact-action"
+            data-add-costume-link
+        >
+            + Add Link
+        </button>
+
+        <template id="costume-link-empty-form">
+            <div class="costume-link-row">
+                {% for hidden in link_formset.empty_form.hidden_fields %}
+                    {{ hidden }}
+                {% endfor %}
+
+                <label>
+                    <span>Label</span>
+                    {{ link_formset.empty_form.label }}
+                </label>
+
+                <label>
+                    <span>URL</span>
+                    {{ link_formset.empty_form.url }}
+                </label>
+
+                <label>
+                    <span>Notes</span>
+                    {{ link_formset.empty_form.notes }}
+                </label>
+
+                <label class="costume-link-delete">
+                    {{ link_formset.empty_form.DELETE }}
+                    <span>Remove</span>
+                </label>
+            </div>
+        </template>
+    </section>
+
+    <section class="wardrobe-form-card">
+        <div class="wardrobe-section-heading">
+            <span>Communication</span>
+            <strong>Tell Students & Guardians</strong>
+            <p>
+                These actions are independent. Use either one or both.
+            </p>
+        </div>
+
+        <div class="costume-communication-options">
+            <label class="wardrobe-check-row">
+                {{ form.create_student_task }}
+
+                <span>
+                    <strong>
+                        Create a Task for Students / Guardians
+                    </strong>
+
+                    <small>
+                        Creates a student-facing task for every active student
+                        in this Dance's class.
+                    </small>
+                </span>
+            </label>
+
+            <div
+                class="costume-task-due"
+                data-task-due
+                hidden
+            >
+                <label>
+                    <span>{{ form.task_due_date.label }}</span>
+                    {{ form.task_due_date }}
+                </label>
+            </div>
+
+            <label class="wardrobe-check-row">
+                {{ form.send_notification }}
+
+                <span>
+                    <strong>Send a Notification</strong>
+
+                    <small>
+                        Publishes a class notification that new costume
+                        information is available.
+                    </small>
+                </span>
+            </label>
+        </div>
+    </section>
+
+    <div class="wardrobe-form-actions">
+        <a
+            class="button secondary"
+            href="{% url 'costumes:costume_list' studio.slug class_instance.id %}"
+        >
+            Cancel
+        </a>
+
+        <button class="button primary" type="submit">
+            Create Costume
+        </button>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/encore_costume_form.js' %}" defer></script>
+{% endblock %}

@@ -1,0 +1,278 @@
+
+:root {
+    --encore-bg: #f4f6fb;
+    --encore-surface: #ffffff;
+    --encore-dark: #00024e;
+    --encore-text: #171a2f;
+    --encore-muted: #687086;
+    --encore-border: #dde2ee;
+    --encore-primary: #2e3cf1;
+    --encore-primary-dark: #0e169d;
+    --encore-primary-soft: #edf0ff;
+    --encore-cyan: #0197fc;
+}
+
+.signup-shell {
+    display: grid;
+    min-height: 100vh;
+    grid-template-columns: minmax(360px, .72fr) minmax(560px, 1.28fr);
+}
+
+.signup-brand-panel {
+    position: sticky;
+    top: 0;
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 54px;
+    background:
+        radial-gradient(
+            circle at 20% 15%,
+            rgba(46, 60, 241, .32),
+            transparent 30rem
+        ),
+        linear-gradient(
+            155deg,
+            #00024e,
+            #0e169d 72%,
+            #1663ff
+        );
+    color: #fff;
+}
+
+.signup-brand-panel h1 {
+    max-width: 620px;
+    margin: 0;
+    font-size: clamp(3rem, 5vw, 5.4rem);
+    line-height: .98;
+    letter-spacing: -.055em;
+}
+
+.signup-brand-panel > div:first-child > p:last-child {
+    max-width: 540px;
+    margin: 24px 0 0;
+    color: rgba(255,255,255,.72);
+    line-height: 1.7;
+}
+
+.signup-brand-panel .eyebrow {
+    color: #8fd4ff;
+}
+
+.signup-price-note {
+    display: grid;
+    gap: 4px;
+    padding: 18px;
+    border: 1px solid rgba(255,255,255,.14);
+    border-radius: 16px;
+    background: rgba(255,255,255,.07);
+}
+
+.signup-price-note span {
+    color: rgba(255,255,255,.68);
+    font-size: .8rem;
+}
+
+.signup-form-panel {
+    padding: 48px;
+}
+
+.signup-card {
+    width: min(820px, 100%);
+    margin: 0 auto;
+}
+
+.signup-heading {
+    margin-bottom: 28px;
+}
+
+.signup-heading h2 {
+    margin: 0;
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    letter-spacing: -.045em;
+}
+
+.signup-heading > p:last-child {
+    max-width: 680px;
+    color: var(--encore-muted);
+    line-height: 1.65;
+}
+
+.signup-form {
+    display: grid;
+    gap: 24px;
+}
+
+.signup-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.signup-grid label {
+    display: grid;
+    gap: 6px;
+}
+
+.signup-grid label.full {
+    grid-column: 1 / -1;
+}
+
+.signup-grid label > span {
+    font-size: .76rem;
+    font-weight: 800;
+}
+
+.encore-input {
+    width: 100%;
+    min-height: 49px;
+    padding: 0 13px;
+    border: 1px solid var(--encore-border);
+    border-radius: 11px;
+    background: #fff;
+    color: var(--encore-text);
+    font: inherit;
+}
+
+.encore-input:focus {
+    border-color: var(--encore-primary);
+    outline: none;
+    box-shadow: 0 0 0 3px var(--encore-primary-soft);
+}
+
+.plan-section {
+    display: grid;
+    gap: 10px;
+}
+
+.plan-section h3 {
+    margin: 0;
+    font-size: .9rem;
+}
+
+.plan-card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.select-card {
+    position: relative;
+    display: grid;
+    gap: 5px;
+    min-height: 112px;
+    align-content: center;
+    padding: 17px 17px 17px 48px;
+    border: 1px solid var(--encore-border);
+    border-radius: 14px;
+    background: var(--encore-surface);
+    cursor: pointer;
+}
+
+.select-card:has(input:checked) {
+    border-color: var(--encore-primary);
+    background: var(--encore-primary-soft);
+    box-shadow: inset 0 0 0 1px var(--encore-primary);
+}
+
+.select-card input {
+    position: absolute;
+    top: 20px;
+    left: 18px;
+}
+
+.select-card strong {
+    color: var(--encore-dark);
+}
+
+.select-card span {
+    color: var(--encore-muted);
+    font-size: .75rem;
+}
+
+.addon-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border: 1px solid var(--encore-border);
+    border-radius: 14px;
+    background: #fff;
+}
+
+.addon-card > span {
+    display: grid;
+    gap: 3px;
+}
+
+.addon-card small {
+    color: var(--encore-muted);
+}
+
+.terms-line {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    color: var(--encore-muted);
+    font-size: .75rem;
+    line-height: 1.45;
+}
+
+.signup-button {
+    min-height: 52px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--encore-primary);
+    color: #fff;
+    font: inherit;
+    font-weight: 850;
+    cursor: pointer;
+}
+
+.signup-button:hover {
+    background: var(--encore-primary-dark);
+}
+
+.signup-login-link {
+    margin: 22px 0 0;
+    color: var(--encore-muted);
+    font-size: .8rem;
+    text-align: center;
+}
+
+.signup-login-link a {
+    color: var(--encore-primary);
+    font-weight: 850;
+}
+
+@media (max-width: 900px) {
+    .signup-shell {
+        grid-template-columns: 1fr;
+    }
+
+    .signup-brand-panel {
+        position: static;
+        min-height: 340px;
+        padding: 32px;
+    }
+
+    .signup-brand-panel h1 {
+        font-size: clamp(2.5rem, 10vw, 4rem);
+    }
+
+    .signup-form-panel {
+        padding: 34px 22px 50px;
+    }
+}
+
+@media (max-width: 620px) {
+    .signup-grid,
+    .plan-card-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .signup-grid label.full {
+        grid-column: auto;
+    }
+}

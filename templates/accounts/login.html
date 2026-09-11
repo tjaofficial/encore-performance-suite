@@ -1,0 +1,134 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Sign In | Encore Performance Suite</title>
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_login.css' %}"
+    >
+</head>
+
+<body>
+    <main class="login-shell">
+        <section class="login-brand-panel">
+            <div class="brand-wrap">
+                <div class="brand-mark">E</div>
+
+                <div>
+                    <p class="brand-name">ENCORE</p>
+                    <p class="brand-subtitle">Performance Suite</p>
+                </div>
+            </div>
+
+            <div class="brand-copy">
+                <p class="eyebrow">Studio Management, Reimagined</p>
+
+                <h1>
+                    Everything your studio needs,
+                    without the clutter.
+                </h1>
+
+                <p>
+                    Classes, families, instructors, schedules,
+                    attendance, tuition, and more — all in one place.
+                </p>
+            </div>
+        </section>
+
+        <section class="login-form-panel">
+            <div class="login-card">
+                <div class="login-heading">
+                    <p class="eyebrow">Welcome back</p>
+                    <h2>Sign in to Encore</h2>
+
+                    <p>
+                        Use the email and password associated with your account.
+                    </p>
+                </div>
+
+                {% if form.non_field_errors %}
+                    <div class="form-error">
+                        {% for error in form.non_field_errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <form
+                    method="post"
+                    class="login-form"
+                >
+                    {% csrf_token %}
+
+                    <label>
+                        <span>Email</span>
+
+                        {{ form.email }}
+
+                        {% if form.email.errors %}
+                            <small>
+                                {{ form.email.errors|striptags }}
+                            </small>
+                        {% endif %}
+                    </label>
+
+                    <label>
+                        <span>Password</span>
+
+                        <div class="password-field">
+                            {{ form.password }}
+
+                            <button
+                                id="toggle-password"
+                                type="button"
+                                aria-label="Show password"
+                            >
+                                Show
+                            </button>
+                        </div>
+
+                        {% if form.password.errors %}
+                            <small>
+                                {{ form.password.errors|striptags }}
+                            </small>
+                        {% endif %}
+                    </label>
+
+                    <button
+                        class="login-button"
+                        type="submit"
+                    >
+                        Sign In
+                    </button>
+                </form>
+
+                <p class="login-help">
+                    Having trouble signing in?
+                    Contact your studio administrator.
+                </p>
+
+                <p class="login-help">
+                    New studio?
+                    <a href="{% url 'accounts:register' %}">
+                        Start with Encore
+                    </a>
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <script
+        src="{% static 'js/encore_login.js' %}"
+        defer
+    ></script>
+</body>
+</html>

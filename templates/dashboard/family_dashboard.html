@@ -1,0 +1,238 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}
+Family Dashboard | Encore Performance Suite
+{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/encore_family_student.css' %}"
+>
+<link
+    rel="stylesheet"
+    href="{% static 'css/encore_family_portal_patch.css' %}"
+>
+{% endblock %}
+
+{% block topbar_title %}
+Family Dashboard
+{% endblock %}
+
+{% block content %}
+<section class="portal-heading">
+    <div>
+        <p class="eyebrow">Family Portal</p>
+
+        <h1>
+            Welcome, {{ guardian.first_name }}.
+        </h1>
+
+        <p>
+            Everything for your dancers at {{ studio.name }}.
+        </p>
+    </div>
+
+    <div class="family-quick-actions">
+        <a
+            class="button secondary"
+            href="{% url 'resources:resource_list' studio.slug %}"
+        >
+            Class Resources
+        </a>
+
+        <a
+            class="button secondary"
+            href="{% url 'scheduling:calendar' studio.slug %}"
+        >
+            Family Calendar
+        </a>
+    </div>
+</section>
+
+<section class="student-card-grid">
+    {% for item in student_cards %}
+        <article class="portal-card student-summary-card">
+            <div class="student-card-heading">
+                <div class="student-avatar large">
+                    {{ item.student.first_name|slice:":1"|upper }}
+                </div>
+
+                <div>
+                    <h2>
+                        {{ item.student.first_name }}
+                        {{ item.student.last_name }}
+                    </h2>
+
+                    <p>
+                        Age {{ item.student.age }}
+                        ·
+                        {{ item.class_count }}
+                        active class{{ item.class_count|pluralize }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="mini-metrics">
+                <div>
+                    <span>Attendance</span>
+                    <strong>
+                        {% if item.attendance.percentage is not None %}
+                            {{ item.attendance.percentage }}%
+                        {% else %}
+                            —
+                        {% endif %}
+                    </strong>
+                </div>
+
+                <div>
+                    <span>Absent</span>
+                    <strong>{{ item.attendance.absent }}</strong>
+                </div>
+
+                <div>
+                    <span>Excused</span>
+                    <strong>{{ item.attendance.excused }}</strong>
+                </div>
+            </div>
+
+            <div class="class-chip-list">
+                {% for enrollment in item.enrollments %}
+                    <span class="class-chip">
+                        {{ enrollment.class_instance.name }}
+                    </span>
+                {% empty %}
+                    <span class="muted-copy">
+                        No active classes.
+                    </span>
+                {% endfor %}
+            </div>
+
+            <div class="student-card-actions">
+                <a
+                    class="button primary"
+                    href="{% url 'attendance:family_student_history' studio.slug item.student.id %}"
+                >
+                    View Attendance
+                </a>
+            </div>
+        </article>
+    {% empty %}
+        <article class="portal-card">
+            <div class="empty-state">
+                No active students are attached to this family.
+            </div>
+        </article>
+    {% endfor %}
+</section>
+
+<section class="portal-grid family-main-grid">
+    <article class="portal-card">
+        <div class="card-heading">
+            <div>
+                <span class="card-kicker">Schedule</span>
+                <h2>Upcoming Classes</h2>
+            </div>
+        </div>
+
+        {% for item in upcoming_classes %}
+            <div class="upcoming-class-line">
+                <div class="class-date-block">
+                    <strong>
+                        {{ item.start_at|date:"M j" }}
+                    </strong>
+
+                    <span>
+                        {{ item.start_at|date:"D" }}
+                    </span>
+                </div>
+
+                <div class="upcoming-class-main">
+                    <strong>
+                        {{ item.class_instance.name }}
+                    </strong>
+
+                    <span>
+                        {{ item.student.first_name }}
+                        ·
+                        {{ item.start_at|date:"g:i A" }}
+                        {% if item.meeting.location %}
+                            · {{ item.meeting.location.name }}
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        {% empty %}
+            <div class="empty-state">
+                No upcoming classes in the next few weeks.
+            </div>
+        {% endfor %}
+    </article>
+
+    <article class="portal-card">
+        <div class="card-heading">
+            <div>
+                <span class="card-kicker">Next Up</span>
+                <h2>Upcoming Events</h2>
+            </div>
+        </div>
+
+        {% for event in upcoming_events %}
+            <div class="event-line">
+                <div class="event-date">
+                    {{ event.start_at|date:"M j" }}
+                </div>
+
+                <div>
+                    <strong>{{ event.title }}</strong>
+
+                    <span>
+                        {{ event.start_at|date:"g:i A" }}
+                        {% if event.class_instance %}
+                            · {{ event.class_instance.name }}
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        {% empty %}
+            <div class="empty-state">
+                No upcoming family events.
+            </div>
+        {% endfor %}
+    </article>
+
+    <article class="portal-card resource-cta-card">
+        <div>
+            <span class="card-kicker">Practice</span>
+            <h2>Class Resources</h2>
+
+            <p class="muted-copy">
+                Music, choreography videos, and documents shared for
+                your dancers' active classes.
+            </p>
+        </div>
+
+        <a
+            class="button primary"
+            href="{% url 'resources:resource_list' studio.slug %}"
+        >
+            View Class Resources
+        </a>
+    </article>
+
+    <article class="portal-card">
+        <div class="card-heading">
+            <div>
+                <span class="card-kicker">Coming Later</span>
+                <h2>Account & Tuition</h2>
+            </div>
+        </div>
+
+        <p class="muted-copy">
+            Billing remains intentionally paused while studio-specific
+            tuition rules are being finalized.
+        </p>
+    </article>
+</section>
+{% endblock %}

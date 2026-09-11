@@ -1,0 +1,33 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+{% block title %}Add Template Trigger | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_tasks.css' %}">{% endblock %}
+{% block topbar_title %}Task Templates{% endblock %}
+{% block content %}
+<section class="task-manager-heading">
+    <div>
+        <a class="task-back-link" href="{% url 'tasks:template_detail' studio.slug template.id %}">← Back to {{ template.name }}</a>
+        <p class="eyebrow">Automation</p>
+        <h1>Add Trigger</h1>
+        <p>Choose an event or schedule that should populate this template.</p>
+    </div>
+</section>
+
+<form method="post" class="task-form">
+{% csrf_token %}
+<section class="task-form-card">
+    <div class="task-form-grid">
+    {% for field in form %}
+        <div class="task-form-field{% if field.name == 'weekdays' %} full{% endif %}">
+            {{ field.label_tag }}{{ field }}
+            {% for error in field.errors %}<small class="task-field-error">{{ error }}</small>{% endfor %}
+        </div>
+    {% endfor %}
+    </div>
+</section>
+<div class="task-form-actions">
+    <a class="button secondary" href="{% url 'tasks:template_detail' studio.slug template.id %}">Cancel</a>
+    <button class="button primary" type="submit">Add Trigger</button>
+</div>
+</form>
+{% endblock %}

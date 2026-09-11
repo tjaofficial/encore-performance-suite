@@ -1,0 +1,19 @@
+.encore-logo-link {
+    display: block;
+    padding: 2px 4px 20px;
+    text-decoration: none;
+}
+
+.encore-sidebar-logo {
+    display: block;
+    width: 100%;
+    max-width: 205px;
+    height: auto;
+    object-fit: contain;
+}
+
+@media (max-width: 760px) {
+    .encore-sidebar-logo {
+        max-width: 185px;
+    }
+}

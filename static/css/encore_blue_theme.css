@@ -1,0 +1,280 @@
+/*
+Encore Performance Suite
+Logo-aligned global theme
+
+Core logo palette:
+Deep Navy:   #00024E
+Navy Blue:   #0E169D
+Electric:    #2E3CF1
+Bright Blue: #1663FF
+Cyan:        #0197FC
+*/
+
+:root {
+    --encore-primary: #1663ff;
+    --encore-primary-dark: #0e169d;
+    --encore-primary-deep: #00024e;
+    --encore-primary-soft: rgba(22, 99, 255, 0.09);
+
+    --encore-accent: #0197fc;
+    --encore-accent-soft: rgba(1, 151, 252, 0.11);
+
+    --encore-text: #11182c;
+    --encore-muted: #667085;
+
+    --encore-background: #f6f8fc;
+    --encore-surface: #ffffff;
+    --encore-surface-soft: #f9fbff;
+
+    --encore-border: #e2e7f0;
+    --encore-shadow:
+        0 16px 40px rgba(0, 2, 78, 0.07);
+
+    --encore-success: #16865c;
+    --encore-warning: #ad6829;
+    --encore-danger: #b04444;
+}
+
+/* Main canvas */
+body {
+    background:
+        radial-gradient(
+            circle at top right,
+            rgba(1, 151, 252, 0.05),
+            transparent 28%
+        ),
+        var(--encore-background);
+    color: var(--encore-text);
+}
+
+/* Sidebar */
+.app-sidebar {
+    background:
+        linear-gradient(
+            180deg,
+            #030628 0%,
+            #00024e 100%
+        );
+    color: #fff;
+}
+
+.app-sidebar .studio-block {
+    border-color: rgba(255, 255, 255, 0.10);
+}
+
+.app-sidebar .studio-label,
+.app-sidebar .sidebar-footer-label,
+.app-sidebar .nav-section-label,
+.app-sidebar .sidebar-footer span {
+    color: rgba(255, 255, 255, 0.58);
+}
+
+.app-sidebar .studio-block strong,
+.app-sidebar .sidebar-footer strong {
+    color: #fff;
+}
+
+.workspace-switch-link,
+.sidebar-logout {
+    color: #66c6ff;
+}
+
+.nav-link {
+    color: rgba(255, 255, 255, 0.76);
+}
+
+.nav-link:hover {
+    background: rgba(1, 151, 252, 0.11);
+    color: #fff;
+}
+
+.nav-link.active {
+    background:
+        linear-gradient(
+            90deg,
+            rgba(22, 99, 255, 0.26),
+            rgba(1, 151, 252, 0.11)
+        );
+    color: #fff;
+}
+
+.nav-icon {
+    color: #5dbdff;
+}
+
+.nav-link.muted {
+    color: rgba(255, 255, 255, 0.35);
+}
+
+/* Logo sits naturally on dark sidebar */
+.encore-sidebar-logo {
+    filter:
+        drop-shadow(
+            0 6px 18px
+            rgba(1, 151, 252, 0.10)
+        );
+}
+
+/* Topbar / main content */
+.dashboard-topbar,
+.app-topbar {
+    background: rgba(255, 255, 255, 0.88);
+    border-color: var(--encore-border);
+    backdrop-filter: blur(10px);
+}
+
+.eyebrow,
+.card-kicker,
+.class-code {
+    color: var(--encore-primary);
+}
+
+/* Primary controls */
+.button.primary,
+button.primary,
+a.button.primary {
+    border-color: var(--encore-primary);
+    background:
+        linear-gradient(
+            135deg,
+            #1663ff 0%,
+            #2e3cf1 58%,
+            #0e169d 100%
+        );
+    color: #fff;
+    box-shadow:
+        0 8px 18px
+        rgba(22, 99, 255, 0.18);
+}
+
+.button.primary:hover,
+button.primary:hover,
+a.button.primary:hover {
+    border-color: var(--encore-primary-dark);
+    box-shadow:
+        0 10px 22px
+        rgba(22, 99, 255, 0.24);
+}
+
+.button.secondary,
+a.button.secondary {
+    border-color: #dbe3f2;
+    background: #fff;
+    color: var(--encore-primary-deep);
+}
+
+.button.secondary:hover,
+a.button.secondary:hover {
+    border-color: rgba(22, 99, 255, 0.35);
+    background: #f8fbff;
+    color: var(--encore-primary);
+}
+
+/* Inputs */
+input:focus,
+select:focus,
+textarea:focus,
+.encore-input:focus {
+    outline: none;
+    border-color: rgba(22, 99, 255, 0.65);
+    box-shadow:
+        0 0 0 3px
+        rgba(22, 99, 255, 0.10);
+}
+
+/* Common cards */
+.metric-card,
+.portal-card,
+.manager-card,
+.form-card,
+.people-card,
+.billing-card,
+.evaluation-panel,
+.evaluation-card,
+.resource-card {
+    border-color: var(--encore-border);
+    box-shadow: var(--encore-shadow);
+}
+
+/* Pills / status */
+.status-pill.active,
+.status-active,
+.status-paid,
+.status-succeeded,
+.status-published {
+    background: rgba(22, 134, 92, 0.10);
+    color: #16865c;
+}
+
+.status-pill.inactive,
+.status-void,
+.status-draft {
+    background: rgba(102, 112, 133, 0.11);
+    color: #667085;
+}
+
+.status-waitlisted,
+.status-open,
+.status-pending {
+    background: rgba(173, 104, 41, 0.10);
+    color: #a15e24;
+}
+
+.status-partially_paid {
+    background: rgba(22, 99, 255, 0.10);
+    color: #1663ff;
+}
+
+/* Links */
+a {
+    accent-color: var(--encore-primary);
+}
+
+.manager-table a,
+.billing-table a,
+.details-list a,
+.back-link,
+.card-heading a,
+.resource-edit,
+.class-resource-heading > a {
+    color: var(--encore-primary);
+}
+
+/* Checkbox / native accents */
+input[type="checkbox"],
+input[type="radio"] {
+    accent-color: var(--encore-primary);
+}
+
+/* Soft information blocks */
+.billing-source-note,
+.resource-tip,
+.schedule-note {
+    border-color: rgba(22, 99, 255, 0.15);
+    background:
+        linear-gradient(
+            135deg,
+            rgba(22, 99, 255, 0.07),
+            rgba(1, 151, 252, 0.06)
+        );
+}
+
+.billing-source-note strong,
+.resource-tip strong {
+    color: var(--encore-primary-dark);
+}
+
+/* Avatars and little identity blocks */
+.staff-avatar,
+.person-avatar,
+.student-avatar,
+.class-date-block,
+.rating-badge {
+    background:
+        linear-gradient(
+            135deg,
+            rgba(22, 99, 255, 0.11),
+            rgba(1, 151, 252, 0.11)
+        );
+    color: var(--encore-primary-dark);
+}

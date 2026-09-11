@@ -1,0 +1,70 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}Profile | Encore Performance Suite{% endblock %}
+{% block topbar_title %}Profile{% endblock %}
+
+{% block content %}
+<section class="profile-page-heading">
+    <p class="eyebrow">Account</p>
+    <h1>Your Profile</h1>
+    <p>Manage the basic information attached to your Encore login.</p>
+</section>
+
+<form method="post" class="profile-page-card">
+    {% csrf_token %}
+
+    <div class="profile-page-grid">
+        <div class="field-group">
+            <label for="id_first_name">First Name</label>
+            <input
+                id="id_first_name"
+                class="encore-input"
+                type="text"
+                name="first_name"
+                value="{{ request.user.first_name }}"
+            >
+        </div>
+
+        <div class="field-group">
+            <label for="id_last_name">Last Name</label>
+            <input
+                id="id_last_name"
+                class="encore-input"
+                type="text"
+                name="last_name"
+                value="{{ request.user.last_name }}"
+            >
+        </div>
+
+        <div class="field-group full">
+            <label>Email</label>
+            <input
+                class="encore-input"
+                type="email"
+                value="{{ request.user.email }}"
+                disabled
+            >
+        </div>
+    </div>
+
+    <div class="profile-page-actions">
+        <button class="button primary" type="submit">
+            Save Profile
+        </button>
+    </div>
+</form>
+
+<section class="profile-workspaces-card">
+    <span class="card-kicker">Access</span>
+    <h2>Your Workspaces</h2>
+
+    <div class="profile-workspace-list">
+        {% for membership in memberships %}
+            <div class="profile-workspace-row">
+                <strong>{{ membership.studio.name }}</strong>
+                <span>{{ membership.get_role_display }}</span>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

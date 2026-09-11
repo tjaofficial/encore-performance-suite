@@ -1,0 +1,75 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static dashboard_quick_links %}
+
+{% block title %}
+{{ studio.name }} Dashboard | Encore Performance Suite
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_admin_dashboard.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Administrator Dashboard{% endblock %}
+
+{% block content %}
+<section class="admin-overview-card">
+    <div class="admin-overview-top">
+        <div>
+            <p class="admin-overview-kicker">Administrator Overview</p>
+            <h1>{{ studio.name }}</h1>
+            <p class="admin-overview-subtitle">
+                Administrator Workspace
+            </p>
+        </div>
+
+        <a
+            class="button secondary admin-customize-button"
+            href="{% url 'studios:admin_dashboard_settings' studio.slug %}"
+        >
+            Customize Dashboard
+        </a>
+    </div>
+
+    <div class="admin-quick-actions">
+        <span class="admin-quick-actions-label">
+            Quick Actions
+        </span>
+
+        {% dashboard_quick_links request.user studio "admin" as admin_quick_links %}
+
+        <div class="admin-quick-action-buttons">
+            {% for link in admin_quick_links %}
+                <a
+                    href="{{ link.url }}"
+                    {% if link.external %}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    {% endif %}
+                >
+                    <span>{{ link.icon }}</span>
+                    <strong>{{ link.label }}</strong>
+                </a>
+            {% empty %}
+                <span class="dashboard-no-quick-links">
+                    No quick actions selected.
+                </span>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="admin-dashboard-grid personalized-admin-dashboard">
+    {% for card in admin_dashboard_cards %}
+        <div
+            class="admin-dashboard-slot width-{{ card.width }} height-{{ card.height }}"
+            data-card-key="{{ card.key }}"
+        >
+            {% include card.template %}
+        </div>
+    {% empty %}
+        <div class="admin-dashboard-empty-layout">
+            <strong>No Admin Dashboard cards are enabled.</strong>
+        </div>
+    {% endfor %}
+</section>
+{% endblock %}

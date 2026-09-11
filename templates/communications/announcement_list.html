@@ -1,0 +1,238 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Announcements | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_communications.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_list_views.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Announcements{% endblock %}
+
+{% block content %}
+<section class="communication-heading">
+    <div>
+        <p class="eyebrow">Communications</p>
+        <h1>Announcements</h1>
+
+        <p>
+            Studio updates and class messages relevant to your workspace.
+        </p>
+    </div>
+
+    <div class="list-heading-actions">
+        {% include "includes/list_view_toggle.html" with list_view_label="Announcement display" %}
+
+        {% if can_create %}
+            <a
+                class="button primary"
+                href="{% url 'communications:announcement_create' studio.slug %}"
+            >
+                + New Announcement
+            </a>
+        {% endif %}
+    </div>
+</section>
+
+{% if messages %}
+<div class="message-stack">
+    {% for message in messages %}
+        <div class="message-banner">
+            {{ message }}
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<form
+    method="get"
+    class="communication-filters"
+>
+    <div>
+        <label>Search</label>
+
+        <input
+            type="search"
+            name="q"
+            value="{{ filters.q }}"
+            placeholder="Search announcements..."
+        >
+    </div>
+
+    <div>
+        <label>Priority</label>
+
+        <select name="priority">
+            <option value="">
+                All Priorities
+            </option>
+
+            {% for value, label in priority_choices %}
+                <option
+                    value="{{ value }}"
+                    {% if filters.priority == value %}selected{% endif %}
+                >
+                    {{ label }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="filter-actions">
+        <button
+            class="button primary"
+            type="submit"
+        >
+            Filter
+        </button>
+
+        <a
+            class="button secondary"
+            href="{% url 'communications:announcement_list' studio.slug %}"
+        >
+            Reset
+        </a>
+    </div>
+</form>
+
+{% if view_mode == "table" %}
+<section class="encore-list-table-card">
+    <div class="encore-list-table-wrap">
+        <table class="encore-list-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Audience</th>
+                    <th>Announcement</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th class="action-cell">Open</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in announcement_rows %}
+                    {% with announcement=row.announcement %}
+                        <tr>
+                            <td>{{ announcement.publish_at|date:"M j, Y" }}</td>
+                            <td>{{ announcement.get_audience_display }}</td>
+                            <td>
+                                <a
+                                    class="primary-cell"
+                                    href="{% url 'communications:announcement_detail' studio.slug announcement.id %}"
+                                >
+                                    {% if announcement.is_pinned %}★ {% endif %}
+                                    {{ announcement.title }}
+                                </a>
+                            </td>
+                            <td>
+                                <div class="table-badges">
+                                    <span class="priority-pill priority-{{ announcement.priority }}">
+                                        {{ announcement.get_priority_display }}
+                                    </span>
+                                </div>
+                            </td>
+                            <td>
+                                {% if row.is_read %}
+                                    Read
+                                {% else %}
+                                    <strong>Unread</strong>
+                                {% endif %}
+                            </td>
+                            <td class="action-cell">
+                                <a href="{% url 'communications:announcement_detail' studio.slug announcement.id %}">
+                                    Open →
+                                </a>
+                            </td>
+                        </tr>
+                    {% endwith %}
+                {% empty %}
+                    <tr>
+                        <td class="empty-cell" colspan="6">
+                            No announcements are available.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% else %}
+<section class="announcement-stack">
+    {% for row in announcement_rows %}
+        {% with announcement=row.announcement %}
+        <a
+            class="announcement-card
+            priority-{{ announcement.priority }}
+            {% if not row.is_read %}unread{% endif %}"
+            href="{% url 'communications:announcement_detail' studio.slug announcement.id %}"
+        >
+            <div class="announcement-status-column">
+                {% if announcement.is_pinned %}
+                    <span
+                        class="pin-badge"
+                        title="Pinned"
+                    >
+                        ★
+                    </span>
+                {% endif %}
+
+                {% if not row.is_read %}
+                    <span
+                        class="unread-dot"
+                        title="Unread"
+                    ></span>
+                {% endif %}
+            </div>
+
+            <div class="announcement-main">
+                <div class="announcement-title-line">
+                    <div>
+                        <span class="announcement-audience">
+                            {{ announcement.get_audience_display }}
+                        </span>
+
+                        <h2>
+                            {{ announcement.title }}
+                        </h2>
+                    </div>
+
+                    <span
+                        class="priority-pill priority-{{ announcement.priority }}"
+                    >
+                        {{ announcement.get_priority_display }}
+                    </span>
+                </div>
+
+                <p>
+                    {{ announcement.message|truncatechars:180 }}
+                </p>
+
+                <div class="announcement-meta">
+                    <span>
+                        {{ announcement.publish_at|date:"M j, Y · g:i A" }}
+                    </span>
+
+                    {% if announcement.classes.all %}
+                        <span>
+                            {% for class_instance in announcement.classes.all %}
+                                {{ class_instance.name }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <span class="announcement-arrow">
+                →
+            </span>
+        </a>
+        {% endwith %}
+    {% empty %}
+        <div class="empty-state">
+            No announcements are available.
+        </div>
+    {% endfor %}
+</section>
+{% endif %}
+{% endblock %}

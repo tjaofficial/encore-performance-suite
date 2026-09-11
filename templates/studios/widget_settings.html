@@ -1,0 +1,177 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Widgets & Public Pages | Encore{% endblock %}
+{% block topbar_title %}Widgets & Public Pages{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_widget_settings.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="settings-workspace">
+    {% include "includes/settings_nav.html" %}
+
+    <main class="settings-workspace-content">
+        <section class="settings-heading">
+            <div>
+                <p class="eyebrow">Public Experience</p>
+                <h1>Widgets & Public Pages</h1>
+                <p>
+                    Choose how {{ studio.name }} appears on its website.
+                    Widget colors automatically use the logo and colors from Branding.
+                </p>
+            </div>
+        </section>
+
+        {% if messages %}
+            <div class="message-stack">
+                {% for message in messages %}
+                    <div class="message-banner {{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post" class="widget-settings-form">
+            {% csrf_token %}
+
+            <section class="widget-config-card">
+                <div class="widget-config-heading">
+                    <div>
+                        <p class="eyebrow">Calendar</p>
+                        <h2>Calendar Widget</h2>
+                        <p>Show public studio events without exposing private calendar items.</p>
+                    </div>
+                    <label class="widget-toggle">{{ form.calendar_enabled }}<span>Enabled</span></label>
+                </div>
+
+                <div class="widget-options-grid">
+                    <div>
+                        {{ form.calendar_style.label_tag }}
+                        {{ form.calendar_style }}
+                    </div>
+                    <label class="widget-check">{{ form.calendar_show_details }}<span>Show event details</span></label>
+                </div>
+
+                <div class="widget-link-grid">
+                    <div>
+                        <span>Public Page</span>
+                        <code>{{ calendar_public_url }}</code>
+                        <a href="{{ calendar_public_url }}" target="_blank" rel="noopener">Open Page</a>
+                    </div>
+                    <div>
+                        <span>Embed Code</span>
+                        <textarea readonly><iframe src="{{ calendar_embed_url }}" width="100%" height="720" loading="lazy" style="border:0;" title="{{ studio.name }} Calendar"></iframe></textarea>
+                        <button type="button" class="button secondary copy-embed">Copy Embed Code</button>
+                    </div>
+                </div>
+
+                <div class="widget-preview">
+                    <iframe src="{{ calendar_embed_url }}" title="Calendar widget preview"></iframe>
+                </div>
+            </section>
+
+            <section class="widget-config-card">
+                <div class="widget-config-heading">
+                    <div>
+                        <p class="eyebrow">Classes</p>
+                        <h2>Class Widget</h2>
+                        <p>Let visitors browse classes, schedules, tuition, availability, and details.</p>
+                    </div>
+                    <label class="widget-toggle">{{ form.classes_enabled }}<span>Enabled</span></label>
+                </div>
+
+                <div class="widget-options-grid">
+                    <div>
+                        {{ form.classes_style.label_tag }}
+                        {{ form.classes_style }}
+                    </div>
+                    <div>
+                        {{ form.default_season.label_tag }}
+                        {{ form.default_season }}
+                    </div>
+                    <label class="widget-check">{{ form.show_class_pricing }}<span>Show tuition</span></label>
+                    <label class="widget-check">{{ form.show_class_capacity }}<span>Show capacity</span></label>
+                </div>
+
+                <div class="widget-link-grid">
+                    <div>
+                        <span>Public Page</span>
+                        <code>{{ classes_public_url }}</code>
+                        <a href="{{ classes_public_url }}" target="_blank" rel="noopener">Open Page</a>
+                    </div>
+                    <div>
+                        <span>Embed Code</span>
+                        <textarea readonly><iframe src="{{ classes_embed_url }}" width="100%" height="820" loading="lazy" style="border:0;" title="{{ studio.name }} Classes"></iframe></textarea>
+                        <button type="button" class="button secondary copy-embed">Copy Embed Code</button>
+                    </div>
+                </div>
+
+                <div class="widget-preview">
+                    <iframe src="{{ classes_embed_url }}" title="Class widget preview"></iframe>
+                </div>
+            </section>
+
+            <section class="widget-config-card">
+                <div class="widget-config-heading">
+                    <div>
+                        <p class="eyebrow">Registration</p>
+                        <h2>Registration Widget</h2>
+                        <p>
+                            Give families a studio-branded registration entry point.
+                            The full guided registration and payment workflow will use this same public surface.
+                        </p>
+                    </div>
+                    <label class="widget-toggle">{{ form.registration_enabled }}<span>Enabled</span></label>
+                </div>
+
+                <div class="widget-options-grid">
+                    <div>
+                        {{ form.registration_style.label_tag }}
+                        {{ form.registration_style }}
+                    </div>
+                </div>
+
+                <div class="widget-link-grid">
+                    <div>
+                        <span>Public Page</span>
+                        <code>{{ registration_public_url }}</code>
+                        <a href="{{ registration_public_url }}" target="_blank" rel="noopener">Open Page</a>
+                    </div>
+                    <div>
+                        <span>Embed Code</span>
+                        <textarea readonly><iframe src="{{ registration_embed_url }}" width="100%" height="820" loading="lazy" style="border:0;" title="{{ studio.name }} Registration"></iframe></textarea>
+                        <button type="button" class="button secondary copy-embed">Copy Embed Code</button>
+                    </div>
+                </div>
+
+                <div class="widget-preview">
+                    <iframe src="{{ registration_embed_url }}" title="Registration widget preview"></iframe>
+                </div>
+            </section>
+
+            <div class="widget-save-bar">
+                <button class="button primary" type="submit">Save Widget Settings</button>
+            </div>
+        </form>
+    </main>
+</div>
+
+<script>
+document.querySelectorAll(".copy-embed").forEach((button) => {
+    button.addEventListener("click", async () => {
+        const textarea = button.parentElement.querySelector("textarea");
+        try {
+            await navigator.clipboard.writeText(textarea.value);
+            const original = button.textContent;
+            button.textContent = "Copied";
+            setTimeout(() => button.textContent = original, 1200);
+        } catch (error) {
+            textarea.select();
+            document.execCommand("copy");
+        }
+    });
+});
+</script>
+{% endblock %}

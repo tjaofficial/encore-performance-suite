@@ -1,0 +1,28 @@
+<article class="admin-dashboard-card admin-quick-links-card">
+    <div class="card-heading">
+        <div>
+            <span class="card-kicker">Shortcuts</span>
+            <h2>Quick Links</h2>
+        </div>
+
+        <a href="{% url 'studios:admin_dashboard_settings' studio.slug %}">
+            Edit
+        </a>
+    </div>
+
+    {% if admin_quick_links %}
+        <div class="admin-quick-links-list">
+            {% for link in admin_quick_links %}
+                <a href="{{ link.url }}">
+                    <span>{{ link.icon }}</span>
+                    <strong>{{ link.label }}</strong>
+                    <b>→</b>
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            Add shortcuts in Admin Dashboard Settings.
+        </div>
+    {% endif %}
+</article>

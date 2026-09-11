@@ -1,0 +1,48 @@
+<article class="admin-dashboard-card admin-announcement-card">
+    <div class="card-heading">
+        <div>
+            <span class="card-kicker">Communications</span>
+            <h2>Announcements</h2>
+        </div>
+
+        <a href="{% url 'communications:announcement_create' studio.slug %}">
+            + Create
+        </a>
+    </div>
+
+    {% if admin_announcements %}
+        <div class="admin-compact-list admin-card-scroll">
+            {% for announcement in admin_announcements %}
+                <a
+                    class="admin-announcement-row"
+                    href="{% url 'communications:announcement_detail' studio.slug announcement.id %}"
+                >
+                    <span class="announcement-priority priority-{{ announcement.priority }}"></span>
+
+                    <div class="admin-row-copy">
+                        <strong>{{ announcement.title }}</strong>
+                        <span>
+                            {{ announcement.get_audience_display }}
+                            · {{ announcement.publish_at|date:"M j" }}
+                        </span>
+                    </div>
+
+                    {% if announcement.is_pinned %}
+                        <small>PIN</small>
+                    {% endif %}
+                </a>
+            {% endfor %}
+        </div>
+
+        <a
+            class="admin-card-footer-link"
+            href="{% url 'communications:announcement_list' studio.slug %}"
+        >
+            View All Announcements →
+        </a>
+    {% else %}
+        <div class="empty-state">
+            No current announcements.
+        </div>
+    {% endif %}
+</article>

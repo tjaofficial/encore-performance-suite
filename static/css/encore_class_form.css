@@ -1,0 +1,717 @@
+.class-form-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 16px;
+    padding: 18px 20px;
+    border: 1px solid
+        color-mix(
+            in srgb,
+            var(--encore-primary) 12%,
+            var(--encore-border)
+        );
+    border-radius: 15px;
+    background:
+        linear-gradient(
+            135deg,
+            color-mix(
+                in srgb,
+                var(--encore-primary) 3%,
+                #fff
+            ),
+            #fff 48%
+        );
+    box-shadow:
+        0 10px 28px rgba(0, 2, 78, .055),
+        0 1px 2px rgba(0, 2, 78, .03);
+}
+
+.class-form-back {
+    display: inline-block;
+    margin-bottom: 8px;
+    color: var(--encore-primary);
+    font-size: .62rem;
+    font-weight: 850;
+    text-decoration: none;
+}
+
+.class-form-kicker,
+.sidebar-kicker {
+    margin: 0 0 3px;
+    color: var(--encore-primary);
+    font-size: .57rem;
+    font-weight: 900;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.class-form-header h1 {
+    margin: 0;
+    color: var(--encore-primary-deep);
+    font-size: clamp(2rem, 3.3vw, 2.75rem);
+    line-height: .98;
+    letter-spacing: -.05em;
+}
+
+.class-form-header p:last-child {
+    max-width: 650px;
+    margin: 7px 0 0;
+    color: var(--encore-muted);
+    font-size: .68rem;
+    line-height: 1.5;
+}
+
+.class-form-status {
+    display: grid;
+    min-width: 150px;
+    gap: 3px;
+    padding: 9px 11px;
+    border-radius: 9px;
+    background: var(--encore-primary-soft);
+}
+
+.class-form-status span {
+    color: var(--encore-primary);
+    font-size: .49rem;
+    font-weight: 900;
+    letter-spacing: .06em;
+}
+
+.class-form-status strong {
+    color: var(--encore-primary-deep);
+    font-size: .66rem;
+}
+
+.encore-class-form {
+    display: grid;
+    gap: 14px;
+}
+
+.class-form-layout {
+    display: grid;
+    grid-template-columns:
+        minmax(0, 1fr)
+        minmax(240px, 300px);
+    gap: 14px;
+    align-items: start;
+}
+
+.class-form-main {
+    display: grid;
+    gap: 12px;
+}
+
+.class-form-card,
+.class-form-save-card,
+.class-form-tip-card {
+    border: 1px solid
+        color-mix(
+            in srgb,
+            var(--encore-primary) 12%,
+            var(--encore-border)
+        );
+    border-radius: 13px;
+    background: #fff;
+    box-shadow:
+        0 8px 24px rgba(0, 2, 78, .045);
+}
+
+.class-form-card {
+    padding: 15px;
+}
+
+.class-form-card-heading {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 14px;
+    padding-bottom: 11px;
+    border-bottom: 1px solid var(--encore-border);
+}
+
+.class-form-card-heading > span {
+    display: grid;
+    flex: 0 0 auto;
+    width: 26px;
+    height: 26px;
+    place-items: center;
+    border-radius: 8px;
+    background: var(--encore-primary-soft);
+    color: var(--encore-primary);
+    font-size: .55rem;
+    font-weight: 900;
+}
+
+.class-form-card-heading h2,
+.class-form-save-card h2 {
+    margin: 0;
+    color: var(--encore-primary-deep);
+    font-size: .86rem;
+    letter-spacing: -.02em;
+}
+
+.class-form-card-heading p {
+    margin: 3px 0 0;
+    color: var(--encore-muted);
+    font-size: .59rem;
+    line-height: 1.45;
+}
+
+.form-grid {
+    display: grid;
+    gap: 11px 12px;
+}
+
+.form-grid.two-column {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.form-grid.three-column {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.field-group {
+    display: grid;
+    min-width: 0;
+    gap: 5px;
+}
+
+.field-group.full {
+    grid-column: 1 / -1;
+}
+
+.field-group.span-two {
+    grid-column: span 2;
+}
+
+.field-group > label {
+    color: var(--encore-primary-deep);
+    font-size: .58rem;
+    font-weight: 850;
+}
+
+.field-group > label b {
+    color: var(--encore-primary);
+}
+
+.field-group > small {
+    color: var(--encore-muted);
+    font-size: .52rem;
+    line-height: 1.4;
+}
+
+.encore-input,
+.class-form-card input:not([type="checkbox"]),
+.class-form-card select,
+.class-form-card textarea {
+    width: 100%;
+    min-height: 38px;
+    box-sizing: border-box;
+    padding: 8px 10px;
+    border: 1px solid var(--encore-border);
+    border-radius: 9px;
+    outline: 0;
+    background: #fff;
+    color: var(--encore-primary-deep);
+    font: inherit;
+    font-size: .62rem;
+    transition:
+        border-color .15s ease,
+        box-shadow .15s ease;
+}
+
+.class-form-card textarea {
+    min-height: 88px;
+    resize: vertical;
+}
+
+.class-form-card select[multiple] {
+    min-height: 116px;
+}
+
+.encore-input:focus,
+.class-form-card input:not([type="checkbox"]):focus,
+.class-form-card select:focus,
+.class-form-card textarea:focus {
+    border-color: var(--encore-primary);
+    box-shadow:
+        0 0 0 3px
+        color-mix(
+            in srgb,
+            var(--encore-primary) 12%,
+            transparent
+        );
+}
+
+.field-error {
+    color: #b42318 !important;
+    font-weight: 750;
+}
+
+.form-alert {
+    padding: 10px 12px;
+    border-radius: 9px;
+    font-size: .62rem;
+}
+
+.form-alert.error {
+    border: 1px solid rgba(180, 35, 24, .18);
+    background: rgba(180, 35, 24, .055);
+    color: #b42318;
+}
+
+.form-alert p {
+    margin: 0;
+}
+
+.class-toggle-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 13px;
+}
+
+.setting-toggle-card,
+.compact-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.setting-toggle-card {
+    min-height: 64px;
+    padding: 10px;
+    border: 1px solid var(--encore-border);
+    border-radius: 9px;
+    background:
+        color-mix(
+            in srgb,
+            var(--encore-primary) 2.5%,
+            #fff
+        );
+}
+
+.setting-toggle-card input,
+.compact-check input {
+    width: 15px;
+    height: 15px;
+    flex: 0 0 auto;
+    margin-top: 1px;
+    accent-color: var(--encore-primary);
+}
+
+.setting-toggle-card > span,
+.compact-check > span {
+    display: grid;
+    gap: 2px;
+}
+
+.setting-toggle-card strong,
+.compact-check strong {
+    color: var(--encore-primary-deep);
+    font-size: .58rem;
+}
+
+.setting-toggle-card small,
+.compact-check small {
+    color: var(--encore-muted);
+    font-size: .5rem;
+    line-height: 1.35;
+}
+
+.drop-in-price-panel {
+    display: none;
+    max-width: 260px;
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 9px;
+    background: var(--encore-primary-soft);
+}
+
+.drop-in-price-panel.visible {
+    display: block;
+}
+
+.money-input,
+.duration-input {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.money-input > span {
+    position: absolute;
+    left: 10px;
+    z-index: 1;
+    color: var(--encore-muted);
+    font-size: .65rem;
+}
+
+.money-input input {
+    padding-left: 23px !important;
+}
+
+.duration-input {
+    gap: 6px;
+}
+
+.duration-input input {
+    min-width: 0;
+}
+
+.duration-input > span {
+    color: var(--encore-muted);
+    font-size: .54rem;
+}
+
+.class-meeting-editor {
+    display: grid;
+    gap: 8px;
+}
+
+.class-meeting-row {
+    display: grid;
+    grid-template-columns: 54px minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: start;
+    padding: 10px;
+    border: 1px solid var(--encore-border);
+    border-radius: 10px;
+    background:
+        color-mix(
+            in srgb,
+            var(--encore-primary) 2%,
+            #fff
+        );
+}
+
+.meeting-row-number {
+    display: grid;
+    gap: 2px;
+}
+
+.meeting-row-number span {
+    color: var(--encore-muted);
+    font-size: .46rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.meeting-row-number strong {
+    color: var(--encore-primary);
+    font-size: 1rem;
+}
+
+.meeting-fields {
+    display: grid;
+    grid-template-columns:
+        minmax(110px, .85fr)
+        minmax(105px, .8fr)
+        minmax(100px, .72fr)
+        minmax(130px, 1fr)
+        minmax(130px, 1fr)
+        minmax(120px, .8fr);
+    gap: 8px;
+    align-items: end;
+}
+
+.meeting-fields .field-group label {
+    font-size: .53rem;
+}
+
+.meeting-fields .encore-input,
+.meeting-fields input:not([type="checkbox"]),
+.meeting-fields select {
+    min-height: 34px;
+    padding: 6px 8px;
+    font-size: .57rem;
+}
+
+.meeting-delete {
+    min-width: 52px;
+    padding-top: 21px;
+}
+
+.meeting-delete label,
+.remove-new-meeting {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+    border: 0;
+    background: none;
+    color: #b42318;
+    font-size: .51rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.meeting-delete input {
+    accent-color: #b42318;
+}
+
+.add-meeting-button {
+    display: inline-flex;
+    min-height: 35px;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    margin-top: 9px;
+    padding: 0 11px;
+    border: 1px solid
+        color-mix(
+            in srgb,
+            var(--encore-primary) 45%,
+            var(--encore-border)
+        );
+    border-radius: 9px;
+    background:
+        color-mix(
+            in srgb,
+            var(--encore-primary) 5%,
+            #fff
+        );
+    color: var(--encore-primary);
+    font-size: .58rem;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.add-meeting-button > span {
+    display: grid;
+    width: 21px;
+    height: 21px;
+    place-items: center;
+    border-radius: 6px;
+    background: var(--encore-primary);
+    color: #fff;
+}
+
+.add-meeting-button:hover {
+    border-color: var(--encore-primary);
+    background: var(--encore-primary);
+    color: #fff;
+}
+
+.add-meeting-button:hover > span {
+    background: #fff;
+    color: var(--encore-primary);
+}
+
+.class-form-sidebar {
+    position: sticky;
+    top: 82px;
+    display: grid;
+    gap: 10px;
+}
+
+.class-form-save-card {
+    display: grid;
+    gap: 8px;
+    padding: 14px;
+}
+
+.class-form-save-card p {
+    margin: 0 0 5px;
+    color: var(--encore-muted);
+    font-size: .56rem;
+    line-height: 1.5;
+}
+
+.class-form-submit,
+.class-form-cancel {
+    min-height: 38px;
+    justify-content: center;
+}
+
+.class-form-tip-card {
+    display: grid;
+    gap: 4px;
+    padding: 12px;
+    background:
+        linear-gradient(
+            135deg,
+            var(--encore-primary-soft),
+            #fff
+        );
+}
+
+.class-form-tip-card > span {
+    color: var(--encore-primary);
+    font-size: .48rem;
+    font-weight: 900;
+    letter-spacing: .06em;
+}
+
+.class-form-tip-card strong {
+    color: var(--encore-primary-deep);
+    font-size: .62rem;
+}
+
+.class-form-tip-card p {
+    margin: 0;
+    color: var(--encore-muted);
+    font-size: .53rem;
+    line-height: 1.45;
+}
+
+@media (max-width: 1180px) {
+    .class-form-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .class-form-sidebar {
+        position: static;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .meeting-fields {
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 760px) {
+    .class-form-header {
+        flex-direction: column;
+    }
+
+    .class-form-status {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .form-grid.two-column,
+    .form-grid.three-column,
+    .class-toggle-grid,
+    .class-form-sidebar {
+        grid-template-columns: 1fr;
+    }
+
+    .field-group.span-two {
+        grid-column: auto;
+    }
+
+    .class-meeting-row {
+        grid-template-columns: 1fr;
+    }
+
+    .meeting-fields {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .meeting-delete {
+        padding-top: 0;
+    }
+}
+
+@media (max-width: 520px) {
+    .meeting-fields {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* =========================================================
+   Compact field info tooltip
+   ========================================================= */
+
+.field-label-with-help {
+    display: inline-flex;
+    width: fit-content;
+    align-items: center;
+    gap: 5px;
+}
+
+.field-help-tooltip {
+    position: relative;
+    display: inline-grid;
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    place-items: center;
+    outline: none;
+    cursor: help;
+}
+
+.field-help-icon {
+    display: grid;
+    width: 14px;
+    height: 14px;
+    place-items: center;
+    border: 1px solid
+        color-mix(
+            in srgb,
+            var(--encore-primary) 35%,
+            var(--encore-border)
+        );
+    border-radius: 50%;
+    background:
+        color-mix(
+            in srgb,
+            var(--encore-primary) 7%,
+            #fff
+        );
+    color: var(--encore-primary);
+    font-size: .46rem;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.field-help-popup {
+    position: absolute;
+    z-index: 100;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    display: none;
+    width: 220px;
+    padding: 8px 9px;
+    border: 1px solid
+        color-mix(
+            in srgb,
+            var(--encore-primary) 20%,
+            var(--encore-border)
+        );
+    border-radius: 8px;
+    background: #fff;
+    box-shadow:
+        0 10px 24px rgba(0, 2, 78, .14);
+    color: var(--encore-primary-deep);
+    font-size: .52rem;
+    font-weight: 600;
+    line-height: 1.4;
+    text-transform: none;
+    transform: translateX(-50%);
+}
+
+.field-help-popup::after {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    border-right: 1px solid
+        color-mix(
+            in srgb,
+            var(--encore-primary) 20%,
+            var(--encore-border)
+        );
+    border-bottom: 1px solid
+        color-mix(
+            in srgb,
+            var(--encore-primary) 20%,
+            var(--encore-border)
+        );
+    background: #fff;
+    content: "";
+    transform:
+        translate(-50%, -4px)
+        rotate(45deg);
+}
+
+.field-help-tooltip:hover .field-help-popup,
+.field-help-tooltip:focus .field-help-popup,
+.field-help-tooltip:focus-within .field-help-popup {
+    display: block;
+}

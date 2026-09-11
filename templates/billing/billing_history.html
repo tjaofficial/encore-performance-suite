@@ -1,0 +1,217 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Billing History | Encore{% endblock %}
+{% block topbar_title %}Billing History{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_subscription.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_billing_history.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="settings-page-layout">
+    {% include "includes/settings_nav.html" %}
+
+    <section class="billing-history-content">
+        <div class="billing-history-heading">
+            <div>
+                <p class="eyebrow">Encore Subscription</p>
+                <h1>Billing History</h1>
+                <p>
+                    Review invoices and subscription charges pulled directly from Stripe.
+                    Search by invoice number or Stripe invoice ID, or narrow the results by date and status.
+                </p>
+            </div>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="billing-history-message">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        {% if stripe_error %}
+            <div class="billing-history-alert">
+                {{ stripe_error }}
+            </div>
+        {% endif %}
+
+        <section class="billing-history-card">
+            <form method="get" class="billing-history-filters">
+                <div class="filter-field invoice-search">
+                    <label for="invoice">Invoice Number / ID</label>
+                    <input
+                        id="invoice"
+                        name="invoice"
+                        type="search"
+                        value="{{ invoice_query }}"
+                        placeholder="Example: 8F4A... or in_..."
+                    >
+                </div>
+
+                <div class="filter-field">
+                    <label for="date_from">From</label>
+                    <input
+                        id="date_from"
+                        name="date_from"
+                        type="date"
+                        value="{{ date_from }}"
+                    >
+                </div>
+
+                <div class="filter-field">
+                    <label for="date_to">To</label>
+                    <input
+                        id="date_to"
+                        name="date_to"
+                        type="date"
+                        value="{{ date_to }}"
+                    >
+                </div>
+
+                <div class="filter-field">
+                    <label for="status">Status</label>
+                    <select id="status" name="status">
+                        <option value="" {% if not status_filter %}selected{% endif %}>All statuses</option>
+                        <option value="paid" {% if status_filter == "paid" %}selected{% endif %}>Paid</option>
+                        <option value="open" {% if status_filter == "open" %}selected{% endif %}>Open</option>
+                        <option value="draft" {% if status_filter == "draft" %}selected{% endif %}>Draft</option>
+                        <option value="void" {% if status_filter == "void" %}selected{% endif %}>Void</option>
+                        <option value="uncollectible" {% if status_filter == "uncollectible" %}selected{% endif %}>Uncollectible</option>
+                    </select>
+                </div>
+
+                <div class="billing-history-filter-actions">
+                    <button class="button primary" type="submit">Filter</button>
+                    <a class="button secondary" href="{% url 'billing:billing_history' studio.slug %}">Clear</a>
+                </div>
+            </form>
+        </section>
+
+        <section class="billing-history-card">
+            <div class="billing-history-table-heading">
+                <div>
+                    <p class="eyebrow">Invoices</p>
+                    <h2>Stripe Billing Records</h2>
+                </div>
+                <span class="invoice-count">
+                    {{ invoices|length }} invoice{{ invoices|length|pluralize }}
+                </span>
+            </div>
+
+            {% if truncated %}
+                <div class="billing-history-alert warning">
+                    Encore loaded the newest 500 Stripe invoices matching the date range.
+                    Use the date filters to narrow older history.
+                </div>
+            {% endif %}
+
+            <div class="billing-history-table-wrap">
+                <table class="billing-history-table">
+                    <thead>
+                        <tr>
+                            <th>Invoice</th>
+                            <th>Date</th>
+                            <th>Billing Period</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                            <th>Total</th>
+                            <th>Paid</th>
+                            <th>Balance</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for invoice in invoices %}
+                            <tr>
+                                <td class="invoice-identity">
+                                    <strong>{{ invoice.number }}</strong>
+                                    <code>{{ invoice.id }}</code>
+                                </td>
+                                <td>
+                                    {% if invoice.created %}
+                                        {{ invoice.created|date:"M j, Y" }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if invoice.period_start and invoice.period_end %}
+                                        {{ invoice.period_start|date:"M j, Y" }}
+                                        <span class="period-separator">–</span>
+                                        {{ invoice.period_end|date:"M j, Y" }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+                                <td class="invoice-description">
+                                    <strong>{{ invoice.description }}</strong>
+                                    <small>
+                                        {{ invoice.collection_label }}
+                                        {% if invoice.billing_reason %}
+                                            · {{ invoice.billing_reason }}
+                                        {% endif %}
+                                    </small>
+                                </td>
+                                <td>
+                                    <span class="invoice-status status-{{ invoice.status }}">
+                                        {{ invoice.status_label }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong>{{ invoice.currency }} ${{ invoice.total|floatformat:2 }}</strong>
+                                </td>
+                                <td>
+                                    {{ invoice.currency }} ${{ invoice.amount_paid|floatformat:2 }}
+                                </td>
+                                <td>
+                                    {{ invoice.currency }} ${{ invoice.amount_remaining|floatformat:2 }}
+                                </td>
+                                <td>
+                                    <div class="invoice-actions">
+                                        {% if invoice.hosted_invoice_url %}
+                                            <a
+                                                href="{{ invoice.hosted_invoice_url }}"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                            >
+                                                View
+                                            </a>
+                                        {% endif %}
+
+                                        {% if invoice.invoice_pdf %}
+                                            <a
+                                                href="{{ invoice.invoice_pdf }}"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                            >
+                                                PDF
+                                            </a>
+                                        {% endif %}
+
+                                        {% if not invoice.hosted_invoice_url and not invoice.invoice_pdf %}
+                                            —
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="9" class="billing-history-empty">
+                                    No Stripe invoices matched these filters.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="billing-history-source-note">
+                Invoice data on this page is requested from Stripe when the page loads.
+                Stripe remains the source of truth for Encore subscription invoices.
+            </p>
+        </section>
+    </section>
+</div>
+{% endblock %}

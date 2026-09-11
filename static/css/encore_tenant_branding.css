@@ -1,0 +1,167 @@
+/*
+Dynamic Studio Branding
+-----------------------
+These selectors intentionally reuse Encore's existing CSS variables.
+The per-studio values are injected by studio_brand_vars.html.
+*/
+
+:root {
+    --studio-primary: #1663FF;
+    --studio-accent: #0197FC;
+}
+
+/* Buttons */
+.button.primary,
+button.primary,
+a.button.primary,
+.public-button.primary,
+.marketing-button.primary {
+    background:
+        linear-gradient(
+            135deg,
+            var(--studio-primary),
+            var(--studio-accent)
+        );
+    border-color: var(--studio-primary);
+}
+
+/* Links / accents */
+.eyebrow,
+.card-kicker,
+.class-code,
+.public-kicker,
+.request-kicker,
+.notification-audience,
+.announcement-audience,
+.settings-icon,
+.progress-number,
+.performance-arrow,
+.nav-icon,
+.back-link,
+.workspace-switch-link,
+.sidebar-logout,
+.row-actions a,
+.manager-table a,
+.details-list a {
+    color: var(--studio-primary);
+}
+
+/* Active / soft surfaces */
+.nav-link:hover,
+.nav-link.active,
+.song-line,
+.class-chip,
+.notification-icon,
+.settings-icon,
+.staff-avatar,
+.person-avatar,
+.student-avatar,
+.class-date-block,
+.rating-badge,
+.communication-tip,
+.billing-source-note,
+.resource-tip,
+.schedule-note {
+    background:
+        color-mix(
+            in srgb,
+            var(--studio-primary) 10%,
+            transparent
+        );
+}
+
+/* Focus states */
+input:focus,
+select:focus,
+textarea:focus,
+.encore-input:focus,
+.public-input:focus {
+    border-color:
+        color-mix(
+            in srgb,
+            var(--studio-primary) 68%,
+            transparent
+        );
+
+    box-shadow:
+        0 0 0 3px
+        color-mix(
+            in srgb,
+            var(--studio-primary) 12%,
+            transparent
+        );
+}
+
+/* Progress bars */
+.progress-track span,
+.capacity-track span,
+.setup-progress-track span {
+    background:
+        linear-gradient(
+            90deg,
+            var(--studio-primary),
+            var(--studio-accent)
+        );
+}
+
+/* Sidebar */
+.app-sidebar {
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(
+                in srgb,
+                var(--studio-primary) 18%,
+                #050816
+            ),
+            color-mix(
+                in srgb,
+                var(--studio-primary) 34%,
+                #000000
+            )
+        );
+}
+
+/* Unread badges */
+.notification-count,
+.sidebar-count,
+.unread-dot,
+.notification-unread-dot {
+    background: var(--studio-primary);
+}
+
+/* Public registration availability / highlights */
+.meeting-list span,
+.public-notice,
+.handoff-class-card {
+    border-color:
+        color-mix(
+            in srgb,
+            var(--studio-primary) 18%,
+            transparent
+        );
+}
+
+/* Uploaded studio logo */
+.tenant-studio-logo {
+    display: block;
+    width: min(210px, 100%);
+    max-height: 88px;
+    object-fit: contain;
+    object-position: left center;
+}
+
+.public-studio-logo {
+    display: block;
+    width: min(220px, 70vw);
+    max-height: 100px;
+    margin-bottom: 18px;
+    object-fit: contain;
+}
+
+/* Keep Encore's logo readable when no tenant logo exists */
+.encore-sidebar-logo {
+    display: block;
+    width: min(205px, 100%);
+    height: auto;
+}

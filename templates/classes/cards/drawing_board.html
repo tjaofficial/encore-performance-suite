@@ -1,0 +1,46 @@
+<article class="class-dashboard-card drawing-board-card">
+    <div class="class-card-heading">
+        <div>
+            <span class="card-kicker">Drawing Board</span>
+            <h2>Choreography Workspace</h2>
+        </div>
+        <span class="class-card-icon">▣</span>
+    </div>
+
+    <p class="class-card-description drawing-board-card-intro">
+        Open formations, transitions, and lighting for a Dance in this class.
+    </p>
+
+    <div class="drawing-board-dance-list">
+        {% for board in class_instance.drawing_boards.all %}
+            {% if board.performance_plan %}
+                <a
+                    class="drawing-board-dance-row"
+                    href="{% url 'performance:drawing_board_detail' studio.slug board.id %}"
+                >
+                    <span class="drawing-board-dance-icon">◇</span>
+                    <span class="drawing-board-dance-copy">
+                        <strong>{{ board.performance_plan.title|default:class_instance.name }}</strong>
+                        <small>
+                            {{ board.formations.count }} formation{{ board.formations.count|pluralize }}
+                            · {{ board.formation_transitions.count }} transition{{ board.formation_transitions.count|pluralize }}
+                            · {{ board.lighting_cues.count }} lighting cue{{ board.lighting_cues.count|pluralize }}
+                        </small>
+                    </span>
+                    <span class="drawing-board-dance-open">Open →</span>
+                </a>
+            {% endif %}
+        {% empty %}
+            <div class="class-card-empty drawing-board-card-empty">
+                No Drawing Boards have been created for this class yet.
+            </div>
+        {% endfor %}
+    </div>
+
+    <a
+        class="class-card-button drawing-board-main-action"
+        href="{% url 'performance:drawing_board_for_class' studio.slug class_instance.id %}"
+    >
+        Open Drawing Board
+    </a>
+</article>

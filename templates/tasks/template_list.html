@@ -1,0 +1,36 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+{% block title %}Task Templates | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_tasks.css' %}">{% endblock %}
+{% block topbar_title %}Task Templates{% endblock %}
+{% block content %}
+<section class="task-manager-heading">
+    <div>
+        <a class="task-back-link" href="{% url 'tasks:task_list' studio.slug %}">← Back to Tasks</a>
+        <p class="eyebrow">Automation</p>
+        <h1>Task Templates</h1>
+        <p>Build reusable checklists and trigger them manually, automatically, or on a schedule.</p>
+    </div>
+    <a class="button primary" href="{% url 'tasks:template_create' studio.slug %}">+ Create Template</a>
+</section>
+
+<section class="template-grid">
+{% for template in templates %}
+    <a class="template-card" href="{% url 'tasks:template_detail' studio.slug template.id %}">
+        <div class="template-card-top">
+            <span>{{ template.get_visibility_display }}</span>
+            <b>{{ template.get_status_display }}</b>
+        </div>
+        <h2>{{ template.name }}</h2>
+        <p>{{ template.description|default:"Reusable Encore task workflow." }}</p>
+        <div class="template-card-meta">
+            <span>{{ template.item_count }} tasks</span>
+            <span>{{ template.trigger_count }} triggers</span>
+            <span>{{ template.created_by.get_full_name|default:template.created_by.email }}</span>
+        </div>
+    </a>
+{% empty %}
+    <div class="task-empty-state">No task templates yet.</div>
+{% endfor %}
+</section>
+{% endblock %}

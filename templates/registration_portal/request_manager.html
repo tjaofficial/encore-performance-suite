@@ -1,0 +1,118 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}
+Registration Requests | Encore
+{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/encore_registration_manager.css' %}"
+>
+{% endblock %}
+
+{% block topbar_title %}
+Registration Requests
+{% endblock %}
+
+{% block content %}
+<section class="registration-manager-heading">
+    <div>
+        <p class="eyebrow">
+            Public Registration
+        </p>
+
+        <h1>
+            Registration Requests
+        </h1>
+
+        <p>
+            Requests submitted through Encore's public class catalog.
+        </p>
+    </div>
+
+    <a
+        class="button secondary"
+        href="{% url 'registration_portal:public_class_catalog' studio.slug %}"
+        target="_blank"
+    >
+        View Public Catalog
+    </a>
+</section>
+
+<form
+    method="get"
+    class="request-filter"
+>
+    <div>
+        <label>Status</label>
+
+        <select name="status">
+            <option value="">
+                All Requests
+            </option>
+
+            {% for value, label in status_choices %}
+                <option
+                    value="{{ value }}"
+                    {% if selected_status == value %}selected{% endif %}
+                >
+                    {{ label }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <button
+        class="button primary"
+        type="submit"
+    >
+        Filter
+    </button>
+</form>
+
+<section class="request-stack">
+    {% for item in registration_requests %}
+        <a
+            class="request-card"
+            href="{% url 'registration_portal:request_detail' studio.slug item.id %}"
+        >
+            <div>
+                <span class="request-kicker">
+                    {{ item.class_instance.class_id }}
+                    ·
+                    {{ item.class_instance.name }}
+                </span>
+
+                <h2>
+                    {{ item.student_first_name }}
+                    {{ item.student_last_name }}
+                </h2>
+
+                <p>
+                    Parent / Guardian:
+                    {{ item.guardian_first_name }}
+                    {{ item.guardian_last_name }}
+                    ·
+                    {{ item.email }}
+                </p>
+            </div>
+
+            <div class="request-side">
+                <span class="request-status status-{{ item.status }}">
+                    {{ item.get_status_display }}
+                </span>
+
+                <small>
+                    {{ item.created_at|date:"M j, Y · g:i A" }}
+                </small>
+            </div>
+        </a>
+    {% empty %}
+        <div class="empty-state">
+            No registration requests found.
+        </div>
+    {% endfor %}
+</section>
+{% endblock %}

@@ -1,0 +1,174 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Students | Encore Performance Suite{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_people_manager.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Student Manager{% endblock %}
+
+{% block content %}
+<section class="people-heading">
+    <div>
+        <p class="eyebrow">People</p>
+        <h1>Students</h1>
+        <p>
+            Manage student records, family connections, enrollment access,
+            and studio information.
+        </p>
+    </div>
+
+    <a
+        class="button primary"
+        href="{% url 'students:student_create' studio.slug %}"
+    >
+        + Add Student
+    </a>
+</section>
+
+<form method="get" class="people-filters">
+    <div class="wide-filter">
+        <label>Search</label>
+        <input
+            type="search"
+            name="q"
+            value="{{ filters.q }}"
+            placeholder="Student or family name..."
+        >
+    </div>
+
+    <div>
+        <label>Status</label>
+        <select name="status">
+            <option value="">All</option>
+            <option value="active" {% if filters.status == "active" %}selected{% endif %}>
+                Active
+            </option>
+            <option value="inactive" {% if filters.status == "inactive" %}selected{% endif %}>
+                Inactive
+            </option>
+            <option value="blocked" {% if filters.status == "blocked" %}selected{% endif %}>
+                Enrollment Blocked
+            </option>
+        </select>
+    </div>
+
+    <div>
+        <label>Family</label>
+        <select name="family_status">
+            <option value="">All</option>
+            <option value="attached" {% if filters.family_status == "attached" %}selected{% endif %}>
+                Family Attached
+            </option>
+            <option value="standalone" {% if filters.family_status == "standalone" %}selected{% endif %}>
+                Standalone
+            </option>
+        </select>
+    </div>
+
+    <div class="filter-buttons">
+        <button class="button primary" type="submit">Filter</button>
+        <a
+            class="button secondary"
+            href="{% url 'students:student_list' studio.slug %}"
+        >
+            Reset
+        </a>
+    </div>
+</form>
+
+<section class="people-table-card">
+    <div class="people-table-wrap">
+        <table class="people-table">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Age</th>
+                    <th>Family</th>
+                    <th>Classes</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for student in students %}
+                    <tr>
+                        <td>
+                            <a
+                                class="person-link"
+                                href="{% url 'students:student_detail' studio.slug student.id %}"
+                            >
+                                <span class="person-avatar">
+                                    {{ student.first_name|slice:":1"|upper }}
+                                </span>
+
+                                <span>
+                                    <strong>
+                                        {{ student.first_name }}
+                                        {{ student.last_name }}
+                                    </strong>
+
+                                    {% if student.performing %}
+                                        <small>Performing student</small>
+                                    {% endif %}
+                                </span>
+                            </a>
+                        </td>
+
+                        <td>{{ student.age }}</td>
+
+                        <td>
+                            {% if student.family %}
+                                <a
+                                    href="{% url 'families:family_detail' studio.slug student.family.id %}"
+                                >
+                                    {{ student.family }}
+                                </a>
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+
+                        <td>{{ student.active_class_count }}</td>
+
+                        <td>
+                            {% if student.enrollment_blocked %}
+                                <span class="status-pill blocked">
+                                    Enrollment Blocked
+                                </span>
+                            {% elif student.is_active %}
+                                <span class="status-pill active">
+                                    Active
+                                </span>
+                            {% else %}
+                                <span class="status-pill inactive">
+                                    Inactive
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <td class="row-action">
+                            <a
+                                href="{% url 'students:student_edit' studio.slug student.id %}"
+                            >
+                                Edit
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state">
+                                No students matched your filters.
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

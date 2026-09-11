@@ -1,0 +1,24 @@
+<div
+    class="encore-list-view-toggle"
+    aria-label="{{ list_view_label|default:'Display' }}"
+>
+    <a
+        href="{{ card_view_url }}"
+        class="{% if view_mode == 'cards' %}active{% endif %}"
+        aria-label="Card view"
+        title="Card view"
+    >
+        <span>▦</span>
+        Cards
+    </a>
+
+    <a
+        href="{{ table_view_url }}"
+        class="{% if view_mode == 'table' %}active{% endif %}"
+        aria-label="Table view"
+        title="Table view"
+    >
+        <span>☰</span>
+        Table
+    </a>
+</div>

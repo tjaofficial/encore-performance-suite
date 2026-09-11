@@ -1,0 +1,31 @@
+<article class="class-dashboard-card attendance-card">
+    <div class="class-card-heading">
+        <div>
+            <span class="card-kicker">Attendance</span>
+            <h2>Take Attendance</h2>
+        </div>
+        <span class="class-card-icon">✓</span>
+    </div>
+
+    <p class="class-card-description">
+        Open the current roster and mark attendance for this class.
+    </p>
+
+    <div class="attendance-summary">
+        <div>
+            <strong>{{ active_enrollments|length }}</strong>
+            <span>Active Students</span>
+        </div>
+        <div>
+            <strong>{{ meetings|length }}</strong>
+            <span>Weekly Meetings</span>
+        </div>
+    </div>
+
+    <a
+        class="class-card-button"
+        href="{% url 'attendance:take_attendance' studio.slug class_instance.id %}"
+    >
+        Take Attendance
+    </a>
+</article>

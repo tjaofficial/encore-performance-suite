@@ -1,0 +1,197 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Enrollments | Encore Performance Suite{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_staff_enrollment.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Enrollment Manager{% endblock %}
+
+{% block content %}
+<section class="manager-heading">
+    <div>
+        <p class="eyebrow">Enrollment</p>
+        <h1>Enrollments</h1>
+
+        <p>
+            Search, review, and manage student class registrations
+            and waitlist status.
+        </p>
+    </div>
+
+    <a
+        class="button primary"
+        href="{% url 'enrollments:enrollment_create' studio.slug %}"
+    >
+        + Add Enrollment
+    </a>
+</section>
+
+<form method="get" class="filter-panel enrollment-filters">
+    <div class="wide-filter">
+        <label>Search</label>
+        <input
+            type="search"
+            name="q"
+            value="{{ filters.q }}"
+            placeholder="Student, class ID, class name..."
+        >
+    </div>
+
+    <div>
+        <label>Status</label>
+        <select name="status">
+            <option value="">All</option>
+            {% for value, label in status_choices %}
+                <option
+                    value="{{ value }}"
+                    {% if filters.status == value %}selected{% endif %}
+                >
+                    {{ label }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div>
+        <label>Season</label>
+        <select name="season">
+            <option value="">All Seasons</option>
+            {% for season in seasons %}
+                <option
+                    value="{{ season.id }}"
+                    {% if filters.season == season.id|stringformat:"s" %}selected{% endif %}
+                >
+                    {{ season.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div>
+        <label>Class</label>
+        <select name="class">
+            <option value="">All Classes</option>
+            {% for class_instance in classes %}
+                <option
+                    value="{{ class_instance.id }}"
+                    {% if filters.class == class_instance.id|stringformat:"s" %}selected{% endif %}
+                >
+                    {{ class_instance.class_id }}
+                    ·
+                    {{ class_instance.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div>
+        <label>Source</label>
+        <select name="source">
+            <option value="">All Sources</option>
+            {% for value, label in source_choices %}
+                <option
+                    value="{{ value }}"
+                    {% if filters.source == value %}selected{% endif %}
+                >
+                    {{ label }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="filter-buttons">
+        <button class="button primary" type="submit">
+            Filter
+        </button>
+
+        <a
+            class="button secondary"
+            href="{% url 'enrollments:enrollment_list' studio.slug %}"
+        >
+            Reset
+        </a>
+    </div>
+</form>
+
+<section class="manager-card enrollment-table-card">
+    <div class="table-wrap">
+        <table class="manager-table">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Class</th>
+                    <th>Season</th>
+                    <th>Status</th>
+                    <th>Source</th>
+                    <th>Tuition</th>
+                    <th></th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for enrollment in enrollments %}
+                    <tr>
+                        <td>
+                            <a
+                                href="{% url 'students:student_detail' studio.slug enrollment.student.id %}"
+                            >
+                                {{ enrollment.student.first_name }}
+                                {{ enrollment.student.last_name }}
+                            </a>
+                        </td>
+
+                        <td>
+                            <a
+                                href="{% url 'classes:class_detail' studio.slug enrollment.class_instance.id %}"
+                            >
+                                {{ enrollment.class_instance.class_id }}
+                                ·
+                                {{ enrollment.class_instance.name }}
+                            </a>
+                        </td>
+
+                        <td>
+                            {{ enrollment.class_instance.season.name }}
+                        </td>
+
+                        <td>
+                            <span class="status-pill status-{{ enrollment.status }}">
+                                {{ enrollment.get_status_display }}
+                            </span>
+                        </td>
+
+                        <td>{{ enrollment.get_source_display }}</td>
+
+                        <td>
+                            {% if enrollment.tuition_amount %}
+                                ${{ enrollment.tuition_amount }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+
+                        <td class="row-action">
+                            <a
+                                href="{% url 'enrollments:enrollment_detail' studio.slug enrollment.id %}"
+                            >
+                                View
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-state">
+                                No enrollments matched your filters.
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

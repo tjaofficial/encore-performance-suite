@@ -1,0 +1,66 @@
+<article class="dashboard-widget teacher-dances-widget">
+    <div class="widget-heading teacher-dances-heading">
+        <div class="teacher-dances-heading-copy">
+            <span class="widget-kicker">Dances</span>
+            <h2>My Dances</h2>
+        </div>
+
+        <a
+            class="teacher-dances-view-all"
+            href="{% url 'performance:plan_list' studio.slug %}"
+        >
+            View All
+        </a>
+    </div>
+
+    <div class="teacher-dances-list">
+        {% for group in teacher_dance_groups %}
+            <section class="teacher-dance-class-group">
+                <div class="teacher-dance-class-heading">
+                    <div>
+                        <span>Class</span>
+                        <strong>{{ group.class.name }}</strong>
+                    </div>
+                    <small>
+                        {{ group.dances|length }} dance{{ group.dances|length|pluralize }}
+                    </small>
+                </div>
+
+                {% if group.dances %}
+                    <div class="teacher-dance-rows">
+                        {% for dance in group.dances %}
+                            <a
+                                class="teacher-dance-row"
+                                href="{% url 'performance:plan_detail' studio.slug dance.id %}"
+                            >
+                                <span class="teacher-dance-icon">◇</span>
+
+                                <span class="teacher-dance-copy">
+                                    <strong>{{ dance.title|default:group.class.name }}</strong>
+                                    <small>
+                                        {% if dance.song_title %}
+                                            {{ dance.song_title }}
+                                            {% if dance.artist %} · {{ dance.artist }}{% endif %}
+                                        {% else %}
+                                            Open choreography and staging
+                                        {% endif %}
+                                    </small>
+                                </span>
+
+                                <span class="teacher-dance-open">Open →</span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="teacher-dance-empty">
+                        No dances created for this class yet.
+                    </div>
+                {% endif %}
+            </section>
+        {% empty %}
+            <div class="teacher-dance-empty teacher-dance-empty-main">
+                No active classes are assigned to you.
+            </div>
+        {% endfor %}
+    </div>
+</article>

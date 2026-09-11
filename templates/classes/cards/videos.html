@@ -1,0 +1,41 @@
+<article class="class-dashboard-card class-videos-card">
+    <div class="class-card-heading">
+        <div>
+            <span class="card-kicker">Class Videos</span>
+            <h2>Videos</h2>
+        </div>
+
+        <a href="{% url 'resources:resource_list' studio.slug %}">
+            View All
+        </a>
+    </div>
+
+    <div class="class-video-grid">
+        {% for video in class_videos %}
+            <a
+                class="class-video-item"
+                href="{{ video.external_url }}"
+                target="_blank"
+                rel="noopener"
+            >
+                <div class="class-video-thumb">
+                    {% if video.youtube_thumbnail_url %}
+                        <img
+                            src="{{ video.youtube_thumbnail_url }}"
+                            alt=""
+                            loading="lazy"
+                        >
+                    {% endif %}
+
+                    <span class="class-video-play">▶</span>
+                </div>
+
+                <strong>{{ video.title }}</strong>
+            </a>
+        {% empty %}
+            <div class="class-card-empty media-empty">
+                No class videos uploaded yet.
+            </div>
+        {% endfor %}
+    </div>
+</article>

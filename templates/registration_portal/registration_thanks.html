@@ -1,0 +1,71 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>
+        Request Received | {{ studio.name }}
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_public_registration.css' %}"
+    >
+    <link
+        rel="icon"
+        type="image/png"
+        href="{% static 'images/icon.png' %}"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_tenant_branding.css' %}"
+    >
+    {% include "includes/studio_brand_vars.html" %}
+</head>
+
+<body>
+    <main class="public-shell narrow">
+        <section class="public-success-card">
+            <div class="success-mark">
+                ✓
+            </div>
+
+            <span class="public-kicker">
+                {{ studio.name }}
+            </span>
+
+            <h1>
+                Request Received
+            </h1>
+
+            <p>
+                Thanks,
+                {{ registration_request.guardian_first_name }}.
+                Your request for
+                <strong>
+                    {{ registration_request.student_first_name }}
+                </strong>
+                to join
+                <strong>
+                    {{ registration_request.class_instance.name }}
+                </strong>
+                has been sent to the studio.
+            </p>
+
+            <a
+                class="public-button primary"
+                href="{% url 'registration_portal:public_class_catalog' studio.slug %}"
+            >
+                Browse More Classes
+            </a>
+        </section>
+    </main>
+</body>
+</html>

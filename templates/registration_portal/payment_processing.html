@@ -1,0 +1,25 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Payment Processing | {{ studio.name }}</title>
+    <link rel="stylesheet" href="{% static 'css/encore_public_registration.css' %}">
+    <link rel="stylesheet" href="{% static 'css/encore_tenant_branding.css' %}">
+    {% include "includes/studio_brand_vars.html" %}
+    <meta http-equiv="refresh" content="3;url={% url 'registration_portal:registration_complete' studio.slug registration_session.token %}">
+</head>
+<body class="{% if embed_mode %}embed-mode{% endif %}">
+<main class="public-shell narrow">
+    <section class="public-success-card">
+        <span class="public-kicker">{{ studio.name }}</span>
+        <h1>Finishing Your Registration</h1>
+        <p>
+            Stripe has returned control to Encore. We are confirming the payment
+            before creating the final enrollment records.
+        </p>
+    </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,538 @@
+{% extends "marketing/base.html" %}
+{% load static %}
+{% block title %}
+Features | Encore Performance Suite
+{% endblock %}
+
+{% block content %}
+<main class="inner-marketing-page">
+    <section class="inner-hero">
+        <span class="marketing-kicker">
+            Features
+        </span>
+
+        <h1>
+            Everything your studio needs,
+            organized around the way you actually work.
+        </h1>
+
+        <p>
+            Encore keeps studio operations, communication, class management,
+            performance preparation, and staff workflows connected without
+            turning the software into a maze.
+        </p>
+
+        <div class="hero-actions">
+            <a
+                class="marketing-button primary large"
+                href="{% url 'accounts:register' %}"
+            >
+                Start Your Studio
+            </a>
+
+            <a
+                class="marketing-button ghost large"
+                href="{% url 'marketing:pricing' %}"
+            >
+                View Pricing
+            </a>
+        </div>
+    </section>
+
+    <nav class="feature-jump-nav" aria-label="Feature categories">
+        <a href="#studio-management">Studio Management</a>
+        <a href="#communication">Communication</a>
+        <a href="#automation">Automation</a>
+        <a href="#performance">Performance</a>
+        <a href="#insights">Insights</a>
+        <a href="#drawing-board">Drawing Board</a>
+    </nav>
+
+    <section id="studio-management" class="feature-category">
+        <div class="feature-category-heading">
+            <span class="marketing-kicker">Run Your Studio</span>
+            <h2>Core operations in one place.</h2>
+            <p>
+                The day-to-day foundation for managing people, classes,
+                registration, schedules, and studio access.
+            </p>
+        </div>
+
+        <div class="feature-detail-grid">
+            <article>
+                <div class="feature-meta">
+                    <span class="plan-badge essentials">Essentials</span>
+                </div>
+                <h3>Students & Families</h3>
+                <p>
+                    Student records, family relationships, guardians,
+                    emergency information, status, and studio history.
+                </p>
+            </article>
+
+            <article>
+                <div class="feature-meta">
+                    <span class="plan-badge essentials">Essentials</span>
+                </div>
+                <h3>Classes & Seasons</h3>
+                <p>
+                    Class types, seasons, schedules, tuition setup,
+                    instructors, rooms, locations, capacity, and rosters.
+                </p>
+            </article>
+
+            <article>
+                <div class="feature-meta">
+                    <span class="plan-badge essentials">Essentials</span>
+                </div>
+                <h3>Enrollment & Waitlists</h3>
+                <p>
+                    Track active enrollment, waitlists, class capacity,
+                    status changes, and registration handoff.
+                </p>
+            </article>
+
+            <article>
+                <div class="feature-meta">
+                    <span class="plan-badge essentials">Essentials</span>
+                </div>
+                <h3>Attendance</h3>
+                <p>
+                    Fast teacher attendance, student history,
+                    roster context, and studio visibility.
+                </p>
+            </article>
+
+            <article>
+                <div class="feature-meta">
+                    <span class="plan-badge essentials">Essentials</span>
+                </div>
+                <h3>Registration</h3>
+                <p>
+                    Public registration experiences tied directly
+                    to Encore classes, capacity, students, and families.
+                </p>
+            </article>
+
+            <article>
+                <div class="feature-meta">
+                    <span class="plan-badge pro">Pro</span>
+                </div>
+                <h3>Multi-Location Management</h3>
+                <p>
+                    Organize rooms and locations while keeping
+                    schedules, classes, staff, and operations connected.
+                </p>
+            </article>
+        </div>
+    </section>
+
+    <section id="communication" class="feature-category">
+        <div class="feature-category-heading">
+            <span class="marketing-kicker">Stay Connected</span>
+            <h2>Communication that already knows your studio.</h2>
+            <p>
+                Reach the right people without rebuilding recipient lists
+                every time you need to send an update.
+            </p>
+        </div>
+
+        <div class="feature-detail-grid">
+            <article>
+                <div class="feature-meta">
+                    <span class="plan-badge essentials">Essentials</span>
+                </div>
+                <h3>Announcements & Notifications</h3>
+                <p>
+                    Studio-wide and targeted announcements with
+                    role-aware visibility and notification tracking.
+                </p>
+            </article>
+
+            <article>
+                <div class="feature-meta">
+                    <span class="plan-badge essentials">Essentials</span>
+                </div>
+                <h3>Family, Teacher & Student Portals</h3>
+                <p>
+                    Give each role the information and tools that matter
+                    to them without exposing the rest of the studio.
+                </p>
+            </article>
+
+            <article>
+                <div class="feature-meta">
+                    <span class="plan-badge essentials">Essentials</span>
+                </div>
+                <h3>Basic Email Sending</h3>
+                <p>
+                    Send studio communication using class-aware
+                    and people-aware recipient targeting.
+                </p>
+            </article>
+
+            <article>
+                <div class="feature-meta">
+                    <span class="plan-badge pro">Pro</span>
+                </div>
+                <h3>Email Templates & Signatures</h3>
+                <p>
+                    Build reusable studio-branded messages and
+                    consistent sender signatures.
+                </p>
+            </article>
+
+            <article>
+                <div class="feature-meta">
+                    <span class="plan-badge pro">Pro</span>
+                </div>
+                <h3>Campaigns & Scheduled Email</h3>
+                <p>
+                    Draft, schedule, send, and manage larger studio
+                    communication campaigns from one workspace.
+                </p>
+            </article>
+
+            <article>
+                <div class="feature-meta">
+                    <span class="plan-badge pro">Pro</span>
+                </div>
+                <h3>Email Analytics & Automation</h3>
+                <p>
+                    Track provider-reported delivery activity and automate
+                    messages such as registration, enrollment, and birthdays.
+                </p>
+            </article>
+        </div>
+    </section>
+
+    <section id="automation" class="feature-category">
+        <div class="feature-category-heading">
+            <span class="marketing-kicker">Automate the Work</span>
+            <h2>Less remembering. Less chasing. Fewer loose ends.</h2>
+        </div>
+
+        <div class="feature-detail-grid">
+            <article>
+                <div class="feature-meta">
+                    <span class="plan-badge essentials">Essentials</span>
+                </div>
+                <h3>Tasks & Reminders</h3>
+                <p>
+                    Personal and assigned tasks for administrators,
+                    teachers, parents, and studio workflows.
+                </p>
+            </article>
+
+            <article>
+                <div class="feature-meta">
+                    <span class="plan-badge pro">Pro</span>
+                </div>
+                <h3>Task Templates & Automation</h3>
+                <p>
+                    Reuse common workflows and reduce repetitive setup
+                    for recurring operational tasks.
+                </p>
+            </article>
+
+            <article>
+                <div class="feature-meta">
+                    <span class="plan-badge pro">Pro</span>
+                </div>
+                <h3>Teacher Time Off</h3>
+                <p>
+                    Teachers can request dates off while administrators
+                    review coverage needs by affected class occurrence.
+                </p>
+            </article>
+
+            <article>
+                <div class="feature-meta">
+                    <span class="plan-badge pro">Pro</span>
+                </div>
+                <h3>Substitute Management</h3>
+                <p>
+                    Assign substitutes to individual class occurrences
+                    with conflict checking against schedules and time off.
+                </p>
+            </article>
+
+            <article>
+                <div class="feature-meta">
+                    <span class="plan-badge pro">Pro</span>
+                </div>
+                <h3>Advanced Calendar</h3>
+                <p>
+                    Role-aware calendars, categories, recurrence,
+                    tasks, classes, absences, and substitute visibility.
+                </p>
+            </article>
+
+            <article>
+                <div class="feature-meta">
+                    <span class="plan-badge pro">Pro</span>
+                </div>
+                <h3>Dashboard Customization</h3>
+                <p>
+                    Let users control the cards, layout, width,
+                    and organization of their working dashboard.
+                </p>
+            </article>
+        </div>
+    </section>
+
+    <section id="performance" class="feature-category">
+        <div class="feature-category-heading">
+            <span class="marketing-kicker">Manage Performance</span>
+            <h2>Studio operations meet the creative side.</h2>
+        </div>
+
+        <div class="feature-detail-grid">
+            <article>
+                <div class="feature-meta">
+                    <span class="plan-badge pro">Pro</span>
+                </div>
+                <h3>Evaluations</h3>
+                <p>
+                    Track student progress and class-specific evaluations
+                    without separating feedback from the class itself.
+                </p>
+            </article>
+
+            <article>
+                <div class="feature-meta">
+                    <span class="plan-badge pro">Pro</span>
+                </div>
+                <h3>Dances & Choreography</h3>
+                <p>
+                    Organize dances, choreography information,
+                    class relationships, and performance planning.
+                </p>
+            </article>
+
+            <article>
+                <div class="feature-meta">
+                    <span class="plan-badge pro">Pro</span>
+                </div>
+                <h3>Music Management</h3>
+                <p>
+                    Keep music and class resources connected to the
+                    dances, classes, and instructors using them.
+                </p>
+            </article>
+
+            <article>
+                <div class="feature-meta">
+                    <span class="plan-badge pro">Pro</span>
+                </div>
+                <h3>Costumes & Measurements</h3>
+                <p>
+                    Manage costume information and student measurements
+                    alongside the dances and performers they belong to.
+                </p>
+            </article>
+        </div>
+    </section>
+
+    <section id="insights" class="feature-category">
+        <div class="feature-category-heading">
+            <span class="marketing-kicker">Understand Your Studio</span>
+            <h2>See what is happening without digging for it.</h2>
+        </div>
+
+        <div class="feature-detail-grid">
+            <article>
+                <div class="feature-meta">
+                    <span class="plan-badge essentials">Essentials</span>
+                </div>
+                <h3>Basic Reports</h3>
+                <p>
+                    Useful operational reporting for students,
+                    classes, enrollment, and everyday studio management.
+                </p>
+            </article>
+
+            <article>
+                <div class="feature-meta">
+                    <span class="plan-badge pro">Pro</span>
+                </div>
+                <h3>Advanced Reporting</h3>
+                <p>
+                    More detailed visibility into studio operations,
+                    communication, attendance, and performance activity.
+                </p>
+            </article>
+
+            <article>
+                <div class="feature-meta">
+                    <span class="plan-badge essentials">Essentials</span>
+                </div>
+                <h3>Studio Branding</h3>
+                <p>
+                    Add your studio logo and colors so the Encore
+                    experience feels connected to your own brand.
+                </p>
+            </article>
+        </div>
+    </section>
+
+    <section id="drawing-board" class="drawing-board-showcase">
+        <div class="drawing-board-intro">
+            <div>
+                <span class="marketing-kicker light">
+                    Premium Add-On
+                </span>
+
+                <h2>
+                    Drawing Board turns choreography into something you can see.
+                </h2>
+
+                <p>
+                    Plan formations, dancer positions, movement ideas,
+                    and performance layouts visually instead of relying
+                    on scattered notes, screenshots, and memory.
+                </p>
+            </div>
+
+            <div class="drawing-board-price">
+                <span>Drawing Board</span>
+                <strong>$39</strong>
+                <small>/ month</small>
+                <em>Available with Essentials or Pro</em>
+            </div>
+        </div>
+
+        <div class="drawing-board-points">
+            <article>
+                <strong>Visual formations</strong>
+                <span>
+                    Arrange dancers and build stage pictures in a workspace
+                    designed for choreography.
+                </span>
+            </article>
+
+            <article>
+                <strong>Connected to Encore</strong>
+                <span>
+                    Keep visual planning alongside the classes, dances,
+                    instructors, and performance information already in Encore.
+                </span>
+            </article>
+
+            <article>
+                <strong>Premium without per-user fees</strong>
+                <span>
+                    One flat studio add-on rather than charging by teacher,
+                    dancer, or choreography plan.
+                </span>
+            </article>
+        </div>
+
+        <div class="drawing-screenshot-grid">
+            <figure class="drawing-product-shot drawing-product-shot-main">
+                <div class="drawing-product-image-frame">
+                    <img
+                        src="{% static 'images/formation_screenshot.png' %}"
+                        alt="Encore Drawing Board formation editor"
+                        loading="lazy"
+                    >
+                </div>
+
+                <figcaption>
+                    <strong>Build formations visually</strong>
+                    <span>
+                        Place dancers directly on the stage and organize
+                        each formation in sequence.
+                    </span>
+                </figcaption>
+            </figure>
+
+            <div class="drawing-product-shot-row">
+                <figure class="drawing-product-shot">
+                    <div class="drawing-product-image-frame">
+                        <img
+                            src="{% static 'images/transition_screenshot.png' %}"
+                            alt="Encore Drawing Board transition editor"
+                            loading="lazy"
+                        >
+                    </div>
+
+                    <figcaption>
+                        <strong>Map transitions</strong>
+                        <span>
+                            See how dancers move between formations with
+                            visual paths and timing.
+                        </span>
+                    </figcaption>
+                </figure>
+
+                <figure class="drawing-product-shot">
+                    <div class="drawing-product-image-frame">
+                        <img
+                            src="{% static 'images/lighting_screenshot.png' %}"
+                            alt="Encore Drawing Board lighting cue editor"
+                            loading="lazy"
+                        >
+                    </div>
+
+                    <figcaption>
+                        <strong>Plan lighting cues</strong>
+                        <span>
+                            Design focus areas, follow spots, and production
+                            cues alongside choreography.
+                    </span>
+                    </figcaption>
+                </figure>
+            </div>
+        </div>
+
+        <div class="drawing-board-actions">
+            <a
+                class="marketing-button white large"
+                href="{% url 'accounts:register' %}"
+            >
+                Start with Drawing Board
+            </a>
+
+            <a
+                class="marketing-button outline-light large"
+                href="{% url 'marketing:pricing' %}"
+            >
+                See Encore Pricing
+            </a>
+        </div>
+    </section>
+
+    <section class="marketing-cta">
+        <div>
+            <span class="marketing-kicker">
+                Start when you're ready
+            </span>
+
+            <h2>
+                Choose your plan and create your studio online.
+            </h2>
+
+            <p>
+                You do not need to book a demo first.
+            </p>
+        </div>
+
+        <div class="cta-actions">
+            <a
+                class="marketing-button primary large"
+                href="{% url 'accounts:register' %}"
+            >
+                Start Your Studio
+            </a>
+
+            <a
+                class="marketing-button outline-light large"
+                href="{% url 'marketing:contact' %}#demo"
+            >
+                Book a Demo
+            </a>
+        </div>
+    </section>
+</main>
+{% endblock %}

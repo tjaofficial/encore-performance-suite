@@ -1,0 +1,96 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Calendar | {{ studio.name }}</title>
+    <link rel="stylesheet" href="{% static 'css/encore_public_registration.css' %}">
+    <link rel="stylesheet" href="{% static 'css/encore_tenant_branding.css' %}">
+    {% include "includes/studio_brand_vars.html" %}
+</head>
+<body class="{% if embed_mode %}embed-mode {% endif %}calendar-style-{{ widget_style }}">
+<main class="public-shell">
+    {% if not embed_mode %}
+        <header class="public-header">
+            <div>
+                <span class="public-kicker">{{ studio.name }}</span>
+                <h1>Calendar</h1>
+                <p>Public events, performances, closures, rehearsals, and studio dates.</p>
+            </div>
+        </header>
+    {% endif %}
+
+    <section class="public-calendar-card">
+        <div class="calendar-toolbar">
+            <a class="calendar-nav" href="?month={{ previous_month|date:'Y-m' }}">←</a>
+            <div>
+                <span class="public-kicker">Studio Calendar</span>
+                <h2>{{ month_start|date:"F Y" }}</h2>
+            </div>
+            <a class="calendar-nav" href="?month={{ next_month|date:'Y-m' }}">→</a>
+        </div>
+
+        {% if widget_style == "agenda" or widget_style == "compact" %}
+            <div class="public-agenda {% if widget_style == 'compact' %}compact{% endif %}">
+                {% for event in events %}
+                    <article>
+                        <time>
+                            <strong>{{ event.start_at|date:"M j" }}</strong>
+                            {% if not event.all_day %}
+                                <span>{{ event.start_at|time:"g:i A" }}</span>
+                            {% else %}
+                                <span>All day</span>
+                            {% endif %}
+                        </time>
+                        <div>
+                            <h3>{{ event.title }}</h3>
+                            {% if show_details and event.description %}
+                                <p>{{ event.description|truncatechars:180 }}</p>
+                            {% endif %}
+                            {% if event.location %}
+                                <small>{{ event.location }}</small>
+                            {% endif %}
+                        </div>
+                    </article>
+                {% empty %}
+                    <div class="public-empty">No public events this month.</div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="calendar-weekdays">
+                <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+            </div>
+            <div class="calendar-month-grid">
+                {% for week in weeks %}
+                    {% for day in week %}
+                        <div class="calendar-day {% if not day.number %}outside{% endif %}">
+                            {% if day.number %}
+                                <strong>{{ day.number }}</strong>
+                                <div class="calendar-day-events">
+                                    {% for event in day.events %}
+                                        <article>
+                                            <b>{{ event.title }}</b>
+                                            {% if not event.all_day %}
+                                                <span>{{ event.start_at|time:"g:i A" }}</span>
+                                            {% endif %}
+                                            {% if show_details and event.location %}
+                                                <small>{{ event.location }}</small>
+                                            {% endif %}
+                                        </article>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        {% endif %}
+    </section>
+
+    {% if embed_mode %}
+        <footer class="embed-footer">Powered by Encore Performance Suite</footer>
+    {% endif %}
+</main>
+</body>
+</html>

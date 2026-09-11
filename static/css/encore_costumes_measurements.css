@@ -1,0 +1,854 @@
+.wardrobe-page-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 16px;
+}
+
+.wardrobe-page-header h1 {
+    margin: 0;
+    color: var(--encore-primary-deep);
+    font-size: clamp(2rem, 4vw, 3rem);
+    letter-spacing: -.05em;
+}
+
+.wardrobe-page-header p:last-child {
+    margin: 6px 0 0;
+    color: var(--encore-muted);
+    font-size: .68rem;
+}
+
+.wardrobe-back-link {
+    display: inline-block;
+    margin-bottom: 12px;
+    color: var(--encore-primary);
+    font-size: .68rem;
+    font-weight: 850;
+    text-decoration: none;
+}
+
+.measurement-progress-card,
+.costume-detail-progress {
+    display: grid;
+    min-width: 130px;
+    gap: 3px;
+    padding: 12px 14px;
+    border: 1px solid var(--encore-border);
+    border-radius: 12px;
+    background: #fff;
+    text-align: right;
+}
+
+.measurement-progress-card strong,
+.costume-detail-progress strong {
+    color: var(--encore-primary-deep);
+    font-size: 1.2rem;
+}
+
+.measurement-progress-card span,
+.costume-detail-progress span {
+    color: var(--encore-muted);
+    font-size: .52rem;
+    font-weight: 800;
+}
+
+.measurement-toolbar,
+.costume-toolbar {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding: 11px;
+    border: 1px solid var(--encore-border);
+    border-radius: 12px;
+    background: #fff;
+}
+
+.measurement-search {
+    display: grid;
+    min-width: 240px;
+    gap: 4px;
+}
+
+.measurement-search > span {
+    color: var(--encore-primary-deep);
+    font-size: .53rem;
+    font-weight: 850;
+}
+
+.measurement-search input,
+.costume-toolbar input,
+.costume-toolbar select {
+    min-height: 36px;
+    padding: 7px 9px;
+    border: 1px solid var(--encore-border);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--encore-primary-deep);
+    font: inherit;
+    font-size: .58rem;
+}
+
+.measurement-filters,
+.costume-view-toggle {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.measurement-filters button,
+.costume-view-toggle a {
+    min-height: 30px;
+    padding: 0 9px;
+    border: 1px solid var(--encore-border);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--encore-muted);
+    font-size: .52rem;
+    font-weight: 850;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.measurement-filters button.active,
+.costume-view-toggle a.active {
+    border-color: var(--encore-primary);
+    background: var(--encore-primary-soft);
+    color: var(--encore-primary);
+}
+
+.measurement-filters button span {
+    margin-left: 4px;
+    opacity: .65;
+}
+
+.measurement-roster {
+    display: grid;
+    gap: 8px;
+}
+
+.measurement-student-card {
+    overflow: hidden;
+    border: 1px solid var(--encore-border);
+    border-left: 4px solid var(--encore-border);
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: var(--encore-shadow);
+}
+
+.measurement-student-card.state-complete {
+    border-left-color: #17885f;
+}
+
+.measurement-student-card.state-in_progress {
+    border-left-color: var(--encore-primary);
+}
+
+.measurement-student-card.state-needs_remeasurement {
+    border-left-color: #c48620;
+}
+
+.measurement-card-summary {
+    display: grid;
+    width: 100%;
+    grid-template-columns: 34px minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    padding: 11px 13px;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+}
+
+.measurement-status-icon {
+    display: grid;
+    width: 30px;
+    height: 30px;
+    place-items: center;
+    border-radius: 9px;
+    background: var(--encore-background);
+    color: var(--encore-muted);
+    font-size: .7rem;
+    font-weight: 900;
+}
+
+.state-complete .measurement-status-icon {
+    background: rgba(23, 136, 95, .1);
+    color: #17885f;
+}
+
+.state-in_progress .measurement-status-icon {
+    background: var(--encore-primary-soft);
+    color: var(--encore-primary);
+}
+
+.state-needs_remeasurement .measurement-status-icon {
+    background: rgba(196, 134, 32, .1);
+    color: #9c6914;
+}
+
+.measurement-student-name {
+    display: grid;
+    gap: 2px;
+}
+
+.measurement-student-name strong {
+    color: var(--encore-primary-deep);
+    font-size: .74rem;
+}
+
+.measurement-student-name small {
+    color: var(--encore-muted);
+    font-size: .52rem;
+}
+
+.measurement-card-chevron {
+    color: var(--encore-muted);
+    font-size: .8rem;
+}
+
+.measurement-student-card.expanded .measurement-card-chevron {
+    transform: rotate(180deg);
+}
+
+.measurement-card-body {
+    padding: 0 13px 13px 57px;
+}
+
+.measurement-input-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 9px;
+}
+
+.measurement-input-grid label {
+    display: grid;
+    gap: 4px;
+}
+
+.measurement-input-grid label.wide {
+    grid-column: 1 / -1;
+}
+
+.measurement-input-grid label > span {
+    color: var(--encore-primary-deep);
+    font-size: .52rem;
+    font-weight: 850;
+}
+
+.measurement-input-grid input,
+.measurement-input-grid textarea {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 34px;
+    padding: 7px 8px;
+    border: 1px solid var(--encore-border);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--encore-primary-deep);
+    font: inherit;
+    font-size: .58rem;
+}
+
+.measurement-card-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.measurement-save-state {
+    color: var(--encore-muted);
+    font-size: .5rem;
+}
+
+.measurement-save-state.error {
+    color: #b04444;
+}
+
+.measurement-current-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.measurement-current-grid span {
+    display: grid;
+    gap: 2px;
+    padding: 8px;
+    border-radius: 8px;
+    background: var(--encore-background);
+    color: var(--encore-primary-deep);
+    font-size: .55rem;
+}
+
+.measurement-current-grid b {
+    color: var(--encore-muted);
+    font-size: .48rem;
+    text-transform: uppercase;
+}
+
+.wardrobe-form-card {
+    padding: 15px;
+    border: 1px solid var(--encore-border);
+    border-radius: 13px;
+    background: #fff;
+    box-shadow: var(--encore-shadow);
+}
+
+.wardrobe-section-heading {
+    display: grid;
+    gap: 2px;
+    margin-bottom: 11px;
+    padding-bottom: 9px;
+    border-bottom: 1px solid var(--encore-border);
+}
+
+.wardrobe-section-heading > span {
+    color: var(--encore-primary);
+    font-size: .5rem;
+    font-weight: 900;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+}
+
+.wardrobe-section-heading > strong {
+    color: var(--encore-primary-deep);
+    font-size: .74rem;
+}
+
+.wardrobe-section-heading > p {
+    margin: 0;
+    color: var(--encore-muted);
+    font-size: .53rem;
+}
+
+.costume-form {
+    display: grid;
+    gap: 11px;
+}
+
+.wardrobe-form-grid,
+.costume-upload-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.wardrobe-form-grid label,
+.costume-upload-grid label,
+.costume-link-row label,
+.costume-task-due label {
+    display: grid;
+    gap: 4px;
+}
+
+.wardrobe-form-grid label.full {
+    grid-column: 1 / -1;
+}
+
+.wardrobe-form-grid label > span,
+.costume-upload-grid label > span,
+.costume-link-row label > span,
+.costume-task-due label > span {
+    color: var(--encore-primary-deep);
+    font-size: .52rem;
+    font-weight: 850;
+}
+
+.wardrobe-form-grid small {
+    color: var(--encore-muted);
+    font-size: .5rem;
+}
+
+.wardrobe-form-card .encore-input,
+.costume-upload-grid input,
+.costume-link-row input {
+    width: 100%;
+    min-height: 36px;
+    box-sizing: border-box;
+    padding: 7px 9px;
+    border: 1px solid var(--encore-border);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--encore-primary-deep);
+    font: inherit;
+    font-size: .58rem;
+}
+
+.wardrobe-form-card textarea.encore-input {
+    min-height: 92px;
+    resize: vertical;
+}
+
+.costume-upload-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.costume-upload-grid label {
+    padding: 10px;
+    border: 1px dashed var(--encore-border);
+    border-radius: 9px;
+    background: var(--encore-background);
+}
+
+.costume-link-list {
+    display: grid;
+    gap: 7px;
+}
+
+.costume-link-row {
+    display: grid;
+    grid-template-columns: .8fr 1.4fr 1fr auto;
+    gap: 8px;
+    align-items: end;
+    padding: 8px;
+    border-radius: 9px;
+    background: var(--encore-background);
+}
+
+.costume-link-delete {
+    display: flex !important;
+    align-items: center;
+    gap: 4px;
+    min-height: 36px;
+    color: #a23d3d;
+    font-size: .5rem;
+}
+
+.compact-action {
+    margin-top: 8px;
+}
+
+.costume-communication-options {
+    display: grid;
+    gap: 9px;
+}
+
+.wardrobe-check-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+.wardrobe-check-row > span {
+    display: grid;
+    gap: 2px;
+}
+
+.wardrobe-check-row strong {
+    color: var(--encore-primary-deep);
+    font-size: .58rem;
+}
+
+.wardrobe-check-row small {
+    color: var(--encore-muted);
+    font-size: .5rem;
+}
+
+.costume-task-due {
+    max-width: 280px;
+    margin-left: 26px;
+}
+
+.wardrobe-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.costume-toolbar-filters {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex: 1 1 auto;
+}
+
+.costume-toolbar-filters input {
+    min-width: 250px;
+}
+
+.costume-card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.costume-card,
+.family-costume-card {
+    overflow: hidden;
+    border: 1px solid var(--encore-border);
+    border-radius: 13px;
+    background: #fff;
+    color: inherit;
+    text-decoration: none;
+    box-shadow: var(--encore-shadow);
+}
+
+.costume-card:hover {
+    border-color: var(--encore-primary);
+}
+
+.costume-card-image {
+    display: grid;
+    min-height: 180px;
+    place-items: center;
+    overflow: hidden;
+    background: var(--encore-background);
+    color: var(--encore-muted);
+    font-size: .62rem;
+    font-weight: 850;
+}
+
+.costume-card-image img {
+    width: 100%;
+    height: 100%;
+    min-height: 180px;
+    max-height: 230px;
+    object-fit: cover;
+}
+
+.costume-card-copy,
+.family-costume-copy {
+    display: grid;
+    gap: 5px;
+    padding: 11px;
+}
+
+.costume-card-copy > span,
+.family-costume-copy > span {
+    color: var(--encore-primary);
+    font-size: .5rem;
+    font-weight: 850;
+}
+
+.costume-card-copy h2,
+.family-costume-copy h2 {
+    margin: 0;
+    color: var(--encore-primary-deep);
+    font-size: .78rem;
+}
+
+.costume-card-copy p,
+.family-costume-copy p {
+    margin: 0;
+    color: var(--encore-muted);
+    font-size: .54rem;
+    line-height: 1.45;
+}
+
+.costume-card-progress {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+.costume-card-progress strong {
+    color: var(--encore-primary-deep);
+    font-size: .7rem;
+}
+
+.costume-card-progress span {
+    color: var(--encore-muted);
+    font-size: .5rem;
+}
+
+.costume-table-card {
+    overflow: hidden;
+    border: 1px solid var(--encore-border);
+    border-radius: 12px;
+    background: #fff;
+}
+
+.costume-table-header,
+.costume-table-row {
+    display: grid;
+    grid-template-columns: 1.2fr 1.3fr .6fr .6fr auto;
+    gap: 8px;
+    align-items: center;
+    padding: 9px 11px;
+    border-bottom: 1px solid var(--encore-border);
+}
+
+.costume-table-header {
+    background: var(--encore-background);
+    color: var(--encore-muted);
+    font-size: .49rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.costume-table-row {
+    color: var(--encore-primary-deep);
+    font-size: .57rem;
+}
+
+.costume-table-row a {
+    color: var(--encore-primary);
+    font-weight: 850;
+    text-decoration: none;
+}
+
+.costume-detail-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 11px;
+}
+
+.costume-detail-main,
+.costume-detail-sidebar {
+    display: grid;
+    align-content: start;
+    gap: 11px;
+}
+
+.costume-photo-sections {
+    display: grid;
+    gap: 12px;
+}
+
+.costume-photo-group h3 {
+    margin: 0 0 6px;
+    color: var(--encore-primary-deep);
+    font-size: .62rem;
+}
+
+.costume-photo-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 7px;
+}
+
+.costume-photo-grid figure {
+    margin: 0;
+    overflow: hidden;
+    border-radius: 9px;
+    background: var(--encore-background);
+}
+
+.costume-photo-grid img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+}
+
+.costume-photo-grid figcaption {
+    padding: 6px;
+    color: var(--encore-muted);
+    font-size: .48rem;
+}
+
+.costume-assignment-table {
+    display: grid;
+}
+
+.costume-assignment-header,
+.costume-assignment-row {
+    display: grid;
+    grid-template-columns: 1.3fr .8fr .8fr 1fr;
+    gap: 7px;
+    align-items: center;
+}
+
+.costume-assignment-header {
+    padding: 0 6px 6px;
+    color: var(--encore-muted);
+    font-size: .48rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.costume-assignment-row {
+    min-height: 48px;
+    padding: 7px 6px;
+    border-top: 1px solid var(--encore-border);
+}
+
+.costume-assignment-row > div {
+    display: grid;
+    gap: 2px;
+}
+
+.costume-assignment-row strong {
+    color: var(--encore-primary-deep);
+    font-size: .56rem;
+}
+
+.costume-assignment-row small {
+    color: var(--encore-muted);
+    font-size: .47rem;
+}
+
+.costume-assignment-row .missing-measurements {
+    color: #a86e14;
+}
+
+.costume-assignment-row input,
+.costume-assignment-row select {
+    min-height: 32px;
+    padding: 5px 7px;
+    border: 1px solid var(--encore-border);
+    border-radius: 7px;
+    background: #fff;
+    color: var(--encore-primary-deep);
+    font-size: .53rem;
+}
+
+.costume-assignment-row.save-error {
+    background: rgba(176, 68, 68, .05);
+}
+
+.costume-note-copy,
+.muted-copy {
+    margin: 0;
+    color: var(--encore-primary-deep);
+    font-size: .56rem;
+    line-height: 1.5;
+}
+
+.muted-copy {
+    color: var(--encore-muted);
+}
+
+.costume-purchase-links {
+    display: grid;
+    gap: 6px;
+}
+
+.costume-purchase-links a {
+    display: grid;
+    gap: 2px;
+    padding: 8px;
+    border: 1px solid var(--encore-border);
+    border-radius: 8px;
+    color: var(--encore-primary-deep);
+    text-decoration: none;
+}
+
+.costume-purchase-links a:hover {
+    border-color: var(--encore-primary);
+}
+
+.costume-purchase-links strong {
+    font-size: .55rem;
+}
+
+.costume-purchase-links span,
+.costume-purchase-links small {
+    color: var(--encore-muted);
+    font-size: .47rem;
+}
+
+.full-width {
+    width: 100%;
+    box-sizing: border-box;
+    justify-content: center;
+}
+
+.family-costume-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.family-costume-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.family-costume-meta span {
+    padding: 4px 6px;
+    border-radius: 999px;
+    background: var(--encore-background);
+    color: var(--encore-muted);
+    font-size: .48rem;
+}
+
+.wardrobe-empty-state {
+    grid-column: 1 / -1;
+    padding: 28px;
+    border: 1px dashed var(--encore-border);
+    border-radius: 12px;
+    background: #fff;
+    color: var(--encore-muted);
+    text-align: center;
+    font-size: .6rem;
+}
+
+.costume-form [hidden],
+.measurement-roster [hidden] {
+    display: none !important;
+}
+
+@media (max-width: 1000px) {
+    .costume-card-grid,
+    .family-costume-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .costume-upload-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .costume-detail-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 720px) {
+    .wardrobe-page-header,
+    .measurement-toolbar,
+    .costume-toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .measurement-input-grid,
+    .measurement-current-grid,
+    .wardrobe-form-grid,
+    .costume-card-grid,
+    .family-costume-grid,
+    .costume-upload-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .measurement-input-grid label.wide,
+    .wardrobe-form-grid label.full {
+        grid-column: auto;
+    }
+
+    .measurement-card-body {
+        padding-left: 13px;
+    }
+
+    .costume-toolbar-filters,
+    .costume-link-row,
+    .costume-assignment-header,
+    .costume-assignment-row,
+    .costume-table-header,
+    .costume-table-row {
+        grid-template-columns: 1fr;
+    }
+
+    .costume-toolbar-filters {
+        align-items: stretch;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .costume-toolbar-filters input {
+        min-width: 0;
+    }
+
+    .costume-assignment-header {
+        display: none;
+    }
+}

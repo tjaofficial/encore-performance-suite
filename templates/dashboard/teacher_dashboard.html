@@ -1,0 +1,414 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static dashboard_quick_links %}
+
+{% block title %}
+    Teacher Dashboard | Encore Performance Suite
+{% endblock %}
+
+{% block extra_css %}
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_teacher_dashboard.css' %}"
+    >
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_tasks.css' %}"
+    >
+{% endblock %}
+
+{% block topbar_title %}
+    Encore
+{% endblock %}
+
+{% block content %}
+{% dashboard_quick_links request.user studio "teacher" as teacher_quick_links %}
+
+<section class="teacher-quick-actions">
+    {% for link in teacher_quick_links %}
+        <a
+            href="{{ link.url }}"
+            {% if link.external %}
+                target="_blank"
+                rel="noopener noreferrer"
+            {% endif %}
+        >
+            <span>{{ link.icon }}</span>
+            <strong>{{ link.label }}</strong>
+        </a>
+    {% endfor %}
+</section>
+
+<section class="teacher-dashboard-grid personalized-teacher-dashboard">
+    {% for card in teacher_dashboard_cards %}
+        <div
+            class="teacher-dashboard-slot width-{{ card.width }} height-{{ card.height }}"
+            data-card-key="{{ card.key }}"
+        >
+            {% if card.key == "today_classes" %}
+                <article
+                        class="dashboard-widget today-classes-widget merged-class-widget"
+                        data-teacher-class-widget
+                        data-default-index="{{ default_selected_index }}"
+                    >
+                        <div class="today-class-column">
+                            <div class="widget-heading">
+                                <div class="widget-title-group">
+                                    <span class="widget-icon">▣</span>
+                
+                                    <div>
+                                        <span class="widget-kicker">
+                                            Today's Classes
+                                        </span>
+                                    </div>
+                                </div>
+                
+                                <a
+                                    href="{% url 'scheduling:calendar' studio.slug %}"
+                                >
+                                    View full schedule
+                                </a>
+                            </div>
+                
+                            {% if today_class_cards %}
+                                <div class="today-class-rows">
+                                    {% for item in today_class_cards %}
+                                        <button
+                                            type="button"
+                                            class="today-class-row
+                                            {% if item.status == 'in_progress' %}is-current{% endif %}
+                                            {% if item.status == 'completed' %}is-completed{% endif %}"
+                                            data-class-selector
+                                            data-class-index="{{ forloop.counter0 }}"
+                                        >
+                                            <div class="today-class-accent"></div>
+                
+                                            <div class="today-class-time">
+                                                {{ item.meeting.start_time|time:"g:i A" }}
+                                            </div>
+                
+                                            <div class="today-class-name">
+                                                <strong>
+                                                    {{ item.class.name }}
+                                                </strong>
+                
+                                                {% if item.age_label %}
+                                                    <span>
+                                                        {{ item.age_label }}
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                
+                                            <div class="today-class-status">
+                                                {% if item.status_label %}
+                                                    <span class="in-progress-pill">
+                                                        {{ item.status_label }}
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                
+                                            <div class="today-class-details">
+                                                <strong>
+                                                    {% if item.location %}
+                                                        {{ item.location.name }}
+                                                    {% else %}
+                                                        —
+                                                    {% endif %}
+                                                </strong>
+                
+                                                <span>
+                                                    {{ item.meeting.duration_minutes }} min
+                                                </span>
+                                            </div>
+                
+                                            <span class="open-class-label">
+                                                Open Class
+                                            </span>
+                                        </button>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="today-classes-empty">
+                                    <span>▣</span>
+                
+                                    <strong>
+                                        No classes scheduled today
+                                    </strong>
+                
+                                    <p>
+                                        Your classes for today will appear here automatically.
+                                    </p>
+                                </div>
+                            {% endif %}
+                        </div>
+                
+                        {% if today_class_cards %}
+                            <div class="current-class-column">
+                                {% for item in today_class_cards %}
+                                    <section
+                                        class="current-class-panel"
+                                        data-class-panel
+                                        data-class-index="{{ forloop.counter0 }}"
+                                        {% if forloop.counter0 != default_selected_index %}hidden{% endif %}
+                                    >
+                                        <div class="current-class-heading">
+                                            <div>
+                                                <div class="current-class-kicker">
+                                                    <span class="current-class-icon">◎</span>
+                                                    Current Class
+                                                </div>
+                
+                                                <h2>
+                                                    {{ item.class.name }}
+                                                </h2>
+                                            </div>
+                
+                                            {% if item.status == "in_progress" %}
+                                                <span class="current-class-progress">
+                                                    In Progress
+                                                </span>
+                                            {% elif item.status == "completed" %}
+                                                <span class="current-class-complete">
+                                                    Completed
+                                                </span>
+                                            {% else %}
+                                                <span class="current-class-upcoming">
+                                                    Upcoming
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                
+                                        <div class="current-class-meta">
+                                            <span>
+                                                <b>⌖</b>
+                                                {% if item.location %}
+                                                    {{ item.location.name }}
+                                                {% else %}
+                                                    No room assigned
+                                                {% endif %}
+                                            </span>
+                
+                                            <span>
+                                                <b>◷</b>
+                                                {{ item.meeting.start_time|time:"g:i A" }}
+                                                –
+                                                {{ item.end_at|time:"g:i A" }}
+                                            </span>
+                
+                                            {% if item.age_label %}
+                                                <span>
+                                                    <b>♙</b>
+                                                    {{ item.age_label }}
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                
+                                        <div class="current-roster-heading">
+                                            <strong>
+                                                Student Roster
+                                                ({{ item.student_count }})
+                                            </strong>
+                
+                                            <span>
+                                                Present
+                                                {{ item.present_like_count }}
+                                                /
+                                                {{ item.student_count }}
+                                            </span>
+                                        </div>
+                
+                                        <div class="current-roster">
+                                            {% for row in item.roster %}
+                                                <div class="roster-row">
+                                                    <span class="roster-number">
+                                                        {{ forloop.counter }}
+                                                    </span>
+                
+                                                    <strong>
+                                                        {{ row.student.first_name }}
+                                                        {{ row.student.last_name }}
+                                                    </strong>
+                
+                                                    <span
+                                                        class="roster-attendance
+                                                        status-{{ row.attendance_status|default:'unmarked' }}"
+                                                        title="{{ row.attendance_label }}"
+                                                    >
+                                                        {% if row.attendance_status == "present" or row.attendance_status == "late" or row.attendance_status == "left_early" %}
+                                                            ✓
+                                                        {% elif row.attendance_status == "absent" %}
+                                                            ×
+                                                        {% elif row.attendance_status == "excused" %}
+                                                            E
+                                                        {% else %}
+                                                            ○
+                                                        {% endif %}
+                                                    </span>
+                                                </div>
+                                            {% empty %}
+                                                <div class="current-roster-empty">
+                                                    No active students enrolled in this class.
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                
+                                        <a
+                                            class="take-attendance-button"
+                                            href="{% url 'attendance:take_attendance' studio.slug item.class.id %}?date={{ today|date:'Y-m-d' }}&start={{ item.meeting.start_time|time:'H:i:s' }}"
+                                        >
+                                            <span>♙</span>
+                                            Take Attendance
+                                        </a>
+                                    </section>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </article>
+            {% elif card.key == "tasks" %}
+                <article class="dashboard-widget teacher-task-widget">
+                        <div class="widget-heading teacher-task-heading">
+                            <div class="teacher-task-heading-copy">
+                                <span class="widget-kicker">
+                                    Reminders / To-Do
+                                </span>
+                                <h2>My Tasks</h2>
+                            </div>
+                
+                            <a
+                                class="task-card-header-action"
+                                href="{% url 'tasks:task_create' studio.slug %}"
+                            >
+                                + Add Task
+                            </a>
+                        </div>
+                
+                        <div class="teacher-task-list task-checklist">
+                            {% for task in teacher_tasks %}
+                                <div class="teacher-task-row priority-{{ task.priority }}">
+                                    <form
+                                        method="post"
+                                        action="{% url 'tasks:task_toggle_complete' studio.slug task.id %}"
+                                    >
+                                        {% csrf_token %}
+                                        <input
+                                            type="hidden"
+                                            name="next"
+                                            value="{{ request.path }}"
+                                        >
+                
+                                        <button
+                                            type="submit"
+                                            class="teacher-task-check compact-task-check"
+                                            aria-label="Complete {{ task.title }}"
+                                        ><span aria-hidden="true"></span></button>
+                                    </form>
+                
+                                    <div class="teacher-task-copy">
+                                        <strong>{{ task.title }}</strong>
+                
+                                        {% if task.created_by != request.user %}
+                                            <small>
+                                                Assigned by
+                                                {{ task.created_by.get_full_name|default:task.created_by.email }}
+                                            </small>
+                                        {% elif task.class_instance %}
+                                            <small>{{ task.class_instance.name }}</small>
+                                        {% endif %}
+                                    </div>
+                
+                                    <div class="task-row-end">
+                                        {% if task.due_date %}
+                                            <span class="teacher-task-date">
+                                                {{ task.due_date|date:"M j" }}
+                                            </span>
+                                        {% endif %}
+                
+                                        {% if task.created_by_id == request.user.id or role == "administrator" %}
+                                            <div class="task-row-menu" data-task-menu>
+                                                <button
+                                                    type="button"
+                                                    class="task-row-menu-button"
+                                                    aria-label="Options for {{ task.title }}"
+                                                    aria-expanded="false"
+                                                    data-task-menu-button
+                                                >
+                                                    ⋯
+                                                </button>
+                
+                                                <div
+                                                    class="task-row-menu-popover"
+                                                    data-task-menu-popover
+                                                    hidden
+                                                >
+                                                    <a
+                                                                href="{% url 'tasks:task_edit' studio.slug task.id %}?next={{ request.get_full_path|urlencode }}"
+                                                    >
+                                                                Edit
+                                                    </a>
+                
+                                                    <form
+                                                                method="post"
+                                                                action="{% url 'tasks:task_delete' studio.slug task.id %}"
+                                                                onsubmit="return confirm('Delete this reminder?');"
+                                                    >
+                                                                {% csrf_token %}
+                                                                <input
+                                                                    type="hidden"
+                                                                    name="next"
+                                                                    value="{{ request.get_full_path }}"
+                                                                >
+                                                                <button type="submit">
+                                                                    Delete
+                                                                </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <div class="teacher-task-empty">
+                                    Nothing on your list right now.
+                                </div>
+                            {% endfor %}
+                        </div>
+                
+                        <a
+                            class="teacher-task-view-all"
+                            href="{% url 'tasks:task_list' studio.slug %}"
+                        >
+                            View All Tasks →
+                        </a>
+                    </article>
+            {% elif card.key == "dances" %}
+                {% include "dashboard/teacher_cards/dances.html" %}
+            {% endif %}
+        </div>
+    {% empty %}
+        <div class="teacher-dashboard-empty-layout">
+            <strong>No Teacher Dashboard cards are enabled.</strong>
+
+            <p>
+                Open Settings → Teacher Dashboard to add cards back.
+            </p>
+
+            <a
+                class="button primary"
+                href="{% url 'studios:teacher_dashboard_settings' studio.slug %}"
+            >
+                Customize Teacher Dashboard
+            </a>
+        </div>
+    {% endfor %}
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script
+    src="{% static 'js/encore_teacher_dashboard.js' %}"
+    defer
+></script>
+<script
+    src="{% static 'js/encore_quick_tasks.js' %}"
+    defer
+></script>
+{% endblock %}

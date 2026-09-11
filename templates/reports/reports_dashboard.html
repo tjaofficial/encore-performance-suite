@@ -1,0 +1,303 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Reports | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_reports.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Reports & Studio Insights{% endblock %}
+
+{% block content %}
+<section class="reports-heading">
+    <div>
+        <p class="eyebrow">Studio Intelligence</p>
+
+        <h1>Reports</h1>
+
+        <p>
+            Run operational reports, cross-reference studio data,
+            and surface the things that need attention.
+        </p>
+    </div>
+
+    <div class="report-actions">
+        <a
+            class="button secondary"
+            href="{% url 'reports:all_students_csv' studio.slug %}"
+        >
+            Export Students CSV
+        </a>
+    </div>
+</section>
+
+<form method="get" class="season-filter">
+    <div>
+        <label>Reporting Season</label>
+
+        <select name="season">
+            {% for season in seasons %}
+                <option
+                    value="{{ season.id }}"
+                    {% if selected_season and selected_season.id == season.id %}selected{% endif %}
+                >
+                    {{ season.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <button class="button primary" type="submit">
+        Apply
+    </button>
+</form>
+
+{% if selected_season %}
+<div class="selected-season-banner">
+    <div>
+        <span>Viewing</span>
+        <strong>{{ selected_season.name }}</strong>
+    </div>
+
+    <span>
+        {{ selected_season.start_date|date:"M j, Y" }}
+        →
+        {{ selected_season.end_date|date:"M j, Y" }}
+    </span>
+</div>
+{% endif %}
+
+<section class="report-metrics">
+    <article class="report-metric-card">
+        <span>Active Students</span>
+        <strong>{{ active_student_count }}</strong>
+        <small>studio-wide</small>
+    </article>
+
+    <article class="report-metric-card">
+        <span>Season Students</span>
+        <strong>{{ season_student_count }}</strong>
+        <small>unique enrolled students</small>
+    </article>
+
+    <article class="report-metric-card">
+        <span>Active Enrollments</span>
+        <strong>{{ active_enrollment_count }}</strong>
+        <small>selected season</small>
+    </article>
+
+    <article class="report-metric-card">
+        <span>Attendance Rate</span>
+        <strong>
+            {% if attendance_rate is not None %}
+                {{ attendance_rate }}%
+            {% else %}
+                —
+            {% endif %}
+        </strong>
+        <small>selected season</small>
+    </article>
+
+    <article class="report-metric-card">
+        <span>Families</span>
+        <strong>{{ family_count }}</strong>
+        <small>active households</small>
+    </article>
+
+    <article class="report-metric-card">
+        <span>Instructors</span>
+        <strong>{{ instructor_count }}</strong>
+        <small>active staff</small>
+    </article>
+</section>
+
+<section class="report-quick-grid">
+    <article class="report-health-card">
+        <div class="panel-heading">
+            <div>
+                <span class="card-kicker">Studio Health</span>
+                <h2>How the studio is doing</h2>
+            </div>
+        </div>
+
+        <div class="report-health-stats">
+            <div>
+                <span>Enrollment</span>
+                <strong>{{ active_enrollment_count }}</strong>
+                <small>active enrollments</small>
+            </div>
+
+            <div>
+                <span>Attendance</span>
+                <strong>
+                    {% if attendance_rate is not None %}
+                        {{ attendance_rate }}%
+                    {% else %}
+                        —
+                    {% endif %}
+                </strong>
+                <small>overall season rate</small>
+            </div>
+
+            <div>
+                <span>Class Pressure</span>
+                <strong>{{ attention_counts.full_classes }}</strong>
+                <small>classes at capacity</small>
+            </div>
+        </div>
+    </article>
+
+    <article class="report-attention-card">
+        <div class="panel-heading">
+            <div>
+                <span class="card-kicker">Needs Attention</span>
+                <h2>Things worth checking</h2>
+            </div>
+        </div>
+
+        <div class="attention-list">
+            <a href="{% url 'reports:report_detail' studio.slug 'student-absences' %}?season={{ selected_season.id }}">
+                <strong>{{ attention_counts.repeated_absences }}</strong>
+                <span>students with repeated absences</span>
+            </a>
+
+            <a href="{% url 'reports:report_detail' studio.slug 'class-capacity' %}?season={{ selected_season.id }}">
+                <strong>{{ attention_counts.waitlisted_classes }}</strong>
+                <span>classes with a waitlist</span>
+            </a>
+
+            <a href="{% url 'reports:report_detail' studio.slug 'class-list' %}?season={{ selected_season.id }}">
+                <strong>{{ attention_counts.missing_tuition }}</strong>
+                <span>classes missing tuition</span>
+            </a>
+        </div>
+    </article>
+</section>
+
+<section class="report-catalog-header">
+    <div>
+        <p class="eyebrow">Report Library</p>
+        <h2>Everything you can report on</h2>
+        <p>
+            {{ report_catalog_count }} report ideas organized by workflow.
+            {{ live_report_count }} are wired to live studio data now;
+            the rest are mapped for the next reporting phases.
+        </p>
+    </div>
+
+    <div class="report-search">
+        <label for="report-search">Find a report</label>
+        <input
+            id="report-search"
+            type="search"
+            placeholder="Search reports..."
+            autocomplete="off"
+            data-report-search
+        >
+    </div>
+</section>
+
+<section class="report-library" data-report-library>
+    {% for category in report_catalog %}
+        <article
+            class="report-category-card"
+            id="report-{{ category.slug }}"
+            data-report-category
+        >
+            <div class="report-category-heading">
+                <div>
+                    <h3>{{ category.title }}</h3>
+                    <p>{{ category.description }}</p>
+                </div>
+
+                <span>{{ category.reports|length }}</span>
+            </div>
+
+            <div class="report-link-grid">
+                {% for key, title, description, status in category.reports %}
+                    {% if status == "live" %}
+                        <a
+                            class="report-link-card live"
+                            href="{% url 'reports:report_detail' studio.slug key %}?season={{ selected_season.id }}"
+                            data-report-item
+                        >
+                            <div>
+                                <strong>{{ title }}</strong>
+                                <p>{{ description }}</p>
+                            </div>
+
+                            <span class="report-status live">
+                                Available
+                            </span>
+                        </a>
+                    {% elif status == "dashboard" %}
+                        <a
+                            class="report-link-card live"
+                            href="#top"
+                            data-report-item
+                        >
+                            <div>
+                                <strong>{{ title }}</strong>
+                                <p>{{ description }}</p>
+                            </div>
+
+                            <span class="report-status live">
+                                Live
+                            </span>
+                        </a>
+                    {% else %}
+                        <a
+                            class="report-link-card planned"
+                            href="{% url 'reports:report_detail' studio.slug key %}?season={{ selected_season.id }}"
+                            data-report-item
+                        >
+                            <div>
+                                <strong>{{ title }}</strong>
+                                <p>{{ description }}</p>
+                            </div>
+
+                            <span class="report-status planned">
+                                Planned
+                            </span>
+                        </a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </article>
+    {% endfor %}
+</section>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const input = document.querySelector("[data-report-search]");
+    const categories = document.querySelectorAll("[data-report-category]");
+
+    if (!input) {
+        return;
+    }
+
+    input.addEventListener("input", () => {
+        const term = input.value.trim().toLowerCase();
+
+        categories.forEach((category) => {
+            const items = category.querySelectorAll("[data-report-item]");
+            let visibleCount = 0;
+
+            items.forEach((item) => {
+                const matches = !term
+                    || item.textContent.toLowerCase().includes(term);
+
+                item.hidden = !matches;
+
+                if (matches) {
+                    visibleCount += 1;
+                }
+            });
+
+            category.hidden = visibleCount === 0;
+        });
+    });
+});
+</script>
+{% endblock %}

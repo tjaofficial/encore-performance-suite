@@ -1,0 +1,120 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Performance Tools | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_performance.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Performance Tools{% endblock %}
+
+{% block content %}
+<section class="performance-heading">
+    <div>
+        <p class="eyebrow">Choreography</p>
+        <h1>Performance Plans</h1>
+
+        <p>
+            Choreography notes, formations, lighting cues,
+            and recital preparation organized by class.
+        </p>
+    </div>
+
+    <a
+        class="button primary"
+        href="{% url 'performance:plan_create' studio.slug %}"
+    >
+        + Performance Plan
+    </a>
+</section>
+
+<form method="get" class="performance-search">
+    <input
+        type="search"
+        name="q"
+        value="{{ search }}"
+        placeholder="Search class, routine, or song..."
+    >
+
+    <button
+        class="button primary"
+        type="submit"
+    >
+        Search
+    </button>
+
+    {% if search %}
+        <a
+            class="button secondary"
+            href="{% url 'performance:plan_list' studio.slug %}"
+        >
+            Reset
+        </a>
+    {% endif %}
+</form>
+
+<section class="performance-plan-grid">
+    {% for plan in plans %}
+        <a
+            class="performance-plan-card"
+            href="{% url 'performance:plan_detail' studio.slug plan.id %}"
+        >
+            <div class="performance-card-top">
+                <div>
+                    <span class="class-code">
+                        {{ plan.class_instance.class_id }}
+                    </span>
+
+                    <h2>
+                        {{ plan.title|default:plan.class_instance.name }}
+                    </h2>
+
+                    <p>
+                        {{ plan.class_instance.name }}
+                        ·
+                        {{ plan.class_instance.season.name }}
+                    </p>
+                </div>
+
+                <span class="performance-arrow">→</span>
+            </div>
+
+            {% if plan.song_title %}
+                <div class="song-line">
+                    <span>♫</span>
+
+                    <div>
+                        <strong>{{ plan.song_title }}</strong>
+
+                        {% if plan.artist %}
+                            <small>{{ plan.artist }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="performance-metrics">
+                <div>
+                    <span>Formations</span>
+                    <strong>{{ plan.formation_count }}</strong>
+                </div>
+
+                <div>
+                    <span>Lighting</span>
+                    <strong>{{ plan.lighting_count }}</strong>
+                </div>
+
+                <div>
+                    <span>Prep Items</span>
+                    <strong>{{ plan.prep_count }}</strong>
+                </div>
+            </div>
+        </a>
+    {% empty %}
+        <div class="empty-state">
+            No performance plans yet.
+        </div>
+    {% endfor %}
+</section>
+{% endblock %}

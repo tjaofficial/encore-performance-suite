@@ -1,0 +1,130 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Edit Evaluation | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_evaluations.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Evaluation{% endblock %}
+
+{% block content %}
+<section class="evaluation-heading">
+    <div>
+        <a
+            class="back-link"
+            href="{% url 'evaluations:evaluation_list' studio.slug %}"
+        >
+            ← Back to Evaluations
+        </a>
+
+        <p class="eyebrow">
+            {{ evaluation.template.name }}
+        </p>
+
+        <h1>
+            {{ evaluation.student.first_name }}
+            {{ evaluation.student.last_name }}
+        </h1>
+
+        <p>
+            {{ evaluation.class_instance.name }}
+            ·
+            {{ evaluation.evaluation_date|date:"F j, Y" }}
+        </p>
+    </div>
+</section>
+
+<form method="post" class="evaluation-form">
+    {% csrf_token %}
+
+    <section class="criteria-stack">
+        {% for criterion, criterion_form in response_forms %}
+            <article class="criterion-card">
+                <div class="criterion-title">
+                    <div>
+                        <span class="card-kicker">
+                            Criterion
+                        </span>
+
+                        <h2>{{ criterion.name }}</h2>
+
+                        {% if criterion.description %}
+                            <p>{{ criterion.description }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="criterion-fields">
+                    <div class="field-group">
+                        {{ criterion_form.rating.label_tag }}
+                        {{ criterion_form.rating }}
+
+                        {% for error in criterion_form.rating.errors %}
+                            <small class="field-error">
+                                {{ error }}
+                            </small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="field-group">
+                        <label>Comments</label>
+                        {{ criterion_form.comments }}
+                    </div>
+                </div>
+            </article>
+        {% endfor %}
+    </section>
+
+    <section class="evaluation-panel">
+        <div class="form-grid">
+            <div class="field-group full">
+                <label for="overall-notes">
+                    Overall Teacher Notes
+                </label>
+
+                <textarea
+                    id="overall-notes"
+                    name="overall_notes"
+                    class="encore-input"
+                    rows="5"
+                >{{ evaluation.overall_notes }}</textarea>
+            </div>
+
+            <div class="field-group full">
+                <label for="goals">
+                    Goals / Next Focus Areas
+                </label>
+
+                <textarea
+                    id="goals"
+                    name="goals"
+                    class="encore-input"
+                    rows="5"
+                >{{ evaluation.goals }}</textarea>
+            </div>
+        </div>
+    </section>
+
+    <div class="form-actions split-actions">
+        <button
+            class="button secondary"
+            type="submit"
+            name="action"
+            value="save"
+        >
+            Save Draft
+        </button>
+
+        <button
+            class="button primary"
+            type="submit"
+            name="action"
+            value="publish"
+        >
+            Publish to Family
+        </button>
+    </div>
+</form>
+{% endblock %}

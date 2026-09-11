@@ -1,0 +1,19 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+{% block title %}Class Types | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}">{% endblock %}
+{% block topbar_title %}Class Types{% endblock %}
+{% block content %}
+<div class="settings-workspace">
+    {% include "includes/settings_nav.html" %}
+    <div class="settings-workspace-content">
+        <section class="settings-heading"><div><a class="back-link" href="{% url 'studios:onboarding_home' studio.slug %}">← Back to Studio Settings</a><p class="eyebrow">Studio Settings</p><h1>Class Types</h1><p>Define the categories used across class management and registration.</p></div><a class="button primary" href="{% url 'studios:class_type_add' studio.slug %}">+ Add Class Type</a></section>
+        {% if messages %}<div class="message-stack">{% for message in messages %}<div class="message-banner {{ message.tags }}">{{ message }}</div>{% endfor %}</div>{% endif %}
+        <section class="settings-list">
+            {% for class_type in class_types %}
+            <article class="settings-list-row"><div><strong>{{ class_type.name }}</strong>{% if class_type.description %}<span>{{ class_type.description }}</span>{% endif %}</div><div class="settings-item-actions">{% if class_type.is_active %}<span class="setup-state complete">Active</span>{% else %}<span class="setup-state">Inactive</span>{% endif %}<a class="settings-edit-link" href="{% url 'studios:class_type_edit' studio.slug class_type.id %}">Edit</a><form method="post" action="{% url 'studios:class_type_delete' studio.slug class_type.id %}" onsubmit="return confirm('Remove {{ class_type.name|escapejs }}?');">{% csrf_token %}<button class="settings-remove-button" type="submit">Remove</button></form></div></article>
+            {% empty %}<div class="empty-state">No class types yet.</div>{% endfor %}
+        </section>
+    </div>
+</div>
+{% endblock %}

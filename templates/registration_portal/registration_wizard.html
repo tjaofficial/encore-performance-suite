@@ -1,0 +1,638 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Registration | {{ studio.name }}</title>
+    <link rel="stylesheet" href="{% static 'css/encore_public_registration.css' %}">
+    <link rel="stylesheet" href="{% static 'css/encore_tenant_branding.css' %}">
+    {% include "includes/studio_brand_vars.html" %}
+    {% if step == "ready" and payment_setup and payment_setup.client_secret %}
+        <script src="https://js.stripe.com/v3/"></script>
+    {% endif %}
+</head>
+<body class="{% if embed_mode %}embed-mode {% endif %}widget-style-{{ widget_style|default:'clean' }}">
+<main class="public-shell registration-wizard-shell">
+    {% if not embed_mode %}
+        <header class="public-header registration-wizard-header">
+            <div>
+                <span class="public-kicker">{{ studio.name }}</span>
+                <h1>Class Registration</h1>
+                <p>Your progress is saved as you move through each step.</p>
+            </div>
+        </header>
+    {% endif %}
+
+    <nav class="registration-progress" aria-label="Registration progress">
+        <span class="{% if step == 'type' %}active{% elif registration_session.registration_type %}complete{% endif %}">1 <b>Registration</b></span>
+        <span class="{% if step == 'account' %}active{% elif registration_session.account_data %}complete{% endif %}">2 <b>Account</b></span>
+        <span class="{% if step == 'student' %}active{% elif registration_session.student_data %}complete{% endif %}">3 <b>Student</b></span>
+        <span class="{% if step == 'classes' %}active{% elif registration_session.selected_classes.exists %}complete{% endif %}">4 <b>Classes</b></span>
+        <span class="{% if step == 'review' or step == 'ready' %}active{% endif %}">5 <b>Review</b></span>
+    </nav>
+
+    <section class="public-registration-card registration-wizard-card">
+        {% if step == "type" %}
+            <div class="registration-heading">
+                <span class="public-kicker">Step 1 of 5</span>
+                <h1>Who are you registering?</h1>
+                <p>Choose the option that best matches this registration.</p>
+            </div>
+
+            <form method="post" class="public-form registration-choice-form">
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+                <div class="registration-choice-list">
+                    {% for choice in form.registration_type %}
+                        <label class="registration-choice-card">
+                            {{ choice.tag }}
+                            <span>
+                                <strong>{{ choice.choice_label }}</strong>
+                                {% if choice.data.value == "self" %}
+                                    <small>I am an adult student registering for classes myself.</small>
+                                {% else %}
+                                    <small>I am a parent, guardian, or responsible adult registering a student.</small>
+                                {% endif %}
+                            </span>
+                        </label>
+                    {% endfor %}
+                </div>
+                <div class="wizard-actions">
+                    <button class="public-button primary large" type="submit">Continue</button>
+                </div>
+            </form>
+
+        {% elif step == "account" %}
+            <div class="registration-heading">
+                <span class="public-kicker">Step 2 of 5</span>
+                <h1>
+                    {% if registration_session.registration_type == "self" %}
+                        Encore Account
+                    {% else %}
+                        Parent / Guardian Account
+                    {% endif %}
+                </h1>
+                <p>
+                    Returning to Encore? Sign in and we will reuse the account and household
+                    already on file. New families can create an account below.
+                </p>
+            </div>
+
+            <div class="returning-account-grid">
+                <section class="returning-account-card existing">
+                    <span class="public-kicker">Returning to Encore</span>
+                    <h2>Use Existing Account</h2>
+                    <p>Sign in with the Encore account already connected to this studio.</p>
+
+                    <form method="post" class="public-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="account_action" value="existing">
+
+                        {% if returning_form.non_field_errors %}
+                            <div class="public-errors">{{ returning_form.non_field_errors }}</div>
+                        {% endif %}
+
+                        {% for field in returning_form %}
+                            <div class="public-field">
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {% for error in field.errors %}
+                                    <small class="public-error">{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+
+                        <button class="public-button primary large" type="submit">
+                            Sign In & Continue
+                        </button>
+                    </form>
+                </section>
+
+                <section class="returning-account-card new">
+                    <span class="public-kicker">New to Encore</span>
+                    <h2>Create Account</h2>
+                    <p>
+                        {% if registration_session.registration_type == "self" %}
+                            Create your Encore login and billing household.
+                        {% else %}
+                            Create the parent or guardian login and household information.
+                        {% endif %}
+                    </p>
+
+                    <form method="post" class="public-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="account_action" value="new">
+
+                        {% if form.non_field_errors %}
+                            <div class="public-errors">{{ form.non_field_errors }}</div>
+                        {% endif %}
+
+                        <div class="wizard-form-grid">
+                            {% for field in form %}
+                                <div class="public-field {% if field.name == 'address_line_1' or field.name == 'address_line_2' or field.name == 'how_did_you_hear_about_us' %}full{% endif %}">
+                                    {{ field.label_tag }}
+                                    {{ field }}
+                                    {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                                    {% for error in field.errors %}
+                                        <small class="public-error">{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <button class="public-button primary large" type="submit">
+                            Create Account & Continue
+                        </button>
+                    </form>
+                </section>
+            </div>
+
+            <div class="wizard-actions split">
+                <a class="public-button secondary" href="{% url 'registration_portal:registration_wizard' studio.slug registration_session.token 'type' %}">Back</a>
+            </div>
+
+        {% elif step == "student" %}
+            <div class="registration-heading">
+                <span class="public-kicker">Step 3 of 5</span>
+                <h1>
+                    {% if registration_session.registration_type == "self" %}
+                        Student Information
+                    {% else %}
+                        Tell Us About the Student
+                    {% endif %}
+                </h1>
+                <p>
+                    {% if registration_session.registration_type == "self" %}
+                        Add the information the studio needs for your student record.
+                    {% else %}
+                        Students age 14 or older may optionally receive their own Encore login.
+                    {% endif %}
+                </p>
+            </div>
+
+            {% if existing_students %}
+                <section class="existing-students-panel">
+                    <span class="public-kicker">Students Already on This Household</span>
+                    <h2>Register an Existing Student</h2>
+                    <p>Select a student to keep their current Encore record and continue to class selection.</p>
+
+                    <div class="existing-student-grid">
+                        {% for existing_student in existing_students %}
+                            <form method="post" class="existing-student-card">
+                                {% csrf_token %}
+                                <input type="hidden" name="student_action" value="existing">
+                                <input type="hidden" name="existing_student_id" value="{{ existing_student.id }}">
+
+                                <div>
+                                    <strong>{{ existing_student.first_name }} {{ existing_student.last_name }}</strong>
+                                    <small>
+                                        Age {{ existing_student.age }}
+                                        {% if existing_student.user %} · Student login active{% endif %}
+                                    </small>
+                                </div>
+
+                                <button class="public-button primary" type="submit">
+                                    Register This Student
+                                </button>
+                            </form>
+                        {% endfor %}
+                    </div>
+
+                    <div class="existing-student-divider">
+                        <span>or add another student</span>
+                    </div>
+                </section>
+            {% endif %}
+
+            <form method="post" class="public-form" id="student-details-form">
+                <input type="hidden" name="student_action" value="new">
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <div class="public-errors">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                <div class="wizard-form-grid">
+                    {% for field in form %}
+                        {% if field.name == "create_student_login" %}
+                            <div class="public-field full student-login-toggle">
+                                <label>{{ field }} <span>{{ field.label }}</span></label>
+                                {% for error in field.errors %}<small class="public-error">{{ error }}</small>{% endfor %}
+                            </div>
+                        {% elif field.name == "student_email" or field.name == "student_password1" or field.name == "student_password2" %}
+                            <div class="public-field student-login-field">
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {% for error in field.errors %}<small class="public-error">{{ error }}</small>{% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="public-field {% if field.name == 'medical_conditions' or field.name == 'allergies' or field.name == 'comments' %}full{% endif %}">
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {% for error in field.errors %}<small class="public-error">{{ error }}</small>{% endfor %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                {% if registration_session.registration_type != "self" %}
+                    <div class="student-login-note" id="student-login-note">
+                        A separate student login becomes available at age 14.
+                    </div>
+                {% endif %}
+
+                <div class="wizard-actions split">
+                    <a class="public-button secondary" href="{% url 'registration_portal:registration_wizard' studio.slug registration_session.token 'account' %}">Back</a>
+                    <button class="public-button primary large" type="submit">Continue</button>
+                </div>
+            </form>
+
+        {% elif step == "classes" %}
+            <div class="registration-heading">
+                <span class="public-kicker">Step 4 of 5</span>
+                <h1>Select Classes</h1>
+                <p>Select one or more classes. Only classes matching the student's age are shown.</p>
+            </div>
+
+            <form method="post" class="public-form">
+                {% csrf_token %}
+                {% if form.classes.errors %}
+                    {% for error in form.classes.errors %}
+                        <div class="public-errors">{{ error }}</div>
+                    {% endfor %}
+                {% endif %}
+
+                <div class="wizard-class-selection">
+                    {% for row in class_rows %}
+                        <label class="wizard-class-option">
+                            <input
+                                type="checkbox"
+                                name="classes"
+                                value="{{ row.class.id }}"
+                                {% if row.class.id in form.classes.value %}checked{% endif %}
+                            >
+                            <div class="wizard-class-main">
+                                <div>
+                                    <span class="public-kicker">{{ row.class.class_id }}</span>
+                                    <h3>{{ row.class.name }}</h3>
+                                    <p>{{ row.class.class_type.name }} · {{ row.class.season.name }}</p>
+                                </div>
+                                {% if row.is_full %}
+                                    <span class="availability full">Waitlist</span>
+                                {% else %}
+                                    <span class="availability open">Open</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="wizard-class-meta">
+                                {% for meeting in row.class.meeting_times.all %}
+                                    {% if meeting.is_active %}
+                                        <span>{{ meeting.get_day_of_week_display }} · {{ meeting.start_time|time:"g:i A" }}</span>
+                                    {% endif %}
+                                {% endfor %}
+                                {% if row.class.tuition_amount is not None %}
+                                    <span>${{ row.class.tuition_amount }}{% if row.class.tuition_plan %} · {{ row.class.tuition_plan.get_frequency_display }}{% endif %}</span>
+                                {% endif %}
+                            </div>
+                        </label>
+                    {% empty %}
+                        <div class="public-empty">
+                            No classes currently match this student's age and the studio's registration settings.
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="wizard-actions split">
+                    <a class="public-button secondary" href="{% url 'registration_portal:registration_wizard' studio.slug registration_session.token 'student' %}">Back</a>
+                    <button class="public-button primary large" type="submit">Review Registration</button>
+                </div>
+            </form>
+
+        {% elif step == "review" %}
+            <div class="registration-heading">
+                <span class="public-kicker">Step 5 of 5</span>
+                <h1>Review Registration</h1>
+                <p>Check everything before continuing to payment.</p>
+            </div>
+
+            <div class="registration-review-grid">
+                <section class="review-panel">
+                    <div class="review-panel-heading">
+                        <h2>{% if registration_session.registration_type == "self" %}Account{% else %}Parent / Guardian{% endif %}</h2>
+                        <a href="{% url 'registration_portal:registration_wizard' studio.slug registration_session.token 'account' %}">Edit</a>
+                    </div>
+                    {% if registration_session.registration_type == "self" %}
+                        <strong>{{ account_data.first_name }} {{ account_data.last_name }}</strong>
+                        {% if account_data.account_mode == "existing" %}
+                            <p>Returning Encore account</p>
+                        {% endif %}
+                    {% else %}
+                        <strong>{{ account_data.guardian_first_name }} {{ account_data.guardian_last_name }}</strong>
+                        {% if account_data.guardian_relationship %}<p>{{ account_data.guardian_relationship }}</p>{% endif %}
+                    {% endif %}
+                    <p>{{ account_data.email }}</p>
+                    {% if account_data.phone %}<p>{{ account_data.phone }}</p>{% endif %}
+                    {% if account_data.address_line_1 %}
+                        <p>
+                            {{ account_data.address_line_1 }}
+                            {% if account_data.address_line_2 %}<br>{{ account_data.address_line_2 }}{% endif %}
+                            <br>{{ account_data.city }}{% if account_data.state %}, {{ account_data.state }}{% endif %} {{ account_data.postal_code }}
+                        </p>
+                    {% endif %}
+                </section>
+
+                <section class="review-panel">
+                    <div class="review-panel-heading">
+                        <h2>Student</h2>
+                        <a href="{% url 'registration_portal:registration_wizard' studio.slug registration_session.token 'student' %}">Edit</a>
+                    </div>
+                    <strong>{{ student_data.student_first_name }} {{ student_data.student_last_name }}</strong>
+                    {% if student_data.existing_student_id %}
+                        <p>Existing Encore student record</p>
+                    {% endif %}
+                    <p>Birthday: {{ student_data.birthday }}</p>
+                    {% if student_data.gender %}<p>Gender: {{ student_data.gender|title }}</p>{% endif %}
+                    {% if student_data.create_student_login %}
+                        <p>Student login: {{ student_data.student_email }}</p>
+                    {% endif %}
+                </section>
+            </div>
+
+            <section class="review-panel review-classes">
+                <div class="review-panel-heading">
+                    <h2>Classes & Charges</h2>
+                    <a href="{% url 'registration_portal:registration_wizard' studio.slug registration_session.token 'classes' %}">Edit</a>
+                </div>
+
+                <div class="review-charge-table-wrap">
+                    <table class="review-charge-table">
+                        <thead>
+                            <tr>
+                                <th>Class</th>
+                                <th>Tuition</th>
+                                <th>Registration Fee</th>
+                                <th>Due at Checkout</th>
+                                <th>Future Billing</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in pricing.items %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ item.class_name }}</strong>
+                                        <small>{{ item.class_code }} · {{ item.season }}</small>
+                                        {% if item.is_full %}
+                                            <span class="availability full">Waitlist</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>${{ item.tuition }}</td>
+                                    <td>${{ item.registration_fee }}</td>
+                                    <td>
+                                        {% if item.is_full %}
+                                            $0.00
+                                        {% else %}
+                                            <strong>${{ item.due_today }}</strong>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if item.is_full %}
+                                            No charge while waitlisted
+                                        {% elif item.future_recurring != "0.00" %}
+                                            ${{ item.future_recurring }} · {{ item.frequency }}
+                                        {% else %}
+                                            —
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="registration-total-card">
+                    <span>Estimated Due at Checkout</span>
+                    <strong>${{ pricing.due_today }} {{ pricing.currency }}</strong>
+                    <small>
+                        Waitlisted classes are not included in the amount due.
+                        Final availability and charges will be rechecked before payment.
+                    </small>
+                </div>
+            </section>
+
+            <form method="post" class="public-form review-confirm-form">
+                {% csrf_token %}
+                <label class="review-confirm">
+                    {{ form.confirm }}
+                    <span>{{ form.confirm.label }}</span>
+                </label>
+                {% for error in form.confirm.errors %}<small class="public-error">{{ error }}</small>{% endfor %}
+
+                <div class="wizard-actions split">
+                    <a class="public-button secondary" href="{% url 'registration_portal:registration_wizard' studio.slug registration_session.token 'classes' %}">Back</a>
+                    <button class="public-button primary large" type="submit">Continue to Payment</button>
+                </div>
+            </form>
+
+        {% elif step == "ready" %}
+            <div class="registration-heading">
+                <span class="public-kicker">Secure Checkout</span>
+                <h1>Complete Registration</h1>
+                <p>
+                    Your information is saved. Encore has rechecked class availability
+                    and the amount below before checkout.
+                </p>
+            </div>
+
+            <div class="registration-total-card ready">
+                <span>Due Today</span>
+                <strong>${{ pricing.due_today }} {{ pricing.currency }}</strong>
+                <small>
+                    Waitlisted classes are not charged. Stripe securely handles
+                    card information; Encore does not store card numbers.
+                </small>
+            </div>
+
+            {% if payment_error %}
+                <div class="public-errors payment-setup-error">
+                    {{ payment_error }}
+                </div>
+
+                <div class="wizard-actions split">
+                    <a
+                        class="public-button secondary"
+                        href="{% url 'registration_portal:registration_wizard' studio.slug registration_session.token 'review' %}"
+                    >
+                        Review Again
+                    </a>
+                </div>
+
+            {% elif payment_setup.amount <= 0 %}
+                <form
+                    method="post"
+                    action="{% url 'registration_portal:registration_complete_free' studio.slug registration_session.token %}"
+                    class="public-form"
+                >
+                    {% csrf_token %}
+                    <div class="public-notice registration-free-notice">
+                        No payment is due today. Continue to finish the registration.
+                    </div>
+
+                    <div class="wizard-actions split">
+                        <a
+                            class="public-button secondary"
+                            href="{% url 'registration_portal:registration_wizard' studio.slug registration_session.token 'review' %}"
+                        >
+                            Review Again
+                        </a>
+
+                        <button class="public-button primary large" type="submit">
+                            Complete Registration
+                        </button>
+                    </div>
+                </form>
+
+            {% else %}
+                <div
+                    id="encore-payment-config"
+                    data-publishable-key="{{ stripe_publishable_key }}"
+                    data-connected-account="{{ payment_setup.connected_account_id }}"
+                    data-client-secret="{{ payment_setup.client_secret }}"
+                    data-return-url="{% url 'registration_portal:registration_payment_return' studio.slug registration_session.token %}"
+                ></div>
+
+                <form id="encore-payment-form" class="public-form">
+                    <div id="payment-element" class="stripe-payment-element"></div>
+                    <div id="payment-message" class="public-error" hidden></div>
+
+                    <div class="wizard-actions split">
+                        <a
+                            class="public-button secondary"
+                            href="{% url 'registration_portal:registration_wizard' studio.slug registration_session.token 'review' %}"
+                        >
+                            Review Again
+                        </a>
+
+                        <button
+                            class="public-button primary large"
+                            id="submit-payment"
+                            type="submit"
+                        >
+                            <span id="payment-button-text">
+                                Pay ${{ pricing.due_today }} & Complete Registration
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            {% endif %}
+        {% endif %}
+    </section>
+
+    {% if embed_mode %}
+        <footer class="embed-footer">Powered by Encore Performance Suite</footer>
+    {% endif %}
+</main>
+
+{% if step == "student" and registration_session.registration_type != "self" %}
+<script>
+(() => {
+    const birthday = document.querySelector("#id_birthday");
+    const toggle = document.querySelector("#id_create_student_login");
+    const toggleWrap = document.querySelector(".student-login-toggle");
+    const loginFields = document.querySelectorAll(".student-login-field");
+    const note = document.querySelector("#student-login-note");
+
+    if (!birthday || !toggle || !toggleWrap) return;
+
+    function ageFromDate(value) {
+        if (!value) return null;
+        const birth = new Date(value + "T12:00:00");
+        const today = new Date();
+        let age = today.getFullYear() - birth.getFullYear();
+        const beforeBirthday =
+            today.getMonth() < birth.getMonth() ||
+            (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate());
+        if (beforeBirthday) age -= 1;
+        return age;
+    }
+
+    function updateLoginVisibility() {
+        const age = ageFromDate(birthday.value);
+        const eligible = age !== null && age >= 14;
+
+        toggleWrap.hidden = !eligible;
+
+        if (!eligible) {
+            toggle.checked = false;
+        }
+
+        loginFields.forEach((field) => {
+            field.hidden = !eligible || !toggle.checked;
+        });
+
+        if (note) {
+            note.textContent = eligible
+                ? "This student is eligible for an optional separate Encore login."
+                : "A separate student login becomes available at age 14.";
+        }
+    }
+
+    birthday.addEventListener("change", updateLoginVisibility);
+    toggle.addEventListener("change", updateLoginVisibility);
+    updateLoginVisibility();
+})();
+</script>
+{% endif %}
+
+{% if step == "ready" and payment_setup and payment_setup.client_secret and not payment_error %}
+<script>
+(() => {
+    const config = document.querySelector("#encore-payment-config");
+    const form = document.querySelector("#encore-payment-form");
+    const button = document.querySelector("#submit-payment");
+    const buttonText = document.querySelector("#payment-button-text");
+    const message = document.querySelector("#payment-message");
+
+    if (!config || !form || typeof Stripe === "undefined") return;
+
+    const stripe = Stripe(
+        config.dataset.publishableKey,
+        {
+            stripeAccount: config.dataset.connectedAccount
+        }
+    );
+
+    const elements = stripe.elements({
+        clientSecret: config.dataset.clientSecret
+    });
+
+    const paymentElement = elements.create("payment");
+    paymentElement.mount("#payment-element");
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        button.disabled = true;
+        buttonText.textContent = "Processing...";
+        message.hidden = true;
+
+        const result = await stripe.confirmPayment({
+            elements,
+            redirect: "if_required"
+        });
+
+        if (result.error) {
+            message.textContent = result.error.message || "Payment could not be completed.";
+            message.hidden = false;
+            button.disabled = false;
+            buttonText.textContent = "Try Payment Again";
+            return;
+        }
+
+        window.location.href = config.dataset.returnUrl;
+    });
+})();
+</script>
+{% endif %}
+
+</body>
+</html>

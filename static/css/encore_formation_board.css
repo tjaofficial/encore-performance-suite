@@ -1,0 +1,2844 @@
+.drawing-board-workspace{--board-panel-width:290px;display:grid;min-height:calc(100vh - 150px);border:1px solid var(--encore-border);border-radius:16px;overflow:hidden;background:#fff;box-shadow:var(--encore-shadow)}
+.drawing-board-header{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:12px 16px;border-bottom:1px solid var(--encore-border);background:linear-gradient(180deg,#fff,color-mix(in srgb,var(--encore-primary) 1.5%,#fff))}.drawing-board-header-main{display:grid;min-width:0;gap:8px;flex:1}.drawing-board-back{width:fit-content;color:var(--encore-primary);font-size:.58rem;font-weight:850;text-decoration:none}.drawing-board-title-row{display:flex;min-width:0;align-items:flex-end;gap:18px}.board-title-field{display:grid;min-width:260px;gap:2px}.board-title-field>span,.board-song-info span,.song-length-control>span{color:var(--encore-muted);font-size:.5rem;font-weight:850;letter-spacing:.04em;text-transform:uppercase}.board-title-field input{min-width:0;padding:0;border:0;outline:0;background:transparent;color:var(--encore-primary-deep);font:inherit;font-size:1.35rem;font-weight:900;letter-spacing:-.035em}.board-title-field input:focus{box-shadow:0 2px 0 var(--encore-primary)}.board-song-info{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 18px}.board-song-info>div,.song-length-control{display:grid;gap:2px}.board-song-info strong{color:var(--encore-primary-deep);font-size:.62rem}.song-length-control>div{display:flex;align-items:center;gap:4px}.song-length-control input{width:42px;height:28px;padding:0 5px;border:1px solid var(--encore-border);border-radius:6px;background:#fff;color:var(--encore-primary-deep);font:inherit;font-size:.62rem;font-weight:850;text-align:center}.song-length-control b{color:var(--encore-muted)}.drawing-board-save-area{display:flex;align-items:center;gap:10px}.formation-status{min-width:78px;color:var(--encore-muted);font-size:.58rem;font-weight:800;text-align:right}.formation-status.saved{color:#16865c}.formation-status.saving{color:var(--encore-primary)}.formation-status.dirty{color:#b27818}.formation-status.error{color:#b04444}.drawing-board-save-button{min-width:82px}
+.drawing-board-main{position:relative;display:grid;grid-template-columns:var(--board-panel-width) minmax(0,1fr);min-height:610px;background:var(--encore-background)}.drawing-board-workspace.panel-collapsed .drawing-board-main{grid-template-columns:minmax(0,1fr)}.drawing-board-panel{display:flex;min-width:0;flex-direction:column;border-right:1px solid var(--encore-border);background:#fff}.drawing-board-workspace.panel-collapsed .drawing-board-panel{display:none}.drawing-panel-top{display:grid;grid-template-columns:minmax(0,1fr) 30px;gap:5px;padding:8px;border-bottom:1px solid var(--encore-border)}.drawing-panel-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}.drawing-panel-tabs button,.collapse-panel-button{min-height:32px;border:0;border-radius:7px;background:transparent;color:var(--encore-muted);cursor:pointer;font:inherit;font-size:.52rem;font-weight:850}.drawing-panel-tabs button:hover,.drawing-panel-tabs button.active{background:var(--encore-primary-soft);color:var(--encore-primary)}.collapse-panel-button{font-size:1rem}.expand-panel-button{position:absolute;z-index:40;top:12px;left:10px;width:31px;height:38px;border:1px solid var(--encore-border);border-radius:8px;background:#fff;box-shadow:0 5px 16px rgba(0,2,78,.1);color:var(--encore-primary);cursor:pointer;font-size:1rem}.drawing-panel-content{min-height:0;padding:12px;overflow-y:auto}.drawing-panel-content[hidden]{display:none!important}.panel-section-heading{display:grid;gap:3px;margin-bottom:11px}.panel-section-heading>span{color:var(--encore-primary);font-size:.48rem;font-weight:900;letter-spacing:.05em;text-transform:uppercase}.panel-section-heading strong{color:var(--encore-primary-deep);font-size:.72rem}.panel-section-heading p{margin:0;color:var(--encore-muted);font-size:.55rem;line-height:1.45}
+.assignment-list{display:grid;gap:5px}.assignment-student-row{display:grid;grid-template-columns:31px minmax(0,1fr) auto;gap:7px;align-items:center;min-height:43px;padding:5px 7px;border:1px solid var(--encore-border);border-radius:8px;background:#fff;user-select:none}.assignment-student-row.unassigned{cursor:grab}.assignment-student-row.unassigned:hover{border-color:color-mix(in srgb,var(--encore-primary) 32%,var(--encore-border));background:var(--encore-primary-soft)}.assignment-avatar{display:grid;width:27px;height:27px;place-items:center;border-radius:50%;background:var(--encore-background);color:var(--encore-primary-deep);font-size:.52rem;font-weight:900}.assignment-student-copy{display:grid;min-width:0;gap:1px}.assignment-student-copy strong{overflow:hidden;color:var(--encore-primary-deep);font-size:.59rem;text-overflow:ellipsis;white-space:nowrap}.assignment-student-copy span{color:var(--encore-muted);font-size:.48rem}.assignment-marker-badge{display:grid;width:25px;height:25px;place-items:center;border:2px solid var(--marker-color,var(--encore-primary));border-radius:50%;background:var(--marker-color,var(--encore-primary));color:#fff;font-size:.52rem;font-weight:900}.assignment-marker-badge.shape-square{border-radius:5px}.assignment-marker-badge.shape-diamond{border-radius:5px;transform:rotate(45deg)}.assignment-marker-badge.shape-diamond>span{transform:rotate(-45deg)}
+.marker-format-controls{display:grid;gap:17px}.marker-format-controls[hidden]{display:none!important}.format-setting{display:grid;gap:7px}.format-setting>span{color:var(--encore-muted);font-size:.53rem;font-weight:850;text-transform:uppercase}.shape-picker{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}.shape-picker button{height:43px;border:1px solid var(--encore-border);border-radius:8px;background:#fff;color:var(--encore-primary);cursor:pointer;font-size:1rem}.shape-picker button:hover,.shape-picker button.active{border-color:var(--encore-primary);background:var(--encore-primary-soft)}.marker-color-swatches{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.marker-color-swatches button{aspect-ratio:1;max-height:37px;border:3px solid #fff;border-radius:8px;outline:1px solid var(--encore-border);background:var(--swatch);cursor:pointer}.marker-color-swatches button.active{outline:2px solid var(--encore-primary-deep)}.custom-color-control{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:37px;padding:0 8px;border:1px solid var(--encore-border);border-radius:8px;color:var(--encore-muted);font-size:.55rem;font-weight:800}.custom-color-control input{width:36px;height:25px;padding:0;border:0;background:transparent}.board-option-row{display:grid;grid-template-columns:18px minmax(0,1fr);gap:9px;align-items:start;padding:10px;border:1px solid var(--encore-border);border-radius:9px}.board-option-row input{width:16px;height:16px;margin-top:2px}.board-option-row>span{display:grid;gap:2px}.board-option-row strong{color:var(--encore-primary-deep);font-size:.59rem}.board-option-row small{color:var(--encore-muted);font-size:.49rem;line-height:1.4}
+.drawing-stage-workspace{display:grid;min-width:0;min-height:0;grid-template-columns:34px minmax(0,1fr) 34px;grid-template-rows:27px minmax(0,1fr) 27px;padding:9px}.stage-axis-label{display:flex;align-items:center;justify-content:center;color:color-mix(in srgb,var(--encore-primary-deep) 50%,#fff);font-size:.5rem;font-weight:850}.stage-axis-top{grid-column:2;grid-row:1}.stage-axis-left{grid-column:1;grid-row:2;writing-mode:vertical-rl;transform:rotate(180deg)}.stage-axis-right{grid-column:3;grid-row:2;writing-mode:vertical-rl}.stage-axis-bottom{grid-column:2;grid-row:3}.formation-stage{position:relative;grid-column:2;grid-row:2;min-width:0;min-height:520px;overflow:hidden;border:1px solid var(--encore-border);border-radius:4px;background:#fcfdff;touch-action:none}.stage-grid-overlay{position:absolute;inset:0;background:linear-gradient(rgba(0,2,78,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(0,2,78,.055) 1px,transparent 1px);background-size:34px 34px,34px 34px;pointer-events:none}.stage-main-outline{position:absolute;inset:0;border:1px solid rgba(0,2,78,.08);pointer-events:none}.formation-stage.show-wings .stage-main-outline{left:12%;right:12%}.formation-stage.show-wings:before,.formation-stage.show-wings:after{content:"";position:absolute;z-index:1;top:0;bottom:0;width:12%;background:repeating-linear-gradient(-45deg,rgba(0,2,78,.025),rgba(0,2,78,.025) 8px,rgba(22,99,255,.04) 8px,rgba(22,99,255,.04) 16px);pointer-events:none}.formation-stage.show-wings:before{left:0}.formation-stage.show-wings:after{right:0}.stage-wings-overlay{position:absolute;z-index:2;inset:0;width:100%;height:100%;pointer-events:none;opacity:0}.formation-stage.show-wings .stage-wings-overlay{opacity:1}.wing-wave{fill:none;stroke:var(--encore-primary-deep);stroke-width:3;opacity:.35;vector-effect:non-scaling-stroke}.marker-layer{position:absolute;z-index:10;inset:0}
+.board-marker{position:absolute;display:grid;width:34px;height:34px;place-items:center;transform:translate(-50%,-50%);border:2px solid #fff;border-radius:50%;background:var(--marker-color,#2E3CF1);box-shadow:0 4px 11px rgba(0,2,78,.2);color:#fff;cursor:grab;font-size:.62rem;font-weight:900;user-select:none;touch-action:none}.board-marker:hover,.board-marker.selected{box-shadow:0 0 0 3px color-mix(in srgb,var(--marker-color) 28%,transparent),0 6px 14px rgba(0,2,78,.18)}.board-marker.dragging{z-index:30;cursor:grabbing;transform:translate(-50%,-50%) scale(1.08)}.board-marker.shape-square{border-radius:6px}.board-marker.shape-diamond{border-radius:6px;transform:translate(-50%,-50%) rotate(45deg)}.board-marker.shape-diamond>span{transform:rotate(-45deg)}.board-marker.shape-triangle{width:0;height:0;border:19px solid transparent;border-bottom:34px solid var(--marker-color);border-top:0;border-radius:0;background:transparent;box-shadow:none}.board-marker.shape-triangle>span{position:absolute;top:13px;left:-6px}.board-marker.assignment-drop-target{box-shadow:0 0 0 5px rgba(1,151,252,.22)}.marker-tooltip{position:absolute;z-index:100;max-width:180px;padding:6px 8px;border:1px solid var(--encore-border);border-radius:7px;background:rgba(0,2,78,.94);box-shadow:0 6px 16px rgba(0,2,78,.18);color:#fff;font-size:.52rem;font-weight:800;pointer-events:none;white-space:nowrap}
+.formation-tabs-shell{display:flex;min-width:0;align-items:stretch;gap:4px;padding:6px 8px 7px;border-top:1px solid var(--encore-border);background:color-mix(in srgb,var(--encore-primary) 1.5%,#fff)}.formation-tabs{display:flex;min-width:0;gap:3px;overflow-x:auto;flex:1}.formation-tab,.add-formation-tab{display:grid;flex:0 0 auto;min-width:110px;min-height:43px;place-content:center;padding:3px 10px;border:1px solid var(--encore-border);border-radius:7px 7px 0 0;background:#fff;color:var(--encore-muted);cursor:pointer;font:inherit;text-align:center}.formation-tab strong{color:var(--encore-primary-deep);font-size:.56rem}.formation-tab span{font-size:.47rem}.formation-tab:hover,.formation-tab.active{border-color:var(--encore-primary);background:var(--encore-primary-soft);color:var(--encore-primary)}.formation-tab.active{box-shadow:inset 0 -3px 0 var(--encore-primary)}.add-formation-tab{min-width:125px;color:var(--encore-primary);font-size:.54rem;font-weight:900}.add-formation-tab:hover{background:var(--encore-primary);color:#fff}
+.formation-modal-backdrop{position:fixed;z-index:10000;inset:0;display:grid;place-items:center;padding:20px;background:rgba(0,2,78,.36);backdrop-filter:blur(3px)}.formation-modal-backdrop[hidden]{display:none!important}.formation-modal{width:min(450px,100%);overflow:hidden;border:1px solid var(--encore-border);border-radius:14px;background:#fff;box-shadow:0 24px 60px rgba(0,2,78,.24)}.formation-modal-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:15px 17px;border-bottom:1px solid var(--encore-border)}.formation-modal-heading span{color:var(--encore-primary);font-size:.49rem;font-weight:900;text-transform:uppercase}.formation-modal-heading h2{margin:2px 0 0;color:var(--encore-primary-deep);font-size:1rem}.formation-modal-heading>button{width:30px;height:30px;border:0;border-radius:7px;background:var(--encore-background);color:var(--encore-muted);cursor:pointer;font-size:1rem}.formation-modal-body{display:grid;gap:14px;padding:17px}.formation-modal-body label{display:grid;gap:5px}.formation-modal-body label>span{color:var(--encore-muted);font-size:.55rem;font-weight:850;text-transform:uppercase}.formation-modal-body input[type=text],.formation-modal-body input[type=number]{min-height:39px;box-sizing:border-box;padding:0 9px;border:1px solid var(--encore-border);border-radius:8px;outline:0;font:inherit;font-size:.65rem}.formation-time-fields{display:grid;grid-template-columns:1fr auto 1fr;gap:7px;align-items:end}.formation-time-fields b{padding-bottom:9px;color:var(--encore-muted)}.copy-formation-option{grid-template-columns:17px minmax(0,1fr)!important;align-items:center}.copy-formation-option input{width:16px;height:16px}.copy-formation-option span{text-transform:none!important}.formation-modal-error{padding:8px;border-radius:7px;background:rgba(176,68,68,.08);color:#a13f3f;font-size:.57rem}.formation-modal-actions{display:flex;justify-content:flex-end;gap:8px;padding:12px 17px;border-top:1px solid var(--encore-border)}
+@media(max-width:1000px){.drawing-board-workspace{--board-panel-width:240px}.drawing-board-title-row{align-items:flex-start;flex-direction:column;gap:8px}}@media(max-width:760px){.drawing-board-header{align-items:stretch;flex-direction:column}.drawing-board-save-area{justify-content:flex-end}.drawing-board-main{grid-template-columns:1fr}.drawing-board-panel{position:absolute;z-index:80;top:0;bottom:0;left:0;width:min(290px,90vw);box-shadow:8px 0 20px rgba(0,2,78,.12)}.drawing-stage-workspace{grid-template-columns:25px minmax(0,1fr) 25px}.formation-stage{min-height:470px}.formation-tabs-shell{flex-wrap:wrap}.add-formation-tab{width:100%}}
+
+.formation-tab-wrap{position:relative;flex:0 0 auto}.formation-tab-wrap .formation-tab{padding-right:27px}.formation-tab-delete{position:absolute;z-index:3;top:4px;right:4px;display:grid;width:19px;height:19px;place-items:center;padding:0;border:0;border-radius:5px;background:transparent;color:var(--encore-muted);cursor:pointer;font:inherit;font-size:.75rem}.formation-tab-delete:hover{background:rgba(176,68,68,.10);color:#b04444}.delete-formation-copy{margin:0;color:var(--encore-muted);font-size:.64rem;line-height:1.6}.delete-formation-copy strong{color:var(--encore-primary-deep)}.button.danger{border-color:#b04444;background:#b04444;color:#fff}.button.danger:hover{background:#963737}
+
+
+.drawing-panel-tabs {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.board-title-display {
+    display: grid;
+    min-width: 260px;
+    gap: 2px;
+}
+
+.board-title-display > span {
+    color: var(--encore-muted);
+    font-size: .5rem;
+    font-weight: 850;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.board-title-display h1 {
+    margin: 0;
+    color: var(--encore-primary-deep);
+    font-size: 1.35rem;
+    font-weight: 900;
+    letter-spacing: -.035em;
+}
+
+.board-info-form {
+    display: grid;
+    gap: 11px;
+}
+
+.board-info-field {
+    display: grid;
+    gap: 5px;
+}
+
+.board-info-field > span {
+    color: var(--encore-primary-deep);
+    font-size: .53rem;
+    font-weight: 850;
+}
+
+.board-info-field > small {
+    color: var(--encore-muted);
+    font-size: .49rem;
+    line-height: 1.4;
+}
+
+.board-info-form .encore-input,
+.board-modal-grid input,
+.board-modal-grid textarea {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    min-height: 38px;
+    padding: 7px 9px;
+    border: 1px solid var(--encore-border);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--encore-primary-deep);
+    font: inherit;
+    font-size: .62rem;
+}
+
+.board-info-form .encore-input:focus,
+.board-modal-grid input:focus,
+.board-modal-grid textarea:focus {
+    outline: 0;
+    border-color: var(--encore-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb,var(--encore-primary) 9%,transparent);
+}
+
+.board-duration-fields {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 6px;
+    align-items: center;
+}
+
+.board-duration-fields b {
+    color: var(--encore-muted);
+    text-align: center;
+}
+
+.board-inline-action {
+    min-height: 33px;
+    border: 1px solid color-mix(in srgb,var(--encore-primary) 42%,var(--encore-border));
+    border-radius: 8px;
+    background: color-mix(in srgb,var(--encore-primary) 3%,#fff);
+    color: var(--encore-primary);
+    cursor: pointer;
+    font: inherit;
+    font-size: .55rem;
+    font-weight: 900;
+}
+
+.board-inline-action:hover {
+    border-color: var(--encore-primary);
+    background: var(--encore-primary);
+    color: #fff;
+}
+
+.board-inline-action:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+}
+
+.board-modal-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.board-modal-grid .full {
+    grid-column: 1 / -1;
+}
+
+.board-modal-grid textarea {
+    resize: vertical;
+}
+
+.board-info-modal {
+    width: min(620px, 100%);
+}
+
+@media (max-width: 650px) {
+    .board-modal-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .board-modal-grid .full {
+        grid-column: auto;
+    }
+
+    .drawing-panel-tabs {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+
+/* Formation transition designer */
+.drawing-board-workspace.transition-mode .drawing-panel-tabs{grid-template-columns:repeat(5,1fr)}
+#transition-panel-tab[hidden]{display:none!important}.transition-panel-content{display:grid;align-content:start;gap:12px}.transition-info-card{display:grid;gap:2px;padding:10px;border:1px solid var(--encore-border);border-radius:9px;background:color-mix(in srgb,var(--encore-primary) 3%,#fff)}.transition-info-card>span,.transition-selected-marker>span{color:var(--encore-primary);font-size:.48rem;font-weight:900;text-transform:uppercase}.transition-info-card>strong,.transition-selected-marker>strong{color:var(--encore-primary-deep);font-size:.65rem}.transition-info-card>small{color:var(--encore-muted);font-size:.52rem;font-weight:800}.movement-instruction,.custom-path-instruction{padding:9px 10px;border:1px dashed color-mix(in srgb,var(--encore-primary) 45%,var(--encore-border));border-radius:8px;background:var(--encore-primary-soft);color:var(--encore-primary-deep);font-size:.55rem;font-weight:750;line-height:1.45}.movement-editor{display:grid;gap:13px}.movement-editor[hidden],.movement-instruction[hidden],.custom-path-instruction[hidden]{display:none!important}.transition-selected-marker{display:grid;gap:2px;padding-bottom:8px;border-bottom:1px solid var(--encore-border)}.movement-path-picker{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.movement-path-picker button{min-height:36px;padding:5px 7px;border:1px solid var(--encore-border);border-radius:8px;background:#fff;color:var(--encore-muted);cursor:pointer;font:inherit;font-size:.52rem;font-weight:850}.movement-path-picker button.full{grid-column:1/-1}.movement-path-picker button:hover,.movement-path-picker button.active{border-color:var(--encore-primary);background:var(--encore-primary-soft);color:var(--encore-primary)}.transition-remove-path{min-height:34px;border:1px solid rgba(176,68,68,.28);border-radius:8px;background:rgba(176,68,68,.04);color:#a13f3f;cursor:pointer;font:inherit;font-size:.52rem;font-weight:850}.transition-remove-path:hover{border-color:#b04444;background:#b04444;color:#fff}.transition-path-layer{position:absolute;z-index:8;inset:0;width:100%;height:100%;pointer-events:none}.transition-path{fill:none;stroke:#252838;stroke-width:.8;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;marker-end:url(#transition-arrowhead)}.transition-path.selected{stroke:var(--encore-primary);stroke-width:1.1}.transition-path.custom-preview{stroke:var(--encore-primary);stroke-dasharray:2 1.5;opacity:.75}.transition-arrowhead-shape{fill:#252838}.transition-ghost-marker{opacity:.28;filter:saturate(.55);pointer-events:none}.transition-ghost-marker:after{content:"";position:absolute;inset:-5px;border:1px dashed color-mix(in srgb,var(--marker-color) 55%,transparent);border-radius:inherit}.board-marker.transition-start-marker{cursor:pointer}.formation-stage.transition-select-mode,.formation-stage.custom-path-mode{cursor:crosshair}.transition-tab-button{position:relative;flex:0 0 auto;align-self:center;display:grid;width:28px;height:28px;place-items:center;margin:0 2px;padding:0;border:1px solid color-mix(in srgb,var(--encore-primary) 28%,var(--encore-border));border-radius:7px;background:#fff;color:var(--encore-primary);cursor:pointer;font:inherit;font-size:.65rem;font-weight:900}.transition-tab-button:hover,.transition-tab-button.active{border-color:var(--encore-primary);background:var(--encore-primary);color:#fff}.transition-tab-button.has-movements:after{content:"";position:absolute;right:-2px;bottom:-2px;width:6px;height:6px;border:2px solid #fff;border-radius:50%;background:#10B981}@media(max-width:760px){.drawing-board-workspace.transition-mode .drawing-panel-tabs{grid-template-columns:repeat(2,1fr)}}
+
+
+/* Drawing Board playback timeline */
+.formation-timeline-shell{display:grid;border-top:1px solid var(--encore-border);background:color-mix(in srgb,var(--encore-primary) 1.5%,#fff)}
+.formation-timeline-shell>.formation-tabs-shell{border-top:0}
+.drawing-playback-bar{display:grid;grid-template-columns:auto auto auto minmax(160px,1fr) auto auto;gap:9px;align-items:center;padding:8px 11px 10px;border-top:1px solid var(--encore-border);background:#fff}
+.playback-toggle,.playback-icon-button{display:grid;place-items:center;border:1px solid var(--encore-border);background:#fff;color:var(--encore-primary);cursor:pointer;font:inherit;font-weight:900}
+.playback-toggle{width:34px;height:34px;border-color:var(--encore-primary);border-radius:50%;background:var(--encore-primary);color:#fff;box-shadow:0 4px 12px rgba(22,99,255,.18)}
+.playback-toggle:hover{background:var(--encore-primary-deep);border-color:var(--encore-primary-deep)}
+.playback-icon-button{width:30px;height:30px;border-radius:8px}.playback-icon-button:hover{border-color:var(--encore-primary);background:var(--encore-primary-soft)}
+.playback-time{min-width:34px;color:var(--encore-muted);font-size:.53rem;font-weight:850;text-align:center;font-variant-numeric:tabular-nums}
+.playback-track-wrap{position:relative;display:flex;align-items:center;min-width:0;height:30px}.playback-scrubber{position:relative;z-index:3;width:100%;margin:0;accent-color:var(--encore-primary);cursor:pointer}
+.playback-formation-markers{position:absolute;z-index:2;inset:0 8px;pointer-events:none}.playback-formation-tick{position:absolute;top:3px;bottom:3px;width:2px;transform:translateX(-50%);border-radius:2px;background:color-mix(in srgb,var(--encore-primary) 44%,transparent)}
+.playback-formation-tick::after{content:attr(data-label);position:absolute;top:-15px;left:50%;display:none;transform:translateX(-50%);padding:3px 5px;border-radius:5px;background:var(--encore-primary-deep);color:#fff;font-size:.44rem;white-space:nowrap}.playback-track-wrap:hover .playback-formation-tick::after{display:block}
+.playback-exit{min-height:30px;padding:0 10px;border:1px solid var(--encore-primary);border-radius:8px;background:#fff;color:var(--encore-primary);cursor:pointer;font:inherit;font-size:.5rem;font-weight:900}.playback-exit:hover{background:var(--encore-primary);color:#fff}
+.drawing-board-workspace.playback-mode .drawing-board-panel{opacity:.68;pointer-events:none}.drawing-board-workspace.playback-mode .board-marker{cursor:default;transition:none}.drawing-board-workspace.playback-mode .transition-path-layer{opacity:0}.playback-active-formation .formation-tab{border-color:var(--encore-primary);box-shadow:inset 0 -3px 0 var(--encore-primary)}
+@media(max-width:760px){.drawing-playback-bar{grid-template-columns:auto auto auto 1fr auto}.playback-exit{grid-column:1/-1}}
+
+/* Transition editor V2 */
+.timeline-mode-switch{display:flex;gap:4px;padding:6px 8px 0;border-top:1px solid var(--encore-border);background:color-mix(in srgb,var(--encore-primary) 1.5%,#fff)}
+.timeline-mode-switch button{min-height:30px;padding:0 13px;border:1px solid transparent;border-radius:7px 7px 0 0;background:transparent;color:var(--encore-muted);cursor:pointer;font:inherit;font-size:.52rem;font-weight:900}
+.timeline-mode-switch button:hover{color:var(--encore-primary);background:var(--encore-primary-soft)}
+.timeline-mode-switch button.active{border-color:var(--encore-border);border-bottom-color:#fff;background:#fff;color:var(--encore-primary)}
+.transition-tabs-shell{display:flex;min-width:0;padding:6px 8px 7px;background:color-mix(in srgb,var(--encore-primary) 1.5%,#fff)}
+.transition-tabs-shell[hidden]{display:none!important}.transition-tabs{display:flex;min-width:0;gap:4px;overflow-x:auto;flex:1}
+.transition-sequence-tab{display:grid;flex:0 0 auto;min-width:145px;min-height:43px;place-content:center;gap:1px;padding:3px 11px;border:1px solid var(--encore-border);border-radius:7px 7px 0 0;background:#fff;color:var(--encore-muted);cursor:pointer;font:inherit;text-align:center}
+.transition-sequence-tab strong{color:var(--encore-primary-deep);font-size:.56rem}.transition-sequence-tab span{font-size:.47rem}.transition-sequence-tab:hover,.transition-sequence-tab.active{border-color:var(--encore-primary);background:var(--encore-primary-soft);color:var(--encore-primary)}.transition-sequence-tab.active{box-shadow:inset 0 -3px 0 var(--encore-primary)}.transition-sequence-tab.has-movements:after{content:"Movement set";margin-top:2px;color:#16865c;font-size:.42rem;font-weight:850}
+.transition-editor-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;padding:3px;border-radius:8px;background:var(--encore-background)}
+.transition-editor-tabs button{min-height:31px;border:0;border-radius:6px;background:transparent;color:var(--encore-muted);cursor:pointer;font:inherit;font-size:.5rem;font-weight:900}.transition-editor-tabs button:hover,.transition-editor-tabs button.active{background:#fff;color:var(--encore-primary);box-shadow:0 2px 7px rgba(0,2,78,.08)}
+.transition-editor-section{display:grid;gap:12px}.transition-editor-section[hidden]{display:none!important}
+.control-point-setting{display:flex;align-items:center;justify-content:space-between;gap:9px;padding:9px 10px;border:1px solid var(--encore-border);border-radius:8px;background:#fff}.control-point-setting[hidden]{display:none!important}.control-point-setting>div:first-child{display:grid;gap:2px}.control-point-setting span{color:var(--encore-primary-deep);font-size:.53rem;font-weight:850}.control-point-setting small{color:var(--encore-muted);font-size:.47rem;line-height:1.35}
+.point-stepper{display:grid;grid-template-columns:27px 29px 27px;align-items:center;gap:3px}.point-stepper button{display:grid;width:27px;height:27px;place-items:center;padding:0;border:1px solid var(--encore-border);border-radius:6px;background:#fff;color:var(--encore-primary);cursor:pointer;font:inherit;font-size:.8rem;font-weight:900}.point-stepper button:hover{border-color:var(--encore-primary);background:var(--encore-primary-soft)}.point-stepper strong{color:var(--encore-primary-deep);font-size:.58rem;text-align:center}
+.transition-control-handle{position:absolute;z-index:32;display:grid;width:14px;height:14px;place-items:center;transform:translate(-50%,-50%);border:2px solid #fff;border-radius:50%;background:#202332;box-shadow:0 0 0 2px rgba(32,35,50,.2),0 4px 10px rgba(0,2,78,.18);cursor:grab;touch-action:none}.transition-control-handle:hover,.transition-control-handle.dragging{width:17px;height:17px;background:var(--encore-primary);cursor:grabbing}.transition-control-handle:after{content:attr(data-index);position:absolute;top:-16px;display:none;color:var(--encore-primary-deep);font-size:.42rem;font-weight:900}.transition-control-handle:hover:after{display:block}
+.timing-speed-editor{gap:9px}.timing-toggle-card{display:grid;gap:9px;padding:9px;border:1px solid var(--encore-border);border-radius:8px;background:#fff}.timing-toggle-card>label{display:grid;grid-template-columns:17px minmax(0,1fr);gap:8px;align-items:start}.timing-toggle-card input[type=checkbox]{width:15px;height:15px;margin-top:2px}.timing-toggle-card label>span{display:grid;gap:2px}.timing-toggle-card label strong{color:var(--encore-primary-deep);font-size:.55rem}.timing-toggle-card label small{color:var(--encore-muted);font-size:.47rem;line-height:1.35}
+.movement-slider-setting{display:grid;gap:6px}.movement-slider-setting[hidden]{display:none!important}.movement-slider-setting>div:first-child{display:flex;align-items:center;justify-content:space-between;gap:8px}.movement-slider-setting span{color:var(--encore-muted);font-size:.49rem;font-weight:800}.movement-slider-setting strong{color:var(--encore-primary);font-size:.52rem}.movement-slider-setting input[type=range]{width:100%;accent-color:var(--encore-primary);cursor:pointer}.speed-slider-setting{padding:10px;border:1px solid var(--encore-border);border-radius:8px}.speed-scale{display:flex!important;justify-content:space-between!important}.speed-scale span{font-size:.43rem;font-weight:700}.auto-preview-option{align-items:center}.movement-preview-status{padding:7px 9px;border-radius:7px;background:var(--encore-primary-soft);color:var(--encore-primary);font-size:.5rem;font-weight:850;text-align:center}.movement-preview-status[hidden]{display:none!important}
+.drawing-board-workspace.preview-mode .board-marker:not(.preview-marker){opacity:.18}.preview-marker{z-index:45;cursor:default!important;box-shadow:0 0 0 4px color-mix(in srgb,var(--marker-color) 20%,transparent),0 7px 17px rgba(0,2,78,.24)}
+@media(max-width:760px){.timeline-mode-switch{position:sticky;left:0}}
+
+
+/* Transition contextual navigation correction */
+
+.timeline-mode-switch,
+.transition-tabs-shell {
+    display: none !important;
+}
+
+.drawing-panel-tabs {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.drawing-board-workspace.transition-mode .drawing-panel-tabs {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.drawing-board-workspace.transition-mode
+.drawing-panel-tabs button:not(.transition-context-tab) {
+    display: none;
+}
+
+.drawing-board-workspace:not(.transition-mode)
+.drawing-panel-tabs .transition-context-tab {
+    display: none !important;
+}
+
+.drawing-board-workspace.transition-mode
+.drawing-panel-tabs .transition-context-tab {
+    display: block !important;
+}
+
+#timing-editor[hidden],
+#timing-no-marker[hidden] {
+    display: none !important;
+}
+
+
+/* =========================================================
+   Duration-based choreography timing + music playback
+   ========================================================= */
+
+.duration-editor-card {
+    display: grid;
+    gap: 10px;
+    padding: 11px;
+    border: 1px solid var(--encore-border);
+    border-radius: 9px;
+    background: #fff;
+}
+
+.duration-editor-heading {
+    display: grid;
+    gap: 4px;
+}
+
+.duration-editor-heading > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.duration-editor-heading span {
+    color: var(--encore-primary);
+    font-size: .49rem;
+    font-weight: 900;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+}
+
+.duration-editor-heading strong {
+    color: var(--encore-primary-deep);
+    font-size: .56rem;
+}
+
+.duration-editor-heading small {
+    color: var(--encore-muted);
+    font-size: .48rem;
+    line-height: 1.4;
+}
+
+.duration-editor-card .encore-input,
+.formation-length-info .encore-input {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    min-height: 38px;
+    padding: 7px 9px;
+    border: 1px solid var(--encore-border);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--encore-primary-deep);
+    font: inherit;
+    font-size: .62rem;
+}
+
+.transition-timing-example {
+    display: grid;
+    gap: 3px;
+    padding: 10px;
+    border-radius: 8px;
+    background: var(--encore-primary-soft);
+}
+
+.transition-timing-example span {
+    color: var(--encore-primary);
+    font-size: .47rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.transition-timing-example strong {
+    color: var(--encore-primary-deep);
+    font-size: .54rem;
+    line-height: 1.4;
+}
+
+.transition-display-option + .transition-display-option {
+    margin-top: -4px;
+}
+
+.formation-tab span {
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   Encore Lighting Design — Simple Mode V1
+   ========================================================= */
+
+.drawing-stage-workspace {
+    position: relative;
+}
+
+.lighting-mode-toggle {
+    position: absolute;
+    z-index: 55;
+    top: 4px;
+    right: 42px;
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    padding: 0;
+    border: 1px solid var(--encore-border);
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 5px 16px rgba(0,2,78,.10);
+    cursor: pointer;
+    font-size: .9rem;
+}
+
+.lighting-mode-toggle:hover,
+.drawing-board-workspace.lighting-mode
+.lighting-mode-toggle {
+    border-color: #F2B705;
+    background: #FFF8D8;
+    box-shadow: 0 0 0 3px rgba(242,183,5,.12);
+}
+
+.drawing-board-workspace.lighting-mode
+.drawing-panel-tabs {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.drawing-board-workspace.lighting-mode
+.drawing-panel-tabs button:not(.lighting-context-tab) {
+    display: none;
+}
+
+.drawing-board-workspace:not(.lighting-mode)
+.drawing-panel-tabs .lighting-context-tab {
+    display: none !important;
+}
+
+.drawing-board-workspace.lighting-mode
+.drawing-panel-tabs .lighting-context-tab {
+    display: block !important;
+}
+
+.lighting-panel-content {
+    align-content: start;
+}
+
+.lighting-mode-switch {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 4px;
+    padding: 3px;
+    border-radius: 8px;
+    background: var(--encore-background);
+}
+
+.lighting-mode-switch button {
+    min-height: 32px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--encore-muted);
+    font: inherit;
+    font-size: .52rem;
+    font-weight: 900;
+}
+
+.lighting-mode-switch button.active {
+    background: #fff;
+    color: var(--encore-primary);
+    box-shadow: 0 2px 7px rgba(0,2,78,.08);
+}
+
+.lighting-mode-switch button:disabled {
+    opacity: .45;
+}
+
+.lighting-blackout-action {
+    min-height: 33px;
+    border: 1px solid #262936;
+    border-radius: 8px;
+    background: #262936;
+    color: #fff;
+    cursor: pointer;
+    font: inherit;
+    font-size: .54rem;
+    font-weight: 900;
+}
+
+.lighting-blackout-action:hover {
+    background: #10121A;
+}
+
+.lighting-focus-list {
+    display: grid;
+    gap: 6px;
+}
+
+.lighting-focus-list:empty::before {
+    content: "No focus areas in this cue yet.";
+    display: block;
+    padding: 12px;
+    border: 1px dashed var(--encore-border);
+    border-radius: 8px;
+    color: var(--encore-muted);
+    font-size: .52rem;
+    text-align: center;
+}
+
+.lighting-focus-row {
+    display: grid;
+    grid-template-columns: 28px minmax(0,1fr) auto;
+    gap: 8px;
+    align-items: center;
+    min-height: 42px;
+    padding: 6px 8px;
+    border: 1px solid var(--encore-border);
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+}
+
+.lighting-focus-row:hover,
+.lighting-focus-row.active {
+    border-color: var(--encore-primary);
+    background: var(--encore-primary-soft);
+}
+
+.lighting-focus-swatch {
+    display: grid;
+    width: 26px;
+    height: 26px;
+    place-items: center;
+    border: 2px solid rgba(255,255,255,.9);
+    border-radius: 50%;
+    outline: 1px solid var(--encore-border);
+    background: var(--focus-color,#fff);
+    color: #111;
+    font-size: .5rem;
+    font-weight: 900;
+}
+
+.lighting-focus-row-copy {
+    display: grid;
+    gap: 1px;
+}
+
+.lighting-focus-row-copy strong {
+    color: var(--encore-primary-deep);
+    font-size: .56rem;
+}
+
+.lighting-focus-row-copy span {
+    color: var(--encore-muted);
+    font-size: .47rem;
+}
+
+.lighting-focus-row > small {
+    color: var(--encore-muted);
+    font-size: .45rem;
+    font-weight: 800;
+}
+
+.lighting-focus-editor {
+    display: grid;
+    gap: 12px;
+    padding-top: 4px;
+}
+
+.lighting-focus-editor[hidden] {
+    display: none !important;
+}
+
+.lighting-range-field {
+    display: grid;
+    gap: 6px;
+}
+
+.lighting-range-field > span {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.lighting-range-field strong {
+    color: var(--encore-primary-deep);
+    font-size: .53rem;
+}
+
+.lighting-range-field b {
+    color: var(--encore-primary);
+    font-size: .5rem;
+}
+
+.lighting-range-field input[type="range"] {
+    width: 100%;
+    accent-color: var(--encore-primary);
+}
+
+.lighting-notes {
+    resize: vertical;
+}
+
+.lighting-cue-summary-card {
+    display: grid;
+    gap: 2px;
+    padding: 10px;
+    border: 1px solid var(--encore-border);
+    border-radius: 8px;
+    background: var(--encore-primary-soft);
+}
+
+.lighting-cue-summary-card span {
+    color: var(--encore-primary);
+    font-size: .47rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.lighting-cue-summary-card strong {
+    color: var(--encore-primary-deep);
+    font-size: .62rem;
+}
+
+.lighting-cue-summary-card small {
+    color: var(--encore-muted);
+    font-size: .49rem;
+    font-weight: 800;
+}
+
+.lighting-layer {
+    position: absolute;
+    z-index: 6;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.lighting-layer::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(4,7,25,.38);
+    opacity: 0;
+    transition: opacity .18s ease;
+}
+
+.drawing-board-workspace.lighting-mode
+.lighting-layer::before,
+.drawing-board-workspace.playback-mode.has-lighting-cues
+.lighting-layer::before {
+    opacity: 1;
+}
+
+.lighting-focus {
+    position: absolute;
+    z-index: 2;
+    transform: translate(-50%,-50%);
+    border-radius: 50%;
+    mix-blend-mode: screen;
+    pointer-events: auto;
+    cursor: grab;
+    touch-action: none;
+}
+
+.lighting-focus.shape-ellipse {
+    border-radius: 50%;
+}
+
+.lighting-focus::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background:
+        radial-gradient(
+            ellipse at center,
+            rgba(
+                var(--focus-rgb),
+                var(--focus-alpha)
+            ) 0%,
+            rgba(
+                var(--focus-rgb),
+                calc(var(--focus-alpha) * .8)
+            ) calc((100 - var(--focus-softness)) * .35%),
+            rgba(
+                var(--focus-rgb),
+                calc(var(--focus-alpha) * .34)
+            ) calc(100% - (var(--focus-softness) * .38%)),
+            rgba(
+                var(--focus-rgb),
+                0
+            ) 100%
+        );
+    filter: blur(
+        calc(var(--focus-softness) * .035px)
+    );
+}
+
+.lighting-focus.selected::after {
+    content: attr(data-label);
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    border: 1px dashed rgba(255,255,255,.75);
+    border-radius: inherit;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0,0,0,.8);
+    font-size: .65rem;
+    font-weight: 950;
+}
+
+.lighting-focus-resize {
+    position: absolute;
+    z-index: 4;
+    right: -6px;
+    bottom: -6px;
+    width: 14px;
+    height: 14px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: var(--encore-primary);
+    box-shadow: 0 2px 7px rgba(0,2,78,.24);
+    cursor: nwse-resize;
+}
+
+.lighting-focus.playback-light {
+    pointer-events: none;
+}
+
+.lighting-cue-tabs-shell {
+    display: flex;
+    min-width: 0;
+    align-items: stretch;
+    gap: 4px;
+    padding: 6px 8px 0;
+    border-top: 1px solid var(--encore-border);
+    background: #FFFDF4;
+}
+
+.lighting-cue-tabs-shell[hidden] {
+    display: none !important;
+}
+
+.lighting-cue-tabs {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    gap: 3px;
+    overflow-x: auto;
+}
+
+.lighting-cue-tab,
+.add-lighting-cue-tab {
+    display: grid;
+    flex: 0 0 auto;
+    min-width: 110px;
+    min-height: 43px;
+    place-content: center;
+    padding: 3px 10px;
+    border: 1px solid #E5D391;
+    border-radius: 7px 7px 0 0;
+    background: #fff;
+    color: #75683B;
+    cursor: pointer;
+    font: inherit;
+    text-align: center;
+}
+
+.lighting-cue-tab {
+    position: relative;
+}
+
+.lighting-cue-tab strong {
+    color: #4C421F;
+    font-size: .56rem;
+}
+
+.lighting-cue-tab span {
+    font-size: .47rem;
+}
+
+.lighting-cue-tab:hover,
+.lighting-cue-tab.active {
+    border-color: #E2B900;
+    background: #FFF8D8;
+    color: #7B6500;
+}
+
+.lighting-cue-tab.active {
+    box-shadow: inset 0 -3px 0 #E2B900;
+}
+
+.lighting-cue-tab.blackout {
+    background: #2C2E38;
+    color: #fff;
+}
+
+.lighting-cue-tab.blackout strong {
+    color: #fff;
+}
+
+.lighting-cue-delete {
+    position: absolute;
+    top: 3px;
+    right: 4px;
+    display: grid;
+    width: 18px;
+    height: 18px;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: currentColor;
+    cursor: pointer;
+}
+
+.add-lighting-cue-tab {
+    min-width: 115px;
+    color: #7B6500;
+    font-size: .53rem;
+    font-weight: 900;
+}
+
+.add-lighting-cue-tab:hover {
+    border-color: #E2B900;
+    background: #E2B900;
+    color: #fff;
+}
+
+.lighting-output-sheet {
+    display: grid;
+    gap: 10px;
+}
+
+.lighting-output-cue {
+    display: grid;
+    gap: 6px;
+    padding: 10px;
+    border: 1px solid var(--encore-border);
+    border-radius: 9px;
+    background: #fff;
+}
+
+.lighting-output-cue > strong {
+    color: var(--encore-primary-deep);
+    font-size: .62rem;
+}
+
+.lighting-output-meta {
+    color: var(--encore-muted);
+    font-size: .48rem;
+    font-weight: 800;
+}
+
+.lighting-output-focus {
+    padding-top: 6px;
+    border-top: 1px solid var(--encore-border);
+    color: var(--encore-muted);
+    font-size: .5rem;
+    line-height: 1.5;
+}
+
+.lighting-output-focus b {
+    color: var(--encore-primary-deep);
+}
+
+@media(max-width:760px) {
+    .lighting-mode-toggle {
+        right: 32px;
+    }
+
+    .drawing-board-workspace.lighting-mode
+    .drawing-panel-tabs {
+        grid-template-columns: repeat(3,1fr);
+    }
+}
+
+
+/* Lighting interaction layer fix
+   Keep dancer markers visible in Lighting Mode, but let focus areas
+   receive pointer events for dragging and resizing. */
+.drawing-board-workspace.lighting-mode .marker-layer {
+    pointer-events: none;
+}
+
+.drawing-board-workspace.lighting-mode .board-marker {
+    pointer-events: none;
+}
+
+.drawing-board-workspace.lighting-mode .lighting-layer {
+    pointer-events: auto;
+}
+
+.drawing-board-workspace.lighting-mode .lighting-focus {
+    pointer-events: auto;
+}
+
+
+/* Lighting shape + additive color correction */
+
+/* A circle must be square in actual pixels, not equal percentages of a
+   rectangular stage. Width remains user-controlled; aspect-ratio supplies
+   the matching pixel height. */
+.drawing-board-workspace.lighting-mode
+.lighting-focus.shape-circle,
+.drawing-board-workspace.playback-mode
+.lighting-focus.shape-circle {
+    aspect-ratio: 1 / 1;
+    height: auto !important;
+}
+
+/* Ellipses continue to honor independently configured width/height. */
+.lighting-focus.shape-ellipse {
+    aspect-ratio: auto;
+}
+
+/* Create a predictable compositing context for stage-light overlays. */
+.lighting-layer {
+    isolation: isolate;
+}
+
+/* Screen blending approximates additive RGB light mixing:
+   red + blue -> magenta, red + green -> yellow,
+   blue + green -> cyan, RGB -> white. */
+.lighting-focus {
+    mix-blend-mode: screen;
+}
+
+.lighting-focus::before {
+    mix-blend-mode: screen;
+}
+
+
+/* =========================================================
+   Simple Lighting Follow Spots
+   ========================================================= */
+
+.lighting-subsection-heading {
+    margin-top: 4px;
+    padding-top: 10px;
+    border-top: 1px solid var(--encore-border);
+}
+
+.lighting-subsection-heading span {
+    color: var(--encore-primary);
+    font-size: .48rem;
+    font-weight: 900;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.lighting-follow-list {
+    display: grid;
+    gap: 6px;
+}
+
+.lighting-follow-list:empty::before {
+    content: "No follow spots in this cue yet.";
+    display: block;
+    padding: 12px;
+    border: 1px dashed var(--encore-border);
+    border-radius: 8px;
+    color: var(--encore-muted);
+    font-size: .52rem;
+    text-align: center;
+}
+
+.lighting-follow-row {
+    display: grid;
+    grid-template-columns: 28px minmax(0,1fr) auto;
+    gap: 8px;
+    align-items: center;
+    min-height: 42px;
+    padding: 6px 8px;
+    border: 1px solid var(--encore-border);
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+}
+
+.lighting-follow-row:hover,
+.lighting-follow-row.active {
+    border-color: #E2B900;
+    background: #FFF8D8;
+}
+
+.lighting-follow-icon {
+    display: grid;
+    width: 26px;
+    height: 26px;
+    place-items: center;
+    border-radius: 50%;
+    background: #FFF4AE;
+    font-size: .7rem;
+}
+
+.lighting-follow-copy {
+    display: grid;
+    gap: 1px;
+}
+
+.lighting-follow-copy strong {
+    color: var(--encore-primary-deep);
+    font-size: .56rem;
+}
+
+.lighting-follow-copy span {
+    color: var(--encore-muted);
+    font-size: .47rem;
+}
+
+.lighting-follow-row > small {
+    color: var(--encore-muted);
+    font-size: .45rem;
+    font-weight: 800;
+}
+
+.lighting-follow-spot {
+    position: absolute;
+    z-index: 3;
+    transform: translate(-50%, -50%);
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    mix-blend-mode: screen;
+    pointer-events: auto;
+    cursor: grab;
+    touch-action: none;
+}
+
+.lighting-follow-spot::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background:
+        radial-gradient(
+            circle at center,
+            rgba(var(--follow-rgb), var(--follow-alpha)) 0%,
+            rgba(var(--follow-rgb), calc(var(--follow-alpha) * .86)) 38%,
+            rgba(var(--follow-rgb), calc(var(--follow-alpha) * .34)) 72%,
+            rgba(var(--follow-rgb), 0) 100%
+        );
+    filter: blur(calc(var(--follow-softness) * .03px));
+    mix-blend-mode: screen;
+}
+
+.lighting-follow-spot.selected::after {
+    content: attr(data-label);
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    border: 1px dashed rgba(255,255,255,.9);
+    border-radius: 50%;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0,0,0,.9);
+    font-size: .55rem;
+    font-weight: 900;
+}
+
+.lighting-follow-spot.marker-target,
+.lighting-follow-spot.playback-light {
+    pointer-events: none;
+}
+
+
+/* =========================================================
+   Playback editing behavior
+   Playback may animate the stage, but it must never permanently
+   lock the editor. JavaScript auto-pauses before an edit begins.
+   ========================================================= */
+
+.drawing-board-workspace.playback-mode .drawing-board-panel {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Controls remain visually available so clicking one can auto-pause
+   playback and immediately continue the requested edit. */
+.drawing-board-workspace.playback-mode .drawing-panel-tabs,
+.drawing-board-workspace.playback-mode .drawing-panel-content {
+    pointer-events: auto;
+}
+
+
+/* =========================================================
+   Lighting card-local accordion drawers
+   ========================================================= */
+
+.lighting-accordion-card {
+    display: grid;
+    overflow: hidden;
+    border: 1px solid var(--encore-border);
+    border-radius: 9px;
+    background: #fff;
+}
+
+.lighting-accordion-card .lighting-focus-row,
+.lighting-accordion-card .lighting-follow-row {
+    width: 100%;
+    border: 0;
+    border-radius: 0;
+}
+
+.lighting-accordion-card.open {
+    border-color: color-mix(
+        in srgb,
+        var(--encore-primary) 40%,
+        var(--encore-border)
+    );
+}
+
+.lighting-accordion-card.open .lighting-focus-row,
+.lighting-accordion-card.open .lighting-follow-row {
+    border-bottom: 1px solid var(--encore-border);
+    background: var(--encore-primary-soft);
+}
+
+.lighting-card-row-right {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 7px;
+}
+
+.lighting-card-row-right small {
+    color: var(--encore-muted);
+    font-size: .45rem;
+    font-weight: 800;
+}
+
+.lighting-drawer-chevron {
+    display: grid;
+    width: 18px;
+    height: 18px;
+    place-items: center;
+    border-radius: 5px;
+    color: var(--encore-primary);
+    font-size: .65rem;
+    font-weight: 900;
+}
+
+.lighting-card-drawer {
+    display: grid;
+    gap: 12px;
+    padding: 12px 10px 11px;
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(
+                in srgb,
+                var(--encore-primary) 2%,
+                #fff
+            ),
+            #fff
+        );
+    transform-origin: top;
+    animation: lighting-card-drawer-open .17s ease-out;
+}
+
+@keyframes lighting-card-drawer-open {
+    from {
+        opacity: 0;
+        transform: scaleY(.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scaleY(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .lighting-card-drawer {
+        animation: none;
+    }
+}
+
+.lighting-card-drawer .encore-input,
+.lighting-card-drawer input[type="color"] {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.lighting-card-drawer input[type="color"] {
+    min-height: 36px;
+}
+
+.lighting-focus-list,
+.lighting-follow-list {
+    gap: 7px;
+}
+
+/* Shared legacy editors are retained as inert fallback nodes only. */
+#lighting-focus-editor,
+#lighting-follow-editor {
+    display: none !important;
+}
+
+
+/* =========================================================
+   Encore Pro Lighting V1
+   ========================================================= */
+.simple-lighting-controls,.pro-lighting-controls{display:grid;gap:10px}
+.simple-lighting-controls[hidden],.pro-lighting-controls[hidden]{display:none!important}
+.pro-fixture-intro{display:grid;gap:4px;padding:10px;border:1px solid var(--encore-border);border-radius:9px;background:#f8faff}
+.pro-fixture-intro span{color:var(--encore-primary-deep);font-size:.57rem;font-weight:900}
+.pro-fixture-intro p,.pro-fixture-help{margin:0;color:var(--encore-muted);font-size:.49rem;line-height:1.45}
+.pro-fixture-palette{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.pro-fixture-palette button{display:grid;grid-template-columns:24px minmax(0,1fr);gap:6px;align-items:center;min-height:38px;padding:6px 8px;border:1px solid var(--encore-border);border-radius:8px;background:#fff;color:var(--encore-primary-deep);cursor:grab;font:inherit;text-align:left}
+.pro-fixture-palette button:hover{border-color:var(--encore-primary);background:var(--encore-primary-soft)}
+.pro-fixture-palette button span{display:grid;width:24px;height:24px;place-items:center;border-radius:6px;background:#eef2ff;color:var(--encore-primary);font-size:.75rem}
+.pro-fixture-palette button strong{overflow:hidden;font-size:.49rem;text-overflow:ellipsis;white-space:nowrap}
+.pro-fixture-help{padding:7px 9px;border:1px dashed color-mix(in srgb,var(--encore-primary) 34%,var(--encore-border));border-radius:7px;background:var(--encore-primary-soft)}
+.pro-fixture-list{display:grid;gap:7px}
+.pro-fixture-list:empty::before{content:"No fixtures in the Pro rig yet.";display:block;padding:12px;border:1px dashed var(--encore-border);border-radius:8px;color:var(--encore-muted);font-size:.5rem;text-align:center}
+.pro-fixture-card{display:grid;overflow:hidden;border:1px solid var(--encore-border);border-radius:9px;background:#fff}
+.pro-fixture-card.open{border-color:var(--encore-primary)}
+.pro-fixture-row{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:8px;align-items:center;min-height:44px;padding:6px 8px;border:0;background:#fff;cursor:pointer;font:inherit;text-align:left}
+.pro-fixture-row:hover,.pro-fixture-card.open .pro-fixture-row{background:var(--encore-primary-soft)}
+.pro-fixture-icon{display:grid;width:28px;height:28px;place-items:center;border-radius:7px;background:#eef2ff;color:var(--encore-primary);font-size:.72rem;font-weight:900}
+.pro-fixture-copy{display:grid;min-width:0;gap:1px}.pro-fixture-copy strong{overflow:hidden;color:var(--encore-primary-deep);font-size:.55rem;text-overflow:ellipsis;white-space:nowrap}.pro-fixture-copy span{color:var(--encore-muted);font-size:.46rem}
+.pro-fixture-state-badge{color:var(--encore-muted);font-size:.45rem;font-weight:850}.pro-fixture-state-badge.on{color:#16865c}
+.pro-fixture-drawer{display:grid;gap:12px;padding:11px;border-top:1px solid var(--encore-border);animation:lighting-card-drawer-open .17s ease-out}
+.pro-fixture-section-title{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-bottom:5px;border-bottom:1px solid var(--encore-border)}
+.pro-fixture-section-title strong{color:var(--encore-primary-deep);font-size:.52rem}.pro-fixture-section-title span{color:var(--encore-muted);font-size:.44rem}
+.pro-fixture-toggle{display:grid;grid-template-columns:17px minmax(0,1fr);gap:8px;align-items:center;padding:8px;border:1px solid var(--encore-border);border-radius:8px}
+.pro-fixture-toggle input{width:16px;height:16px}.pro-fixture-toggle span{display:grid;gap:1px}.pro-fixture-toggle strong{color:var(--encore-primary-deep);font-size:.54rem}.pro-fixture-toggle small{color:var(--encore-muted);font-size:.45rem}
+.pro-fixture-stage-icon{position:absolute;z-index:5;display:grid;width:30px;height:30px;place-items:center;transform:translate(-50%,-50%);border:2px solid #fff;border-radius:7px;background:#151a35;box-shadow:0 3px 10px rgba(0,2,78,.28);color:#fff;cursor:grab;font-size:.72rem;font-weight:900;pointer-events:auto;touch-action:none}
+.pro-fixture-stage-icon.selected{box-shadow:0 0 0 3px rgba(46,60,241,.28),0 4px 12px rgba(0,2,78,.24)}
+.pro-fixture-stage-icon .pro-fixture-number{position:absolute;right:-6px;bottom:-6px;display:grid;width:17px;height:17px;place-items:center;border:2px solid #fff;border-radius:50%;background:var(--encore-primary);color:#fff;font-size:.39rem}
+.pro-light-beam-line{position:absolute;z-index:1;height:2px;transform-origin:left center;background:linear-gradient(90deg,rgba(var(--beam-rgb),.65),rgba(var(--beam-rgb),.12));pointer-events:none}
+.pro-light-pool{position:absolute;z-index:2;transform:translate(-50%,-50%);aspect-ratio:1/1;border-radius:50%;mix-blend-mode:screen;pointer-events:none}
+.pro-light-pool::before{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,rgba(var(--beam-rgb),var(--beam-alpha)) 0%,rgba(var(--beam-rgb),calc(var(--beam-alpha)*.55)) 55%,rgba(var(--beam-rgb),0) 100%)}
+.drawing-board-workspace.lighting-mode.pro-lighting-mode .lighting-layer{pointer-events:auto}
+.drawing-board-workspace.lighting-mode.pro-lighting-mode .lighting-focus,.drawing-board-workspace.lighting-mode.pro-lighting-mode .lighting-follow-spot{display:none}
+.drawing-board-workspace.lighting-mode.pro-lighting-mode .marker-layer{pointer-events:none}
+.formation-stage.pro-fixture-drop-target{box-shadow:inset 0 0 0 3px rgba(46,60,241,.24),0 0 0 2px rgba(46,60,241,.08)}
+.pro-output-rig{display:grid;gap:6px;margin-bottom:10px;padding:10px;border:1px solid var(--encore-border);border-radius:9px;background:#f8faff}
+.pro-output-rig>strong{color:var(--encore-primary-deep);font-size:.6rem}.pro-output-rig-row{color:var(--encore-muted);font-size:.48rem;line-height:1.45}.pro-output-rig-row b{color:var(--encore-primary-deep)}
+
+
+/* =========================================================
+   Assignment cleanup + marker drag tooltip
+   ========================================================= */
+
+.assignment-sort-control {
+    display: grid;
+    gap: 5px;
+    margin-bottom: 9px;
+}
+
+.assignment-sort-control > span {
+    color: var(--encore-primary-deep);
+    font-size: .52rem;
+    font-weight: 850;
+}
+
+.assignment-sort-control .encore-input {
+    width: 100%;
+    min-height: 36px;
+    box-sizing: border-box;
+    padding: 6px 8px;
+    border: 1px solid var(--encore-border);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--encore-primary-deep);
+    font: inherit;
+    font-size: .58rem;
+}
+
+.assignment-row-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 5px;
+}
+
+.assignment-unassign-button {
+    display: grid;
+    width: 25px;
+    height: 25px;
+    place-items: center;
+    padding: 0;
+    border: 1px solid rgba(176,68,68,.22);
+    border-radius: 6px;
+    background: rgba(176,68,68,.04);
+    color: #A13F3F;
+    cursor: pointer;
+    font: inherit;
+    font-size: .72rem;
+    font-weight: 900;
+}
+
+.assignment-unassign-button:hover {
+    border-color: #B04444;
+    background: #B04444;
+    color: #fff;
+}
+
+.assignment-available-label {
+    padding: 3px 6px;
+    border-radius: 999px;
+    background: rgba(22,134,92,.08);
+    color: #16865C;
+    font-size: .43rem;
+    font-weight: 850;
+}
+
+.board-marker.dragging + .marker-tooltip,
+.marker-tooltip {
+    will-change: left, top;
+}
+
+
+/* =========================================================
+   Fixed Drawing Board stage + zoom / pan
+   ========================================================= */
+
+/*
+The viewport grows when the side panel collapses.
+The stage itself remains one canonical size, so the grid,
+wings, markers, lighting, and future stage drawings never stretch.
+*/
+.drawing-stage-viewport {
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    overscroll-behavior: contain;
+    background: #eef1f7;
+    scrollbar-gutter: stable;
+}
+
+.drawing-stage-zoom-content {
+    --stage-zoom: 1;
+    position: relative;
+
+    /*
+    980 x 650 is the viewport footprint before scaling.
+    Extra padding gives room for the external stage-direction labels.
+    */
+    width: calc(1040px * var(--stage-zoom));
+    height: calc(710px * var(--stage-zoom));
+    min-width: calc(1040px * var(--stage-zoom));
+    min-height: calc(710px * var(--stage-zoom));
+    margin: 18px;
+}
+
+.drawing-stage-zoom-content > .drawing-stage-workspace {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+
+    width: 980px !important;
+    height: 650px !important;
+    min-width: 980px !important;
+    min-height: 650px !important;
+    max-width: none !important;
+    max-height: none !important;
+
+    transform: scale(var(--stage-zoom));
+    transform-origin: top left;
+}
+
+/* The actual stage/grid geometry is never changed by panel width. */
+.drawing-stage-zoom-content .formation-stage {
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-width: none !important;
+    max-height: none !important;
+}
+
+/* Panel collapse now reveals more canvas instead of widening the stage. */
+.drawing-board-main.panel-collapsed .drawing-stage-viewport,
+.drawing-board-workspace.panel-collapsed .drawing-stage-viewport,
+.drawing-board-workspace.drawing-panel-collapsed .drawing-stage-viewport {
+    width: 100%;
+}
+
+/* =========================================================
+   Center stage guides
+   ========================================================= */
+
+/* Permanent Stage Right / Stage Left center line. */
+.stage-centerline {
+    position: absolute;
+    z-index: 4;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    border-left: 1px dashed rgba(14,22,157,.34);
+    pointer-events: none;
+}
+
+/* Exact center-center reference mark. */
+.stage-center-crosshair {
+    position: absolute;
+    z-index: 5;
+    top: 50%;
+    left: 50%;
+    width: 30px;
+    height: 30px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+.stage-center-crosshair .crosshair-horizontal,
+.stage-center-crosshair .crosshair-vertical {
+    position: absolute;
+    display: block;
+    background: rgba(14,22,157,.76);
+}
+
+.stage-center-crosshair .crosshair-horizontal {
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    transform: translateY(-50%);
+}
+
+.stage-center-crosshair .crosshair-vertical {
+    top: 0;
+    left: 50%;
+    width: 1px;
+    height: 100%;
+    transform: translateX(-50%);
+}
+
+.stage-center-crosshair .crosshair-dot {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 6px;
+    height: 6px;
+    transform: translate(-50%, -50%);
+    border: 1px solid rgba(14,22,157,.82);
+    border-radius: 50%;
+    background: rgba(255,255,255,.96);
+}
+
+/* =========================================================
+   Zoom controls
+   ========================================================= */
+
+.drawing-stage-zoom-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+
+    min-height: 34px;
+    padding: 4px 8px;
+
+    border-top: 1px solid var(--encore-border);
+    background: #fff;
+}
+
+.drawing-stage-zoom-toolbar button {
+    min-width: 30px;
+    min-height: 27px;
+    padding: 4px 8px;
+
+    border: 1px solid var(--encore-border);
+    border-radius: 6px;
+    background: #fff;
+
+    color: var(--encore-primary-deep);
+    cursor: pointer;
+
+    font: inherit;
+    font-size: .52rem;
+    font-weight: 850;
+}
+
+.drawing-stage-zoom-toolbar button:hover {
+    border-color: var(--encore-primary);
+    background: var(--encore-primary);
+    color: #fff;
+}
+
+#stage-zoom-value {
+    min-width: 48px;
+    color: var(--encore-primary-deep);
+    font-size: .5rem;
+    font-weight: 900;
+    text-align: center;
+}
+
+/*
+Normal wheel/trackpad gestures scroll the canvas.
+Cmd/Ctrl + wheel zooms the stage.
+*/
+
+
+/* =========================================================
+   Drawing Board Fullscreen Workspace Mode
+   ========================================================= */
+
+/*
+This page intentionally opts out of Encore's normal dashboard chrome.
+Other pages continue using the existing sidebar, topbar and page padding.
+*/
+html:has(body.drawing-board-page),
+body.drawing-board-page {
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+    overflow: hidden;
+}
+
+body.drawing-board-page {
+    background: var(--encore-background);
+}
+
+body.drawing-board-page .drawing-board-shell {
+    width: 100vw;
+    height: 100vh;
+    min-height: 0;
+    overflow: hidden;
+}
+
+body.drawing-board-page .drawing-board-app-main {
+    width: 100%;
+    height: 100vh;
+    min-height: 0;
+    margin-left: 0 !important;
+    overflow: hidden;
+}
+
+body.drawing-board-page .drawing-board-page-content {
+    width: 100%;
+    height: 100vh;
+    min-height: 0;
+    padding: 0 !important;
+    overflow: hidden;
+}
+
+/* The Drawing Board itself becomes the full application frame. */
+body.drawing-board-page .drawing-board-workspace {
+    display: grid;
+    grid-template-rows:
+        auto
+        minmax(0, 1fr)
+        auto;
+
+    width: 100vw;
+    height: 100vh;
+    min-height: 0;
+
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+
+    overflow: hidden;
+    background: var(--encore-background);
+}
+
+/* =========================================================
+   Compact workspace header
+   ========================================================= */
+
+body.drawing-board-page .drawing-board-header {
+    position: relative;
+    z-index: 120;
+
+    min-height: 68px;
+    padding: 8px 14px;
+
+    border-bottom: 1px solid var(--encore-border);
+    background: rgba(255,255,255,.97);
+    box-shadow: 0 2px 10px rgba(0,2,78,.05);
+    backdrop-filter: blur(10px);
+}
+
+body.drawing-board-page .drawing-board-header-main {
+    display: grid;
+    grid-template-columns: auto auto minmax(0,1fr);
+    grid-template-rows: auto auto;
+    column-gap: 10px;
+    row-gap: 3px;
+    align-items: center;
+}
+
+body.drawing-board-page .drawing-board-back,
+body.drawing-board-page .drawing-board-dashboard-link {
+    display: inline-flex;
+    min-height: 25px;
+    align-items: center;
+    width: fit-content;
+    margin: 0;
+    padding: 0 7px;
+
+    border-radius: 6px;
+
+    color: var(--encore-primary);
+    font-size: .5rem;
+    font-weight: 850;
+    text-decoration: none;
+}
+
+body.drawing-board-page .drawing-board-back:hover,
+body.drawing-board-page .drawing-board-dashboard-link:hover {
+    background: var(--encore-primary-soft);
+}
+
+body.drawing-board-page .drawing-board-back {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+body.drawing-board-page .drawing-board-dashboard-link {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+body.drawing-board-page .drawing-board-title-row {
+    grid-column: 1 / -1;
+    grid-row: 2;
+
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+}
+
+body.drawing-board-page .board-title-display {
+    min-width: 0;
+}
+
+body.drawing-board-page .board-title-display > span {
+    font-size: .43rem;
+}
+
+body.drawing-board-page .board-title-display h1 {
+    overflow: hidden;
+    max-width: 520px;
+    font-size: clamp(1rem, 1.8vw, 1.35rem);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+body.drawing-board-page .board-song-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-left: 4px;
+}
+
+body.drawing-board-page .board-song-info span {
+    font-size: .42rem;
+}
+
+body.drawing-board-page .board-song-info strong {
+    max-width: 210px;
+    overflow: hidden;
+    font-size: .53rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+body.drawing-board-page .drawing-board-save-area {
+    flex: 0 0 auto;
+}
+
+body.drawing-board-page .drawing-board-save-button {
+    min-width: 76px;
+    min-height: 36px;
+}
+
+/* =========================================================
+   Main editor area
+   ========================================================= */
+
+body.drawing-board-page .drawing-board-main {
+    display: grid;
+    grid-template-columns:
+        var(--board-panel-width)
+        minmax(0,1fr);
+
+    min-height: 0;
+    height: 100%;
+
+    overflow: hidden;
+    background: var(--encore-background);
+}
+
+body.drawing-board-page
+.drawing-board-workspace.panel-collapsed
+.drawing-board-main {
+    grid-template-columns: minmax(0,1fr);
+}
+
+/*
+The side editor occupies the full height between header and timeline.
+Its own content scrolls; the browser window never does.
+*/
+body.drawing-board-page .drawing-board-panel {
+    position: relative;
+    z-index: 80;
+
+    min-height: 0;
+    height: 100%;
+
+    overflow: hidden;
+
+    border-right: 1px solid var(--encore-border);
+    background: #fff;
+}
+
+body.drawing-board-page .drawing-panel-top {
+    flex: 0 0 auto;
+}
+
+body.drawing-board-page .drawing-panel-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+/*
+The viewport receives all remaining editor space.
+The fixed-size stage canvas continues to zoom/scroll inside it.
+*/
+body.drawing-board-page .drawing-stage-viewport {
+    min-width: 0;
+    min-height: 0;
+
+    width: 100%;
+    height: 100%;
+
+    margin: 0;
+    overflow: auto;
+
+    background:
+        radial-gradient(
+            circle at 50% 45%,
+            rgba(255,255,255,.75),
+            transparent 52%
+        ),
+        #eef1f7;
+}
+
+/* Keep the canvas centered when it is smaller than the viewport. */
+body.drawing-board-page .drawing-stage-zoom-content {
+    margin:
+        max(14px, calc((100vh - 790px) / 2))
+        auto;
+
+    box-sizing: content-box;
+}
+
+/* =========================================================
+   Bottom timeline / transport dock
+   ========================================================= */
+
+body.drawing-board-page .formation-timeline-shell {
+    position: relative;
+    z-index: 110;
+
+    min-height: 0;
+
+    border-top: 1px solid var(--encore-border);
+    background: rgba(255,255,255,.98);
+    box-shadow: 0 -4px 14px rgba(0,2,78,.055);
+}
+
+body.drawing-board-page .formation-tabs-shell {
+    padding: 4px 7px 5px;
+}
+
+body.drawing-board-page .formation-tab,
+body.drawing-board-page .add-formation-tab {
+    min-height: 38px;
+}
+
+body.drawing-board-page .lighting-cue-tabs-shell {
+    padding: 4px 7px 0;
+}
+
+body.drawing-board-page .lighting-cue-tab,
+body.drawing-board-page .add-lighting-cue-tab {
+    min-height: 38px;
+}
+
+body.drawing-board-page .drawing-stage-zoom-toolbar {
+    min-height: 30px;
+    padding: 2px 7px;
+}
+
+body.drawing-board-page .drawing-playback-bar {
+    min-height: 44px;
+    padding: 5px 9px 7px;
+}
+
+/* =========================================================
+   Lighting button positioning
+   ========================================================= */
+
+/*
+The lightbulb stays pinned to the viewport's upper-right rather than
+moving with the zoomed stage canvas.
+*/
+body.drawing-board-page .lighting-mode-toggle {
+    position: fixed;
+    z-index: 150;
+
+    top: 78px;
+    right: 14px;
+
+    width: 36px;
+    height: 36px;
+}
+
+/* =========================================================
+   Collapsed editor panel
+   ========================================================= */
+
+body.drawing-board-page .expand-panel-button {
+    position: absolute;
+    z-index: 130;
+
+    top: 10px;
+    left: 10px;
+}
+
+/* =========================================================
+   Responsive workspace adjustments
+   ========================================================= */
+
+@media (max-width: 900px) {
+    body.drawing-board-page .drawing-board-workspace {
+        --board-panel-width: 260px;
+    }
+
+    body.drawing-board-page .drawing-board-header {
+        min-height: 64px;
+        padding: 7px 10px;
+    }
+
+    body.drawing-board-page .board-song-info {
+        display: none;
+    }
+
+    body.drawing-board-page .board-title-display h1 {
+        max-width: 55vw;
+    }
+
+    body.drawing-board-page .lighting-mode-toggle {
+        top: 72px;
+        right: 10px;
+    }
+}
+
+@media (max-width: 700px) {
+    body.drawing-board-page .drawing-board-main {
+        grid-template-columns: 1fr;
+    }
+
+    body.drawing-board-page .drawing-board-panel {
+        position: absolute;
+        z-index: 140;
+        inset: 0 auto 0 0;
+
+        width: min(290px, 88vw);
+        height: 100%;
+
+        box-shadow: 10px 0 26px rgba(0,2,78,.16);
+    }
+
+    body.drawing-board-page
+    .drawing-board-workspace.panel-collapsed
+    .drawing-board-panel {
+        display: none;
+    }
+
+    body.drawing-board-page .drawing-playback-bar {
+        grid-template-columns:
+            auto auto auto minmax(80px,1fr) auto;
+    }
+}
+
+
+/* =========================================================
+   Fullscreen workspace lighting button placement
+   ========================================================= */
+
+/*
+Pin Lighting to the Drawing Board application corner,
+not to the zoomed/scrolled stage canvas.
+*/
+body.drawing-board-page .lighting-mode-toggle {
+    position: fixed !important;
+    z-index: 180 !important;
+
+    top: 78px !important;
+    right: 14px !important;
+    left: auto !important;
+
+    margin: 0 !important;
+    transform: none !important;
+}
+
+/* Keep it tucked under the compact workspace header on smaller screens. */
+@media (max-width: 900px) {
+    body.drawing-board-page .lighting-mode-toggle {
+        top: 72px !important;
+        right: 10px !important;
+    }
+}
+
+
+/* =========================================================
+   True workspace-level Lighting control
+   ========================================================= */
+
+/*
+The Lighting button now lives outside the transformed stage/zoom DOM.
+That is required because CSS transforms create a containing block for
+fixed-position descendants.
+*/
+body.drawing-board-page .drawing-board-workspace-actions {
+    position: fixed;
+    z-index: 190;
+
+    top: 76px;
+    right: 14px;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    pointer-events: none;
+}
+
+body.drawing-board-page
+.drawing-board-workspace-actions
+.lighting-mode-toggle {
+    position: static !important;
+
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+
+    width: 38px;
+    height: 38px;
+
+    margin: 0 !important;
+    transform: none !important;
+
+    pointer-events: auto;
+}
+
+@media (max-width: 900px) {
+    body.drawing-board-page .drawing-board-workspace-actions {
+        top: 70px;
+        right: 10px;
+    }
+}
+
+
+/* Final Lighting button spacing under fullscreen header */
+body.drawing-board-page .drawing-board-workspace-actions {
+    top: 88px !important;
+    right: 10px !important;
+}
+
+@media (max-width: 900px) {
+    body.drawing-board-page .drawing-board-workspace-actions {
+        top: 84px !important;
+        right: 10px !important;
+    }
+}
+
+
+/* =========================================================
+   Formation Information in Options
+   ========================================================= */
+
+.formation-stage-options-heading {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--encore-border);
+}
+
+[data-panel-content="options"] #selected-formation-name {
+    width: 100%;
+}
+
+[data-panel-content="options"] .formation-length-info {
+    margin-top: 10px;
+}
+
+
+/* =========================================================
+   Assignments + fixed marker-format dock
+   ========================================================= */
+
+.assignment-panel-content {
+    overflow: hidden !important;
+    padding: 0 !important;
+}
+
+.assignment-panel-layout {
+    display: grid;
+    grid-template-rows:
+        minmax(0, 1fr)
+        auto;
+    height: 100%;
+    min-height: 0;
+}
+
+.assignment-roster-region {
+    display: grid;
+    grid-template-rows:
+        auto
+        auto
+        minmax(0, 1fr);
+    min-height: 0;
+    padding: 12px 10px 0;
+}
+
+.assignment-roster-scroll {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-bottom: 10px;
+}
+
+.assignment-marker-format-dock {
+    display: grid;
+    gap: 8px;
+    max-height: 42vh;
+    overflow-y: auto;
+    padding: 10px;
+    border-top: 1px solid var(--encore-border);
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(
+                in srgb,
+                var(--encore-primary) 2%,
+                #fff
+            ),
+            #fff
+        );
+    box-shadow:
+        0 -8px 18px
+        rgba(0,2,78,.035);
+}
+
+.marker-format-heading {
+    margin-bottom: 0;
+}
+
+.assignment-marker-format-dock
+.marker-format-controls {
+    gap: 8px;
+}
+
+.assignment-marker-format-dock
+.format-setting {
+    gap: 6px;
+}
+
+.assignment-marker-format-dock
+.shape-picker {
+    grid-template-columns:
+        repeat(4, minmax(0,1fr));
+}
+
+.assignment-marker-format-dock
+.shape-picker button {
+    min-height: 36px;
+}
+
+.assignment-marker-format-dock
+.marker-color-swatches {
+    grid-template-columns:
+        repeat(8, minmax(0,1fr));
+}
+
+.assignment-marker-format-dock
+.marker-color-swatches button {
+    min-height: 25px;
+}
+
+/* =========================================================
+   Draw panel
+   ========================================================= */
+
+.draw-panel-content {
+    overflow-y: auto;
+}
+
+.draw-tool-palette {
+    display: grid;
+    grid-template-columns:
+        repeat(3, minmax(0,1fr));
+    gap: 6px;
+}
+
+.draw-tool-palette button {
+    display: grid;
+    min-width: 0;
+    min-height: 52px;
+    place-items: center;
+    align-content: center;
+    gap: 3px;
+    padding: 6px 4px;
+    border: 1px solid var(--encore-border);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--encore-primary-deep);
+    cursor: pointer;
+    font: inherit;
+}
+
+.draw-tool-palette button:hover,
+.draw-tool-palette button.active {
+    border-color: var(--encore-primary);
+    background: var(--encore-primary-soft);
+    color: var(--encore-primary);
+}
+
+.draw-tool-palette button span {
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.draw-tool-palette button strong {
+    overflow: hidden;
+    max-width: 100%;
+    font-size: .47rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.draw-instruction,
+.draw-properties-empty {
+    margin-top: 9px;
+    padding: 9px;
+    border: 1px dashed var(--encore-border);
+    border-radius: 8px;
+    background: #F8FAFF;
+    color: var(--encore-muted);
+    font-size: .49rem;
+    line-height: 1.45;
+}
+
+.draw-properties {
+    display: grid;
+    gap: 11px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--encore-border);
+}
+
+.draw-selected-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.draw-selected-heading span {
+    color: var(--encore-muted);
+    font-size: .45rem;
+    font-weight: 850;
+    text-transform: uppercase;
+}
+
+.draw-selected-heading strong {
+    color: var(--encore-primary-deep);
+    font-size: .62rem;
+}
+
+.draw-type-properties {
+    display: grid;
+    gap: 10px;
+}
+
+.draw-check-row {
+    display: grid;
+    grid-template-columns: 18px minmax(0,1fr);
+    gap: 8px;
+    align-items: start;
+    padding: 8px;
+    border: 1px solid var(--encore-border);
+    border-radius: 8px;
+}
+
+.draw-check-row input {
+    margin-top: 2px;
+}
+
+.draw-check-row span {
+    display: grid;
+    gap: 1px;
+}
+
+.draw-check-row strong {
+    color: var(--encore-primary-deep);
+    font-size: .54rem;
+}
+
+.draw-check-row small {
+    color: var(--encore-muted);
+    font-size: .45rem;
+    line-height: 1.35;
+}
+
+.draw-color-setting {
+    display: grid;
+    gap: 6px;
+}
+
+.draw-color-setting > span {
+    color: var(--encore-primary-deep);
+    font-size: .5rem;
+    font-weight: 850;
+}
+
+.draw-color-swatches {
+    display: grid;
+    grid-template-columns:
+        repeat(5, minmax(0,1fr));
+    gap: 5px;
+}
+
+.draw-color-swatches button {
+    aspect-ratio: 1.5 / 1;
+    min-height: 24px;
+    border: 1px solid var(--encore-border);
+    border-radius: 5px;
+    background: var(--draw-swatch);
+    cursor: pointer;
+}
+
+.draw-color-swatches button:hover {
+    box-shadow:
+        0 0 0 2px var(--encore-primary-soft),
+        0 0 0 3px var(--encore-primary);
+}
+
+.draw-color-setting > input[type="color"] {
+    width: 100%;
+    min-height: 34px;
+    padding: 3px;
+    border: 1px solid var(--encore-border);
+    border-radius: 7px;
+    background: #fff;
+}
+
+.draw-text-style-buttons,
+.draw-text-align-buttons {
+    display: grid;
+    gap: 5px;
+}
+
+.draw-text-style-buttons {
+    grid-template-columns:
+        repeat(3, minmax(0,1fr));
+}
+
+.draw-text-align-buttons {
+    grid-template-columns:
+        repeat(3, minmax(0,1fr));
+}
+
+.draw-text-style-buttons button,
+.draw-text-align-buttons button {
+    min-height: 34px;
+    border: 1px solid var(--encore-border);
+    border-radius: 7px;
+    background: #fff;
+    color: var(--encore-primary-deep);
+    cursor: pointer;
+    font: inherit;
+    font-size: .52rem;
+}
+
+.draw-text-style-buttons button.active,
+.draw-text-align-buttons button.active {
+    border-color: var(--encore-primary);
+    background: var(--encore-primary);
+    color: #fff;
+}
+
+/* =========================================================
+   Stage drawing layers
+   ========================================================= */
+
+.stage-drawing-layer,
+.stage-text-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    width: 100%;
+    height: 100%;
+}
+
+.stage-drawing-layer {
+    overflow: visible;
+    pointer-events: auto;
+}
+
+.stage-text-layer {
+    pointer-events: none;
+}
+
+.stage-drawing-item {
+    cursor: move;
+    pointer-events: all;
+}
+
+.stage-drawing-hit {
+    cursor: move;
+    pointer-events: stroke;
+}
+
+.stage-drawing-shape {
+    pointer-events: none;
+}
+
+.stage-drawing-selection {
+    pointer-events: none;
+}
+
+.stage-drawing-handle {
+    cursor: pointer;
+    pointer-events: all;
+}
+
+.stage-drawing-resize-handle {
+    cursor: nwse-resize;
+}
+
+.stage-drawing-line-handle {
+    cursor: grab;
+}
+
+.stage-drawing-curve-handle {
+    cursor: crosshair;
+}
+
+.stage-text-drawing {
+    position: absolute;
+    z-index: 6;
+    min-width: 40px;
+    padding: 3px 5px;
+    transform: none;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    cursor: move;
+    pointer-events: auto;
+    user-select: none;
+}
+
+.stage-text-drawing.selected {
+    outline: 1px dashed var(--encore-primary);
+    outline-offset: 3px;
+    background:
+        color-mix(
+            in srgb,
+            var(--encore-primary) 3%,
+            transparent
+        );
+}
+
+.formation-stage.draw-tool-active {
+    cursor: crosshair;
+}
+
+.formation-stage.draw-tool-active
+.marker-layer,
+.formation-stage.draw-tool-active
+.lighting-layer {
+    pointer-events: none !important;
+}
+
+/* =========================================================
+   Apron Stage Grid
+   ========================================================= */
+
+.apron-grid-overlay {
+    position: absolute;
+    z-index: 0;
+    display: none;
+    left: 18%;
+    right: 18%;
+    bottom: 0;
+    height: 34%;
+    overflow: hidden;
+    border: 1px solid rgba(0,2,78,.09);
+    border-top: 0;
+    border-radius:
+        0
+        0
+        50% 50%
+        / 0 0 100% 100%;
+    background:
+        linear-gradient(
+            rgba(0,2,78,.055) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(0,2,78,.055) 1px,
+            transparent 1px
+        ),
+        #fcfdff;
+    background-size:
+        34px 34px,
+        34px 34px;
+    pointer-events: none;
+}
+
+.formation-stage.apron-stage-grid
+.stage-grid-overlay {
+    bottom: 22%;
+}
+
+.formation-stage.apron-stage-grid
+.apron-grid-overlay {
+    display: block;
+}
+
+.formation-stage.apron-stage-grid
+.stage-main-outline {
+    bottom: 22%;
+}
+
+.formation-stage.apron-stage-grid
+.stage-centerline {
+    bottom: 0;
+}
+
+.formation-stage.apron-stage-grid.show-wings
+.stage-main-outline {
+    left: 12%;
+    right: 12%;
+}
+
+/* Visually reserve the apron area beneath the rectangular main stage. */
+.formation-stage.apron-stage-grid::after {
+    content: "";
+    position: absolute;
+    z-index: 1;
+    left: 18%;
+    right: 18%;
+    bottom: 0;
+    height: 34%;
+    border-bottom: 1px solid rgba(0,2,78,.12);
+    border-radius:
+        0
+        0
+        50% 50%
+        / 0 0 100% 100%;
+    pointer-events: none;
+}
+
+/* Keep drawing content and performers above the apron/grid decoration. */
+.formation-stage.apron-stage-grid
+.stage-drawing-layer,
+.formation-stage.apron-stage-grid
+.stage-text-layer,
+.formation-stage.apron-stage-grid
+.transition-path-layer,
+.formation-stage.apron-stage-grid
+.lighting-layer,
+.formation-stage.apron-stage-grid
+.marker-layer {
+    z-index: 5;
+}
+
+.formation-stage.apron-stage-grid
+.marker-layer {
+    z-index: 10;
+}
+
+
+/* =========================================================
+   Draw interaction mode
+   ========================================================= */
+
+/*
+While the Draw tab is active, performers remain visible but are not
+interactive. The canvas belongs exclusively to drawing/editing tools.
+*/
+.drawing-board-workspace.draw-panel-active .marker-layer,
+.drawing-board-workspace.draw-panel-active .board-marker,
+.drawing-board-workspace.draw-panel-active .transition-path-layer,
+.drawing-board-workspace.draw-panel-active .lighting-layer {
+    pointer-events: none !important;
+}
+
+.drawing-board-workspace.draw-panel-active .stage-drawing-layer,
+.drawing-board-workspace.draw-panel-active .stage-text-layer {
+    pointer-events: auto !important;
+}
+
+/* Entire body of a shape should be clickable, not only its outline. */
+.stage-drawing-shape-hit {
+    pointer-events: all !important;
+    cursor: move;
+}
+
+/* Live drag-to-create preview. */
+.stage-drawing-preview {
+    pointer-events: none;
+    opacity: .95;
+}
+
+/*
+Drawing layer should sit above performers only while Draw is active.
+This avoids conflicts during editing but restores the normal marker
+interaction hierarchy everywhere else.
+*/
+.drawing-board-workspace.draw-panel-active .stage-drawing-layer {
+    z-index: 20 !important;
+}
+
+.drawing-board-workspace.draw-panel-active .stage-text-layer {
+    z-index: 21 !important;
+}
+
+.drawing-board-workspace:not(.draw-panel-active) .stage-drawing-layer,
+.drawing-board-workspace:not(.draw-panel-active) .stage-text-layer {
+    pointer-events: none !important;
+}
+
+/* Drawings remain visible outside Draw mode, but only become editable
+   when the teacher explicitly returns to the Draw tab. */
+.drawing-board-workspace:not(.draw-panel-active)
+.stage-drawing-item,
+.drawing-board-workspace:not(.draw-panel-active)
+.stage-text-drawing {
+    cursor: default;
+}
+
+
+/* =========================================================
+   Stage Drawing Selection + Contextual Properties Fix
+   ========================================================= */
+
+/*
+Author CSS declared .draw-type-properties { display:grid }, which can
+override the browser's built-in [hidden] rule. Enforce the intended
+contextual property UI explicitly.
+*/
+.draw-type-properties[hidden],
+#draw-properties[hidden],
+#draw-properties-empty[hidden] {
+    display: none !important;
+}
+
+/*
+Nothing is editable unless Draw is the active side-panel mode.
+*/
+.drawing-board-workspace:not(.draw-panel-active)
+.stage-drawing-layer,
+.drawing-board-workspace:not(.draw-panel-active)
+.stage-text-layer {
+    pointer-events: none !important;
+}
+
+/*
+While Draw is active the drawing surfaces are the top interactive
+editing layers. Dancer markers remain visible underneath.
+*/
+.drawing-board-workspace.draw-panel-active
+.stage-drawing-layer {
+    z-index: 40 !important;
+    pointer-events: auto !important;
+}
+
+.drawing-board-workspace.draw-panel-active
+.stage-text-layer {
+    z-index: 41 !important;
+    pointer-events: auto !important;
+}
+
+.drawing-board-workspace.draw-panel-active
+.marker-layer,
+.drawing-board-workspace.draw-panel-active
+.board-marker,
+.drawing-board-workspace.draw-panel-active
+.transition-path-layer,
+.drawing-board-workspace.draw-panel-active
+.lighting-layer {
+    pointer-events: none !important;
+}
+
+/*
+The full interior of a shape is now a hit target. A nearly-transparent
+fill is used instead of CSS/SVG 'transparent' so browser hit-testing is
+consistent.
+*/
+.drawing-board-workspace.draw-panel-active
+.stage-drawing-shape-hit {
+    pointer-events: all !important;
+    cursor: move !important;
+}
+
+/* The actual visible graphic may also be the browser's event target. */
+.drawing-board-workspace.draw-panel-active
+.stage-drawing-shape {
+    pointer-events: visiblePainted !important;
+    cursor: move;
+}
+
+.drawing-board-workspace.draw-panel-active
+.stage-drawing-line-visible {
+    pointer-events: none !important;
+}
+
+.drawing-board-workspace.draw-panel-active
+.stage-drawing-hit {
+    pointer-events: stroke;
+}
+
+.drawing-board-workspace.draw-panel-active
+.stage-drawing-item.selected
+.stage-drawing-selection {
+    stroke-width: 2;
+}
+
+/* Selected handles must remain above the hit surface. */
+.drawing-board-workspace.draw-panel-active
+.stage-drawing-handle {
+    pointer-events: all !important;
+}
+
+
+/* =========================================================
+   Drawing Layer Hit-Test Correction
+   ========================================================= */
+
+/*
+CRITICAL:
+The text layer spans the entire stage and sits above the SVG drawing layer.
+The container itself must never catch pointer events, otherwise every click
+lands on an invisible DIV instead of the shape/line underneath.
+*/
+.drawing-board-workspace .stage-text-layer,
+.drawing-board-workspace.draw-panel-active .stage-text-layer {
+    pointer-events: none !important;
+}
+
+/* Actual text boxes remain interactive only while Draw is active. */
+.drawing-board-workspace.draw-panel-active
+.stage-text-drawing {
+    pointer-events: auto !important;
+    cursor: move;
+}
+
+/* Outside Draw mode even text boxes are display-only. */
+.drawing-board-workspace:not(.draw-panel-active)
+.stage-text-drawing {
+    pointer-events: none !important;
+}
+
+/*
+The SVG drawing layer owns shape/line interaction while Draw is active.
+*/
+.drawing-board-workspace.draw-panel-active
+.stage-drawing-layer {
+    pointer-events: auto !important;
+    z-index: 40 !important;
+}
+
+/*
+Keep the text layer visually above SVG drawings without making its empty
+surface interactive.
+*/
+.drawing-board-workspace.draw-panel-active
+.stage-text-layer {
+    z-index: 41 !important;
+}
+
+/* Ensure groups and their hit surfaces are valid pointer targets. */
+.drawing-board-workspace.draw-panel-active
+.stage-drawing-item {
+    pointer-events: all !important;
+}
+
+.drawing-board-workspace.draw-panel-active
+.stage-drawing-shape-hit {
+    pointer-events: all !important;
+}
+
+.drawing-board-workspace.draw-panel-active
+.stage-drawing-hit {
+    cursor: move;
+}
+
+/* Selected drawings visibly confirm selection. */
+.drawing-board-workspace.draw-panel-active
+.stage-drawing-item.selected
+.stage-drawing-selection {
+    display: block;
+    stroke: #1663FF;
+    stroke-width: 2;
+    stroke-dasharray: 7 5;
+}
+
+
+/* =========================================================
+   Drawing Board Typography Scale
+   ========================================================= */
+
+/*
+The Drawing Board UI was intentionally compact, but at the current
+fullscreen workspace size the supporting text is too small.
+
+Most of the interface uses rem-based typography, so increasing the root
+font size only while this page is active raises the whole workspace
+consistently without changing the rest of Encore.
+*/
+html:has(body.drawing-board-page) {
+    font-size: 16px;
+}
+
+/*
+Keep the primary Drawing Board title from becoming disproportionately
+large while the smaller interface text scales up.
+*/
+body.drawing-board-page .board-title-display h1 {
+    font-size: clamp(1rem, 1.8vw, 1.35rem);
+}
+
+
+
+/* =========================================================
+   Drawing Board Stage Contrast Polish
+   ========================================================= */
+
+/*
+Slightly stronger grid contrast while keeping it light enough that
+markers, drawings, and lighting remain the visual focus.
+*/
+body.drawing-board-page .formation-stage {
+    background-color: #FCFDFF;
+}
+
+body.drawing-board-page .stage-grid-overlay {
+    opacity: 1;
+    background-image:
+        linear-gradient(
+            rgba(0, 2, 78, .095) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(0, 2, 78, .095) 1px,
+            transparent 1px
+        );
+}
+
+/* Stronger center reference without making it look like a boundary. */
+body.drawing-board-page .stage-centerline {
+    border-left-color: rgba(46, 60, 241, .48);
+    border-left-width: 1.25px;
+}
+
+body.drawing-board-page
+.stage-center-crosshair
+.crosshair-horizontal,
+body.drawing-board-page
+.stage-center-crosshair
+.crosshair-vertical {
+    background: rgba(46, 60, 241, .82);
+}
+
+body.drawing-board-page
+.stage-center-crosshair
+.crosshair-dot {
+    border-color: rgba(46, 60, 241, .9);
+}
+
+/*
+Make the offstage curtain/wave boundaries noticeably easier to read.
+These remain neutral so they do not compete with marker colors.
+*/
+body.drawing-board-page .stage-wing-boundary,
+body.drawing-board-page .stage-wing-wave,
+body.drawing-board-page .wing-boundary,
+body.drawing-board-page .offstage-wing-boundary {
+    opacity: 1;
+    stroke: rgba(54, 62, 110, .72);
+}
+
+/*
+The current curtain treatment is CSS/SVG dependent across versions,
+so strengthen common path/line elements inside the wing containers too.
+*/
+body.drawing-board-page .stage-wing svg path,
+body.drawing-board-page .offstage-wing svg path,
+body.drawing-board-page .stage-wing path,
+body.drawing-board-page .offstage-wing path {
+    stroke: rgba(54, 62, 110, .72) !important;
+    stroke-width: 2.2 !important;
+}
+
+/* Slightly stronger stage outline and apron outline. */
+body.drawing-board-page .stage-main-outline {
+    border-color: rgba(0, 2, 78, .18);
+}
+
+body.drawing-board-page .formation-stage.apron-stage-grid::after {
+    border-bottom-color: rgba(0, 2, 78, .24);
+}
+
+body.drawing-board-page .apron-grid-overlay {
+    border-color: rgba(0, 2, 78, .16);
+    background:
+        linear-gradient(
+            rgba(0, 2, 78, .09) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(0, 2, 78, .09) 1px,
+            transparent 1px
+        ),
+        #FCFDFF;
+    background-size:
+        34px 34px,
+        34px 34px;
+}
+
+/* Keep axis labels a touch clearer as well. */
+body.drawing-board-page .stage-axis-label {
+    color: rgba(0, 2, 78, .62);
+    font-weight: 850;
+}
+
+
+/* =========================================================
+   Targeted Drawing Board Typography
+   ========================================================= */
+
+/*
+Typography is back to the original Drawing Board scale.
+Only Formation tabs get a deliberate readability bump.
+*/
+body.drawing-board-page .formation-tab strong {
+    font-size: .58rem;
+}
+
+body.drawing-board-page .formation-tab > span {
+    font-size: .47rem;
+}
+
+/* Calculated formation start time. */
+.formation-start-time-info {
+    margin-top: 10px;
+}
+
+.formation-start-time-display {
+    display: flex;
+    min-height: 36px;
+    align-items: center;
+    padding: 7px 10px;
+    border: 1px solid var(--encore-border);
+    border-radius: 8px;
+    background: #F7F9FD;
+    color: var(--encore-primary-deep);
+    font-size: .58rem;
+    font-weight: 900;
+}
+
+/*
+Do not globally alter button typography. Existing component-specific
+button sizes control panel tabs, tool buttons, Save, playback, etc.
+*/
+
+
+/* =========================================================
+   Formation Tab Font Bump
+   ========================================================= */
+
+body.drawing-board-page .formation-tab strong {
+    font-size: .62rem;
+}
+
+body.drawing-board-page .formation-tab > span {
+    font-size: .50rem;
+}
+
+
+/* Music Settings is a subsection of the single Board Options section. */
+.board-music-settings-heading {
+    margin-top: 14px;
+    padding-top: 13px;
+    border-top: 1px solid var(--encore-border);
+}
+
+.board-music-settings-heading > strong {
+    display: block;
+}

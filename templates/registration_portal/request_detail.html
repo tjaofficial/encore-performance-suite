@@ -1,0 +1,152 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}
+Registration Request | Encore
+{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/encore_registration_manager.css' %}"
+>
+{% endblock %}
+
+{% block topbar_title %}
+Registration Request
+{% endblock %}
+
+{% block content %}
+<section class="registration-manager-heading">
+    <div>
+        <a
+            class="back-link"
+            href="{% url 'registration_portal:request_manager' studio.slug %}"
+        >
+            ← Back to Requests
+        </a>
+
+        <p class="eyebrow">
+            {{ registration_request.class_instance.class_id }}
+        </p>
+
+        <h1>
+            {{ registration_request.student_first_name }}
+            {{ registration_request.student_last_name }}
+        </h1>
+
+        <p>
+            {{ registration_request.class_instance.name }}
+        </p>
+    </div>
+</section>
+
+<section class="request-detail-grid">
+    <article class="request-panel">
+        <span class="request-kicker">
+            Student
+        </span>
+
+        <h2>
+            {{ registration_request.student_first_name }}
+            {{ registration_request.student_last_name }}
+        </h2>
+
+        <dl>
+            <div>
+                <dt>Birthday</dt>
+                <dd>
+                    {{ registration_request.student_birthday|date:"M j, Y" }}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Requested Class</dt>
+                <dd>
+                    {{ registration_request.class_instance.class_id }}
+                    ·
+                    {{ registration_request.class_instance.name }}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Season</dt>
+                <dd>
+                    {{ registration_request.class_instance.season.name }}
+                </dd>
+            </div>
+        </dl>
+    </article>
+
+    <article class="request-panel">
+        <span class="request-kicker">
+            Parent / Guardian
+        </span>
+
+        <h2>
+            {{ registration_request.guardian_first_name }}
+            {{ registration_request.guardian_last_name }}
+        </h2>
+
+        <dl>
+            <div>
+                <dt>Email</dt>
+                <dd>
+                    <a href="mailto:{{ registration_request.email }}">
+                        {{ registration_request.email }}
+                    </a>
+                </dd>
+            </div>
+
+            <div>
+                <dt>Phone</dt>
+                <dd>
+                    {{ registration_request.phone|default:"—" }}
+                </dd>
+            </div>
+        </dl>
+    </article>
+
+    <article class="request-panel span-2">
+        <span class="request-kicker">
+            Notes
+        </span>
+
+        <p>
+            {{ registration_request.notes|default:"No notes provided."|linebreaksbr }}
+        </p>
+    </article>
+
+    <article class="request-panel span-2">
+        <span class="request-kicker">
+            Workflow
+        </span>
+
+        <form method="post" class="status-form">
+            {% csrf_token %}
+
+            <div>
+                <label>Status</label>
+
+                <select name="status">
+                    {% for value, label in status_choices %}
+                        <option
+                            value="{{ value }}"
+                            {% if registration_request.status == value %}selected{% endif %}
+                        >
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button
+                class="button primary"
+                type="submit"
+            >
+                Update Status
+            </button>
+        </form>
+    </article>
+</section>
+{% endblock %}

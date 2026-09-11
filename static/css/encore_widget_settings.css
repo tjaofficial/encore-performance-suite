@@ -1,0 +1,159 @@
+.widget-settings-form {
+    display: grid;
+    gap: 18px;
+}
+
+.widget-config-card {
+    padding: 20px;
+    border: 1px solid #dfe5ef;
+    border-radius: 18px;
+    background: #fff;
+}
+
+.widget-config-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e3e8f1;
+}
+
+.widget-config-heading h2 {
+    margin: 3px 0 5px;
+}
+
+.widget-config-heading p:not(.eyebrow) {
+    margin: 0;
+    color: #667085;
+}
+
+.widget-toggle,
+.widget-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 750;
+}
+
+.widget-options-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    padding: 16px 0;
+}
+
+.widget-options-grid > div {
+    display: grid;
+    gap: 6px;
+}
+
+.widget-options-grid label:not(.widget-check) {
+    color: #59657a;
+    font-size: .72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.widget-check {
+    align-self: end;
+    min-height: 42px;
+}
+
+.widget-link-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 12px;
+}
+
+.widget-link-grid > div {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+    padding: 13px;
+    border: 1px solid #e3e8f1;
+    border-radius: 12px;
+    background: #f9fbfe;
+}
+
+.widget-link-grid span {
+    color: #667085;
+    font-size: .68rem;
+    font-weight: 850;
+    text-transform: uppercase;
+}
+
+.widget-link-grid code {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.widget-link-grid textarea {
+    width: 100%;
+    min-height: 78px;
+    resize: vertical;
+    padding: 10px;
+    border: 1px solid #d7deea;
+    border-radius: 8px;
+    background: #fff;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: .72rem;
+}
+
+.widget-link-grid a {
+    color: #1663ff;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.widget-preview {
+    margin-top: 16px;
+    overflow: hidden;
+    border: 1px solid #dfe5ef;
+    border-radius: 14px;
+    background: #fff;
+}
+
+.widget-preview::before {
+    display: block;
+    padding: 8px 12px;
+    border-bottom: 1px solid #e3e8f1;
+    background: #f7f9fc;
+    color: #667085;
+    content: "Preview";
+    font-size: .68rem;
+    font-weight: 850;
+    text-transform: uppercase;
+}
+
+.widget-preview iframe {
+    display: block;
+    width: 100%;
+    min-height: 520px;
+    border: 0;
+}
+
+.widget-save-bar {
+    position: sticky;
+    bottom: 12px;
+    display: flex;
+    justify-content: flex-end;
+    padding: 12px;
+    border: 1px solid #dfe5ef;
+    border-radius: 14px;
+    background: rgba(255,255,255,.94);
+    box-shadow: 0 12px 32px rgba(15, 23, 42, .10);
+    backdrop-filter: blur(10px);
+}
+
+@media (max-width: 900px) {
+    .widget-options-grid,
+    .widget-link-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .widget-config-heading {
+        flex-direction: column;
+    }
+}

@@ -1,0 +1,149 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>
+        Create Family Account | {{ studio.name }}
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_public_registration.css' %}"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_family_signup.css' %}"
+    >
+    <link
+        rel="icon"
+        type="image/png"
+        href="{% static 'images/icon.png' %}"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_tenant_branding.css' %}"
+    >
+    {% include "includes/studio_brand_vars.html" %}
+</head>
+
+<body>
+    <main class="public-shell narrow">
+        <section class="public-registration-card">
+            <div class="signup-progress">
+                <span class="complete">1</span>
+                <i></i>
+                <span class="active">2</span>
+                <i></i>
+                <span>3</span>
+            </div>
+
+            <span class="public-kicker">
+                {{ studio.name }}
+            </span>
+
+            <h1>
+                Create Your Encore Account
+            </h1>
+
+            <p class="signup-intro">
+                Your registration request is ready.
+                Create your family login to finish enrolling
+                {{ registration_request.student_first_name }}.
+            </p>
+
+            <div class="handoff-class-card">
+                <strong>
+                    {{ registration_request.class_instance.class_id }}
+                    ·
+                    {{ registration_request.class_instance.name }}
+                </strong>
+
+                <span>
+                    {{ registration_request.class_instance.season.name }}
+                </span>
+            </div>
+
+            <form
+                method="post"
+                class="public-form"
+            >
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="public-errors">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <div class="public-form-grid">
+                    {% for field in form %}
+                        <div
+                            class="public-field
+                            {% if field.name == 'terms' %}full{% endif %}"
+                        >
+                            {% if field.name == "terms" %}
+                                <label class="terms-line">
+                                    {{ field }}
+                                    <span>
+                                        {{ field.label }}
+                                    </span>
+                                </label>
+                            {% else %}
+                                {{ field.label_tag }}
+                                {{ field }}
+                            {% endif %}
+
+                            {% for error in field.errors %}
+                                <small class="public-error">
+                                    {{ error }}
+                                </small>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="signup-summary">
+                    <div>
+                        <span>Parent / Guardian</span>
+
+                        <strong>
+                            {{ registration_request.guardian_first_name }}
+                            {{ registration_request.guardian_last_name }}
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Student</span>
+
+                        <strong>
+                            {{ registration_request.student_first_name }}
+                            {{ registration_request.student_last_name }}
+                        </strong>
+                    </div>
+                </div>
+
+                <button
+                    class="public-button primary large"
+                    type="submit"
+                >
+                    Create Account & Enroll
+                </button>
+            </form>
+
+            <p class="request-disclaimer">
+                Encore will create your Family, Guardian,
+                Student, and class enrollment together.
+            </p>
+        </section>
+    </main>
+</body>
+</html>

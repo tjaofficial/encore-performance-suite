@@ -1,0 +1,260 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Compose Email | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_communications.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Compose Email{% endblock %}
+
+{% block content %}
+<section class="communication-heading">
+    <div>
+        <a class="back-link" href="{% url 'communications:email_manager' studio.slug %}">
+            ← Back to Email Manager
+        </a>
+        <p class="eyebrow">Email Manager</p>
+        <h1>{% if editing_campaign %}Edit Email{% else %}Compose Email{% endif %}</h1>
+        <p>
+            Build the audience first, then write or reuse the message.
+            Encore keeps your selections visible while you move between groups.
+        </p>
+    </div>
+</section>
+
+{% include "communications/email/_nav.html" %}
+
+<noscript>
+    <div class="form-errors">
+        JavaScript is required for Encore's audience selector and visual email editor.
+    </div>
+</noscript>
+
+<form
+    method="post"
+    class="email-compose-form"
+    data-email-compose
+    novalidate
+    data-preview-url="{% url 'communications:email_recipient_preview' studio.slug %}"
+>
+    {% csrf_token %}
+    {{ form.recipient_selection }}
+
+    {% if form.non_field_errors %}
+        <div class="form-errors">{{ form.non_field_errors }}</div>
+    {% endif %}
+    {% for error in form.recipient_selection.errors %}
+        <div class="form-errors">{{ error }}</div>
+    {% endfor %}
+
+    <section class="email-compose-card">
+        <div class="email-step-heading">
+            <span>01</span>
+            <div>
+                <strong>Recipients</strong>
+                <small>Build one audience from any combination of groups.</small>
+            </div>
+        </div>
+
+        <div class="audience-builder" data-audience-builder>
+            <div class="audience-picker-row">
+                <div class="field-group">
+                    <label for="audience-group-picker">Who Are You Emailing?</label>
+                    <select
+                        id="audience-group-picker"
+                        class="encore-input"
+                        data-audience-group-picker
+                    >
+                        {% for group in audience_catalog.groups %}
+                            <option value="{{ group.key }}">{{ group.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="recipient-estimate" data-recipient-estimate>
+                    <span>Estimated Recipients</span>
+                    <strong>0</strong>
+                    <small>Select an audience to preview.</small>
+                </div>
+            </div>
+
+            <div class="audience-option-panel">
+                <div class="audience-option-heading">
+                    <div>
+                        <span>Audience</span>
+                        <strong data-audience-option-title>Select recipients</strong>
+                        <small data-audience-option-description></small>
+                    </div>
+
+                    <label class="audience-select-all" data-select-all-wrap>
+                        <input type="checkbox" data-audience-select-all>
+                        <span class="audience-checkmark">✓</span>
+                        <strong>Select All</strong>
+                    </label>
+                </div>
+
+                <label class="audience-all-option" data-audience-all-option hidden>
+                    <input type="checkbox" data-audience-all>
+                    <span class="audience-checkmark">✓</span>
+                    <span>
+                        <strong>Entire Studio Audience</strong>
+                        <small>All active family contacts, instructors, and administrators.</small>
+                    </span>
+                </label>
+
+                <div class="audience-search-wrap" data-audience-search-wrap>
+                    <input
+                        type="search"
+                        class="encore-input"
+                        placeholder="Search..."
+                        data-audience-search
+                    >
+                </div>
+
+                <div class="audience-checkbox-list" data-audience-options></div>
+            </div>
+
+            <div class="selected-audience-summary" data-selected-audience-summary>
+                <div class="selected-audience-empty">No recipients selected yet.</div>
+            </div>
+
+            <div class="student-copy-option" data-student-email-option hidden>
+                <div>
+                    <strong>Parents / guardians are included automatically.</strong>
+                    <small>
+                        Student account email is optional and only appears when the audience contains students.
+                    </small>
+                </div>
+
+                <label class="checkbox-line">
+                    {{ form.send_to_students }}
+                    <span>Also send to student account emails</span>
+                </label>
+            </div>
+        </div>
+    </section>
+
+    <section class="email-compose-card">
+        <div class="email-step-heading">
+            <span>02</span>
+            <div>
+                <strong>Message</strong>
+                <small>Write a new email or start from a reusable template.</small>
+            </div>
+        </div>
+
+        <div class="email-form-grid">
+            <div class="field-group">
+                {{ form.name.label_tag }}
+                {{ form.name }}
+                {{ form.name.errors }}
+            </div>
+
+            <div class="field-group">
+                {{ form.sender_type.label_tag }}
+                {{ form.sender_type }}
+                {{ form.sender_type.errors }}
+            </div>
+
+            <div class="field-group full message-source-field">
+                <span class="field-label">Message Source</span>
+                <div class="message-source-options">
+                    {% for radio in form.message_source %}
+                        <label class="message-source-option">
+                            {{ radio.tag }}
+                            <span class="message-source-check">✓</span>
+                            <span>{{ radio.choice_label }}</span>
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="field-group full" data-template-field hidden>
+                {{ form.template.label_tag }}
+                {{ form.template }}
+                {{ form.template.errors }}
+                <small>
+                    Choosing a template fills the subject, signature, and email body.
+                    Changes here only affect this campaign.
+                </small>
+            </div>
+
+            <div class="field-group full">
+                {{ form.subject.label_tag }}
+                {{ form.subject }}
+                {{ form.subject.errors }}
+            </div>
+
+            <div class="field-group">
+                {{ form.signature.label_tag }}
+                {{ form.signature }}
+            </div>
+
+            <div class="field-group full">
+                <label>Email Body</label>
+                {% include "communications/email/_editor.html" with field=form.html_body %}
+            </div>
+
+            <details class="email-advanced-field full">
+                <summary>Plain Text Version</summary>
+                <div class="field-group">
+                    {{ form.text_body }}
+                    <small>
+                        Optional. Encore generates one from the email body when this is blank.
+                    </small>
+                </div>
+            </details>
+        </div>
+    </section>
+
+    <section class="email-compose-card">
+        <div class="email-step-heading">
+            <span>03</span>
+            <div>
+                <strong>Send</strong>
+                <small>Send now, save a draft, or schedule it for later.</small>
+            </div>
+        </div>
+
+        <div class="email-send-options">
+            <label class="schedule-toggle">
+                {{ form.schedule_email }}
+                <span class="audience-checkmark">✓</span>
+                <span>
+                    <strong>Schedule this email</strong>
+                    <small>Leave unchecked to send immediately when you click Send Email.</small>
+                </span>
+            </label>
+
+            <div class="schedule-date-field" data-schedule-date-field hidden>
+                {{ form.scheduled_for.label_tag }}
+                {{ form.scheduled_for }}
+                {{ form.scheduled_for.errors }}
+            </div>
+        </div>
+    </section>
+
+    <div class="form-actions email-compose-actions">
+        <a class="button secondary" href="{% url 'communications:email_manager' studio.slug %}">
+            Cancel
+        </a>
+
+        <button class="button secondary" type="submit" name="action" value="draft">
+            Save Draft
+        </button>
+
+        <button class="button primary" type="submit" name="action" value="send" data-send-button>
+            Send Email
+        </button>
+    </div>
+</form>
+
+{{ audience_catalog|json_script:"email-audience-catalog" }}
+{{ template_payloads|json_script:"email-template-payloads" }}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/encore_email_manager.js' %}?v=20260909-email-v2-runtime-fix" defer></script>
+{% endblock %}

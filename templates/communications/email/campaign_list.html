@@ -1,0 +1,51 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+{% block title %}Email Campaigns | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_communications.css' %}">{% endblock %}
+{% block topbar_title %}Email Campaigns{% endblock %}
+{% block content %}
+<section class="communication-heading">
+    <div>
+        <p class="eyebrow">Email Manager</p>
+        <h1>Campaigns & Scheduled Email</h1>
+        <p>Review drafts, scheduled messages, sent campaigns, and failures.</p>
+    </div>
+    <a class="button primary" href="{% url 'communications:email_compose' studio.slug %}">+ Compose Email</a>
+</section>
+{% include "communications/email/_nav.html" %}
+<form class="communication-filters" method="get">
+    <div>
+        <label>Status</label>
+        <select name="status">
+            <option value="">All Statuses</option>
+            {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="filter-actions">
+        <button class="button primary" type="submit">Filter</button>
+        <a class="button secondary" href="{% url 'communications:email_campaign_list' studio.slug %}">Reset</a>
+    </div>
+</form>
+<section class="email-campaign-stack">
+    {% for campaign in campaigns %}
+        <a class="email-campaign-card" href="{% url 'communications:email_campaign_detail' studio.slug campaign.id %}">
+            <div>
+                <b class="email-status status-{{ campaign.status }}">{{ campaign.get_status_display }}</b>
+                <h2>{{ campaign.name }}</h2>
+                <p>{{ campaign.subject }}</p>
+            </div>
+            <div class="email-campaign-metrics">
+                <span><strong>{{ campaign.total_recipients }}</strong><small>Recipients</small></span>
+                <span><strong>{{ campaign.delivered_count }}</strong><small>Delivered</small></span>
+                <span><strong>{{ campaign.opened_count }}</strong><small>Opened</small></span>
+                <span><strong>{{ campaign.failed_count }}</strong><small>Failed</small></span>
+            </div>
+            <span class="announcement-arrow">→</span>
+        </a>
+    {% empty %}
+        <div class="empty-state">No campaigns yet.</div>
+    {% endfor %}
+</section>
+{% endblock %}

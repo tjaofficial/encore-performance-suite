@@ -1,0 +1,105 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        {% block title %}Encore Performance Suite{% endblock %}
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_app.css' %}"
+    >
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_workspace_sidebar_patch.css' %}"
+    >
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_logo_patch.css' %}"
+    >
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_blue_theme.css' %}"
+    >
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_notifications.css' %}"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_studio_settings_patch.css' %}"
+    >
+    <link
+        rel="icon"
+        type="image/png"
+        href="{% static 'images/icon.png' %}"
+    >
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_tenant_branding.css' %}"
+    >
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_phase1_shell_patch.css' %}"
+    >
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_subscription.css' %}"
+    >
+    {% include "includes/studio_brand_vars.html" %}
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body class="{% block body_class %}{% endblock %}">
+    <div class="app-shell {% block app_shell_class %}{% endblock %}">
+        {% block sidebar %}
+            {% include "includes/sidebar.html" %}
+        {% endblock %}
+
+        <div class="app-main {% block app_main_class %}{% endblock %}">
+            {% block topbar %}
+                {% include "includes/topbar.html" %}
+            {% endblock %}
+
+            <main class="page-content {% block page_content_class %}{% endblock %}">
+                {% if encore_subscription_notice and studio %}
+                    <div class="global-subscription-alert">
+                        <div>
+                            <strong>{{ encore_subscription_notice.title }}</strong>
+                            <span>{{ encore_subscription_notice.message|truncatechars:180 }}</span>
+                        </div>
+                        <a href="{% url 'billing:studio_subscription' studio.slug %}">
+                            Review
+                        </a>
+                    </div>
+                {% endif %}
+
+                {% block announcement_area %}{% endblock %}
+
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <div
+        id="mobile-nav-backdrop"
+        class="mobile-nav-backdrop"
+        data-mobile-nav-close
+    ></div>
+
+    <script
+        src="{% static 'js/encore_app.js' %}"
+        defer
+    ></script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

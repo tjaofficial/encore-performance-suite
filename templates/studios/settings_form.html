@@ -1,0 +1,58 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}">{% endblock %}
+{% block topbar_title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="settings-workspace">
+    {% include "includes/settings_nav.html" %}
+    <div class="settings-workspace-content">
+        <section class="settings-heading">
+            <div>
+                <a class="back-link" href="{% url 'studios:onboarding_home' studio.slug %}">← Back to Studio Settings</a>
+                <p class="eyebrow">Studio Settings</p>
+                <h1>{{ page_title }}</h1>
+                <p>{{ page_intro }}</p>
+            </div>
+        </section>
+
+        {% if messages %}
+        <div class="message-stack">
+            {% for message in messages %}<div class="message-banner {{ message.tags }}">{{ message }}</div>{% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data" class="settings-form">
+            {% csrf_token %}
+            {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+            <section class="settings-panel">
+                <div class="settings-form-grid">
+                    {% for field in form %}
+                    <div class="settings-field">
+                        {% if field.field.widget.input_type == "checkbox" %}
+                        <label class="checkbox-line">{{ field }}<span>{{ field.label }}</span></label>
+                        {% else %}
+                        {{ field.label_tag }}{{ field }}
+                        {% endif %}
+                        {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                        {% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            <div class="form-actions">
+                {% if settings_section == 'seasons' %}
+                    <a class="button secondary" href="{% url 'studios:season_list' studio.slug %}">Cancel</a>
+                {% elif settings_section == 'class_types' %}
+                    <a class="button secondary" href="{% url 'studios:class_type_list' studio.slug %}">Cancel</a>
+                {% else %}
+                    <a class="button secondary" href="{% url 'studios:onboarding_home' studio.slug %}">Cancel</a>
+                {% endif %}
+                <button class="button primary" type="submit">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

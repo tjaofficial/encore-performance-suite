@@ -1,0 +1,188 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Tuition Billing Policies | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_billing.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_recurring_tuition.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_enrollment_billing.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_list_views.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Tuition Billing Policies{% endblock %}
+
+{% block content %}
+<div class="settings-workspace">
+    {% include "includes/settings_nav.html" %}
+    <div class="settings-workspace-content">
+<section class="billing-heading">
+    <div>
+        <a class="back-link" href="{% url 'studios:onboarding_home' studio.slug %}">← Back to Studio Settings</a>
+        <p class="eyebrow">Billing Setup</p>
+        <h1>Tuition Billing Policies</h1>
+
+        <p>
+            Policies control how and when a Class tuition price is billed.
+            Tuition amounts live on Classes.
+        </p>
+    </div>
+
+    <div class="list-heading-actions">
+        {% include "includes/list_view_toggle.html" with list_view_label="Billing policy display" %}
+
+        <div class="billing-actions">
+        <form
+            method="post"
+            action="{% url 'billing:run_recurring_billing' studio.slug %}"
+        >
+            {% csrf_token %}
+
+            <button class="button secondary" type="submit">
+                Run Billing Now
+            </button>
+        </form>
+
+        <a
+            class="button primary"
+            href="{% url 'billing:tuition_plan_create' studio.slug %}"
+        >
+            + Billing Policy
+        </a>
+        </div>
+    </div>
+</section>
+
+{% if messages %}
+<div class="message-stack">
+    {% for message in messages %}
+        <div class="message-banner">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="billing-source-note">
+    <strong>No tuition price is entered here.</strong>
+
+    <span>
+        Example: Ballet II can cost $125 in the Class Manager and use the
+        Monthly Tuition policy below. The policy says monthly; the Class says $125.
+    </span>
+</div>
+
+{% if view_mode == "table" %}
+<section class="encore-list-table-card">
+    <div class="encore-list-table-wrap">
+        <table class="encore-list-table">
+            <thead>
+                <tr>
+                    <th>Policy</th>
+                    <th>Frequency</th>
+                    <th>Registration Fee</th>
+                    <th>Late Fee</th>
+                    <th>Grace</th>
+                    <th>Classes</th>
+                    <th>Status</th>
+                    <th class="action-cell">Open</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for plan in plans %}
+                    <tr>
+                        <td>
+                            <a
+                                class="primary-cell"
+                                href="{% url 'billing:tuition_plan_edit' studio.slug plan.id %}"
+                            >
+                                {{ plan.name }}
+                            </a>
+                        </td>
+                        <td>{{ plan.get_frequency_display }}</td>
+                        <td>${{ plan.registration_fee|floatformat:2 }}</td>
+                        <td>${{ plan.late_fee|floatformat:2 }}</td>
+                        <td>{{ plan.grace_period_days }} day{{ plan.grace_period_days|pluralize }}</td>
+                        <td class="numeric-cell">{{ plan.class_count }}</td>
+                        <td>
+                            <div class="table-badges">
+                                {% if plan.is_active %}
+                                    <span class="status-pill status-active">Active</span>
+                                {% else %}
+                                    <span class="status-pill status-void">Inactive</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="action-cell">
+                            <a href="{% url 'billing:tuition_plan_edit' studio.slug plan.id %}">
+                                Open →
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td class="empty-cell" colspan="8">
+                            No tuition billing policies yet.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% else %}
+<section class="plan-grid">
+    {% for plan in plans %}
+        <a
+            class="plan-card"
+            href="{% url 'billing:tuition_plan_edit' studio.slug plan.id %}"
+        >
+            <div class="plan-card-heading">
+                <div>
+                    <span class="card-kicker">
+                        {{ plan.get_frequency_display }}
+                    </span>
+                    <h2>{{ plan.name }}</h2>
+                </div>
+
+                {% if plan.is_active %}
+                    <span class="status-pill status-active">Active</span>
+                {% else %}
+                    <span class="status-pill status-void">Inactive</span>
+                {% endif %}
+            </div>
+
+            <p>{{ plan.description|default:"No description." }}</p>
+
+            <div class="plan-meta">
+                <span>
+                    Registration Fee:
+                    ${{ plan.registration_fee|floatformat:2 }}
+                </span>
+
+                <span>
+                    Late Fee:
+                    ${{ plan.late_fee|floatformat:2 }}
+                </span>
+
+                <span>
+                    Grace:
+                    {{ plan.grace_period_days }} day{{ plan.grace_period_days|pluralize }}
+                </span>
+
+                <span>
+                    {{ plan.class_count }}
+                    class{{ plan.class_count|pluralize }}
+                </span>
+            </div>
+        </a>
+    {% empty %}
+        <div class="empty-state">
+            No tuition billing policies yet.
+        </div>
+    {% endfor %}
+</section>
+{% endif %}
+
+    </div>
+</div>
+{% endblock %}

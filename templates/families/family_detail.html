@@ -1,0 +1,158 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ family }} | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_people_manager.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Family Details{% endblock %}
+
+{% block content %}
+<section class="people-heading">
+    <div>
+        <a
+            class="back-link"
+            href="{% url 'families:family_list' studio.slug %}"
+        >
+            ← Back to Families
+        </a>
+
+        <p class="eyebrow">Family Record</p>
+        <h1>{{ family }}</h1>
+
+        <p>
+            {{ students|length }} student{{ students|length|pluralize }}
+            ·
+            {{ guardians|length }} guardian{{ guardians|length|pluralize }}
+        </p>
+    </div>
+
+    <div class="family-heading-actions">
+        {% if family.billing_account %}
+            <a
+                class="button secondary"
+                href="{% url 'billing:account_detail' studio.slug family.billing_account.id %}"
+            >
+                Billing
+            </a>
+        {% endif %}
+
+        <a
+            class="button primary"
+            href="{% url 'families:family_edit' studio.slug family.id %}"
+        >
+            Edit Family
+        </a>
+    </div>
+</section>
+
+{% if messages %}
+<div class="message-stack">
+    {% for message in messages %}
+        <div class="message-banner">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<section class="detail-grid">
+    <article class="people-card">
+        <div class="card-heading">
+            <div>
+                <span class="card-kicker">Household</span>
+                <h2>Guardians</h2>
+            </div>
+        </div>
+
+        {% for guardian in guardians %}
+            <div class="guardian-row">
+                <div class="person-avatar">
+                    {{ guardian.first_name|slice:":1"|upper }}
+                </div>
+
+                <div class="guardian-main">
+                    <strong>
+                        {{ guardian.first_name }}
+                        {{ guardian.last_name }}
+                    </strong>
+
+                    <span>
+                        {{ guardian.relationship }}
+                        {% if guardian.is_primary %}
+                            · Primary
+                        {% endif %}
+                    </span>
+
+                    <small>
+                        {{ guardian.email|default:"No email" }}
+                        {% if guardian.phone %}
+                            · {{ guardian.phone }}
+                        {% endif %}
+                    </small>
+                </div>
+
+                <div class="guardian-badges">
+                    {% if guardian.financially_responsible %}
+                        <span class="mini-pill">Financial</span>
+                    {% endif %}
+
+                    {% if guardian.authorized_for_pickup %}
+                        <span class="mini-pill">Pickup</span>
+                    {% endif %}
+                </div>
+            </div>
+        {% empty %}
+            <div class="empty-state">
+                No guardians attached yet.
+            </div>
+        {% endfor %}
+    </article>
+
+    <article class="people-card">
+        <div class="card-heading">
+            <div>
+                <span class="card-kicker">Students</span>
+                <h2>Dancers</h2>
+            </div>
+        </div>
+
+        {% for student in students %}
+            <a
+                class="student-family-row"
+                href="{% url 'students:student_detail' studio.slug student.id %}"
+            >
+                <div class="person-avatar">
+                    {{ student.first_name|slice:":1"|upper }}
+                </div>
+
+                <div>
+                    <strong>
+                        {{ student.first_name }}
+                        {{ student.last_name }}
+                    </strong>
+
+                    <span>
+                        Age {{ student.age }}
+                        ·
+                        {{ student.is_active|yesno:"Active,Inactive" }}
+                    </span>
+                </div>
+
+                <span>→</span>
+            </a>
+        {% empty %}
+            <div class="empty-state">
+                No students attached yet.
+            </div>
+        {% endfor %}
+
+        <a
+            class="button secondary family-add-student"
+            href="{% url 'students:student_create' studio.slug %}"
+        >
+            + Add Student
+        </a>
+    </article>
+</section>
+{% endblock %}

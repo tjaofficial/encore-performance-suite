@@ -1,0 +1,57 @@
+<article class="admin-dashboard-card admin-attendance-alert-card">
+    <div class="card-heading">
+        <div>
+            <span class="card-kicker">Attendance</span>
+            <h2>Attendance Alerts</h2>
+        </div>
+    </div>
+
+    {% if attendance_alerts.students or attendance_alerts.classes %}
+        <div class="attendance-alert-columns admin-card-scroll">
+            <div>
+                <span class="admin-subheading">Repeated Absences</span>
+
+                {% for item in attendance_alerts.students %}
+                    <div class="admin-alert-row">
+                        <div class="admin-row-copy">
+                            <strong>
+                                {{ item.student__first_name }}
+                                {{ item.student__last_name }}
+                            </strong>
+                            <span>Last 30 days</span>
+                        </div>
+
+                        <small class="admin-alert-badge">
+                            {{ item.absence_count }} absent
+                        </small>
+                    </div>
+                {% empty %}
+                    <p class="admin-mini-empty">No repeated absences.</p>
+                {% endfor %}
+            </div>
+
+            <div>
+                <span class="admin-subheading">Low Class Attendance</span>
+
+                {% for item in attendance_alerts.classes %}
+                    <div class="admin-alert-row">
+                        <div class="admin-row-copy">
+                            <strong>{{ item.class.name }}</strong>
+                            <span>{{ item.records }} attendance records</span>
+                        </div>
+
+                        <small class="admin-alert-badge">
+                            {{ item.rate }}%
+                        </small>
+                    </div>
+                {% empty %}
+                    <p class="admin-mini-empty">No classes below 80%.</p>
+                {% endfor %}
+            </div>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            No attendance concerns in the last 30 days.
+        </div>
+    {% endif %}
+</article>

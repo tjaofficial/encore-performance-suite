@@ -1,0 +1,1411 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block body_class %}drawing-board-page{% endblock %}
+{% block app_shell_class %}drawing-board-shell{% endblock %}
+{% block app_main_class %}drawing-board-app-main{% endblock %}
+{% block page_content_class %}drawing-board-page-content{% endblock %}
+{% block sidebar %}{% endblock %}
+{% block topbar %}{% endblock %}
+{% block announcement_area %}{% endblock %}
+{% load static %}
+{% block title %}{{ board.title|default:board.class_instance.name }} Drawing Board | Encore{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_performance.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_formation_board.css' %}">
+{% endblock %}
+{% block topbar_title %}Drawing Board{% endblock %}
+{% block content %}
+<div id="formation-board-app" class="drawing-board-workspace"
+    data-save-url="{% url 'performance:drawing_board_detail_save' studio.slug board.id %}"
+    data-add-formation-url="{% url 'performance:drawing_board_detail_formation_add' studio.slug board.id %}"
+    data-delete-url-template="{% url 'performance:drawing_board_formation_delete' studio.slug board.id 999999 %}"
+    data-information-save-url="{% url 'performance:drawing_board_information_save' studio.slug board.id %}"
+    data-dance-add-url="{% url 'performance:drawing_board_dance_add' studio.slug board.id %}"
+    data-song-add-url="{% url 'performance:drawing_board_song_add' studio.slug board.id %}"
+    data-lighting-add-url="{% url 'performance:drawing_board_lighting_cue_add' studio.slug board.id %}"
+    data-lighting-delete-url-template="{% url 'performance:drawing_board_lighting_cue_delete' studio.slug board.id 999999 %}"
+    data-lighting-fixture-add-url="{% url 'performance:drawing_board_lighting_fixture_add' studio.slug board.id %}"
+    data-lighting-fixture-delete-url-template="{% url 'performance:drawing_board_lighting_fixture_delete' studio.slug board.id 999999 %}">
+    <header class="drawing-board-header">
+        <div class="drawing-board-header-main">
+            <a class="drawing-board-back" href="{% url 'classes:class_detail' studio.slug board.class_instance.id %}">← Back to Class Dashboard</a>
+            {% if role == "teacher" %}
+                <a class="drawing-board-dashboard-link" href="{% url 'dashboard:teacher_dashboard' studio.slug %}">Dashboard</a>
+            {% elif role == "family" %}
+                <a class="drawing-board-dashboard-link" href="{% url 'dashboard:family_dashboard' studio.slug %}">Dashboard</a>
+            {% elif role == "student" %}
+                <a class="drawing-board-dashboard-link" href="{% url 'dashboard:student_dashboard' studio.slug %}">Dashboard</a>
+            {% else %}
+                <a class="drawing-board-dashboard-link" href="{% url 'dashboard:admin_dashboard' studio.slug %}">Dashboard</a>
+            {% endif %}
+            <div class="drawing-board-title-row">
+                <div class="board-title-display">
+                    <span>Drawing Board</span>
+                    <h1 id="board-title-display">
+                        {{ board.title|default:board.class_instance.name }}
+                    </h1>
+                </div>
+
+                <div class="board-song-info">
+                    <div>
+                        <span>Class</span>
+                        <strong>{{ board.class_instance.name }}</strong>
+                    </div>
+
+                    <div>
+                        <span>Dance</span>
+                        <strong id="board-dance-display">
+                            {% if board.performance_plan %}
+                                {{ board.performance_plan.title|default:"Untitled Dance" }}
+                            {% else %}
+                                No Dance Assigned
+                            {% endif %}
+                        </strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="drawing-board-save-area">
+            <div id="formation-status" class="formation-status saved">✓ Saved</div>
+            <button id="save-formation" class="button primary drawing-board-save-button" type="button">Save</button>
+        </div>
+    </header>
+
+    <div class="drawing-board-workspace-actions">
+<button
+                id="lighting-mode-toggle"
+                class="lighting-mode-toggle"
+                type="button"
+                title="Lighting Design"
+                aria-label="Toggle Lighting Design"
+            >
+                💡
+            </button>
+    </div>
+
+    <section class="drawing-board-main">
+        <aside id="drawing-board-panel" class="drawing-board-panel">
+            <div class="drawing-panel-top">
+                <div class="drawing-panel-tabs" role="tablist">
+                    <button type="button" class="active" data-panel-tab="information">Information</button>
+                    <button type="button" data-panel-tab="assignments">Assignments</button>
+                    <button type="button" data-panel-tab="draw">Draw</button>
+                    <button type="button" data-panel-tab="options">Options</button>
+                    <button id="transition-panel-tab" class="transition-context-tab" type="button" data-panel-tab="transition" hidden>Transition</button>
+                    <button id="timing-panel-tab" class="transition-context-tab" type="button" data-panel-tab="timing" hidden>Timing</button>
+                    <button id="lighting-look-tab" class="lighting-context-tab" type="button" data-panel-tab="lighting-look" hidden>Lighting</button>
+                    <button id="lighting-cue-tab" class="lighting-context-tab" type="button" data-panel-tab="lighting-cue" hidden>Cue</button>
+                    <button id="lighting-output-tab" class="lighting-context-tab" type="button" data-panel-tab="lighting-output" hidden>Output</button>
+                </div>
+                <button id="collapse-drawing-panel" class="collapse-panel-button" type="button" title="Collapse panel" aria-label="Collapse side panel">‹</button>
+            </div>
+
+            <div class="drawing-panel-content" data-panel-content="information">
+                <div class="panel-section-heading">
+                    <span>Drawing Board</span>
+                    <strong>Information</strong>
+                    <p>
+                        Name this board, connect it to a Dance,
+                        and choose the music used for timing.
+                    </p>
+                </div>
+
+                <div class="board-info-form">
+                    <label class="board-info-field">
+                        <span>Drawing Board Name</span>
+                        <input
+                            id="board-title"
+                            class="encore-input"
+                            type="text"
+                            maxlength="200"
+                            value="{{ board.title|default:board.class_instance.name }}"
+                        >
+                    </label>
+
+                    <label class="board-info-field">
+                        <span>Dance</span>
+                        <select
+                            id="board-dance-select"
+                            class="encore-input"
+                        >
+                            <option value="">
+                                No Dance Assigned
+                            </option>
+                        </select>
+                    </label>
+
+                    <button
+                        id="create-dance-button"
+                        class="board-inline-action"
+                        type="button"
+                    >
+                        + Create Dance
+                    </button>
+
+                    <label class="board-info-field">
+                        <span>Song</span>
+                        <select
+                            id="board-song-select"
+                            class="encore-input"
+                        >
+                            <option value="">
+                                No Music Yet
+                            </option>
+                        </select>
+                    </label>
+
+                    <button
+                        id="add-song-button"
+                        class="board-inline-action"
+                        type="button"
+                    >
+                        + Add Song
+                    </button>
+
+                    <div class="board-info-field">
+                        <span>Song Length</span>
+
+                        <div class="board-duration-fields">
+                            <input
+                                id="song-minutes"
+                                class="encore-input"
+                                type="number"
+                                min="0"
+                                max="99"
+                                value="0"
+                                inputmode="numeric"
+                                aria-label="Song length minutes"
+                            >
+
+                            <b>:</b>
+
+                            <input
+                                id="song-seconds"
+                                class="encore-input"
+                                type="number"
+                                min="0"
+                                max="59"
+                                value="00"
+                                inputmode="numeric"
+                                aria-label="Song length seconds"
+                            >
+                        </div>
+
+                        <small id="song-length-help">
+                            With no music selected, enter the song length manually.
+                        </small>
+                    </div>
+
+                </div>
+            </div>
+            <div
+                class="drawing-panel-content assignment-panel-content"
+                data-panel-content="assignments"
+                hidden
+            >
+                <div class="assignment-panel-layout">
+                    <div class="assignment-roster-region">
+                        <div class="panel-section-heading">
+                            <span>Class Roster</span>
+                            <strong>Marker Assignments</strong>
+                            <p>
+                                Drag an available student onto a numbered marker.
+                                Use × to free a marker assignment.
+                            </p>
+                        </div>
+
+                        <label class="assignment-sort-control">
+                            <span>Order Students</span>
+                            <select id="assignment-sort" class="encore-input">
+                                <option value="alphabetical">Alphabetical</option>
+                                <option value="marker">Marker Order</option>
+                            </select>
+                        </label>
+
+                        <div class="assignment-roster-scroll">
+                            <div id="assignment-list" class="assignment-list"></div>
+                        </div>
+                    </div>
+
+                    <div class="assignment-marker-format-dock">
+                        <div class="panel-section-heading marker-format-heading">
+                            <span>Marker Format</span>
+                            <strong id="format-marker-title">Select a marker</strong>
+                            <p id="format-marker-help">
+                                Click a marker or its assignment badge to change its shape or color.
+                            </p>
+                        </div>
+
+                        <div
+                            id="marker-format-controls"
+                            class="marker-format-controls"
+                            hidden
+                        >
+                            <div class="format-setting">
+                                <span>Shape</span>
+
+                                <div class="shape-picker">
+                                    <button type="button" data-shape="circle" title="Circle">●</button>
+                                    <button type="button" data-shape="square" title="Square">■</button>
+                                    <button type="button" data-shape="diamond" title="Diamond">◆</button>
+                                    <button type="button" data-shape="triangle" title="Triangle">▲</button>
+                                </div>
+                            </div>
+
+                            <div class="format-setting">
+                                <span>Color</span>
+
+                                <div id="marker-color-swatches" class="marker-color-swatches">
+                                    <button type="button" data-color="#2E3CF1" style="--swatch:#2E3CF1"></button>
+                                    <button type="button" data-color="#1663FF" style="--swatch:#1663FF"></button>
+                                    <button type="button" data-color="#0197FC" style="--swatch:#0197FC"></button>
+                                    <button type="button" data-color="#8B5CF6" style="--swatch:#8B5CF6"></button>
+                                    <button type="button" data-color="#EC4899" style="--swatch:#EC4899"></button>
+                                    <button type="button" data-color="#EF4444" style="--swatch:#EF4444"></button>
+                                    <button type="button" data-color="#F59E0B" style="--swatch:#F59E0B"></button>
+                                    <button type="button" data-color="#10B981" style="--swatch:#10B981"></button>
+                                </div>
+
+                                <label class="custom-color-control">
+                                    Custom
+                                    <input id="marker-custom-color" type="color" value="#2E3CF1">
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                class="drawing-panel-content draw-panel-content"
+                data-panel-content="draw"
+                hidden
+            >
+                <div class="panel-section-heading">
+                    <span>Stage Design</span>
+                    <strong>Draw</strong>
+                    <p>
+                        Add stage boundaries, scenic marks, text, and other
+                        performance-space references to the board.
+                    </p>
+                </div>
+
+                <div class="draw-tool-palette" role="toolbar" aria-label="Drawing tools">
+                    <button type="button" class="active" data-draw-tool="select" title="Select / Move">
+                        <span>↖</span><strong>Select</strong>
+                    </button>
+                    <button type="button" data-draw-tool="square" title="Square">
+                        <span>□</span><strong>Square</strong>
+                    </button>
+                    <button type="button" data-draw-tool="rectangle" title="Rectangle">
+                        <span>▭</span><strong>Rectangle</strong>
+                    </button>
+                    <button type="button" data-draw-tool="circle" title="Circle">
+                        <span>○</span><strong>Circle</strong>
+                    </button>
+                    <button type="button" data-draw-tool="half_circle" title="Half Circle">
+                        <span>◠</span><strong>Half Circle</strong>
+                    </button>
+                    <button type="button" data-draw-tool="oval" title="Oval">
+                        <span>⬭</span><strong>Oval</strong>
+                    </button>
+                    <button type="button" data-draw-tool="triangle" title="Triangle">
+                        <span>△</span><strong>Triangle</strong>
+                    </button>
+                    <button type="button" data-draw-tool="line" title="Line / Curve">
+                        <span>╱</span><strong>Line</strong>
+                    </button>
+                    <button type="button" data-draw-tool="text" title="Text">
+                        <span>T</span><strong>Text</strong>
+                    </button>
+                </div>
+
+                <div id="draw-instruction" class="draw-instruction">
+                    Choose a tool, then drag on the stage to add it.
+                </div>
+
+                <div id="draw-properties-empty" class="draw-properties-empty">
+                    Select a drawing to edit its appearance.
+                </div>
+
+                <div id="draw-properties" class="draw-properties" hidden>
+                    <div class="draw-selected-heading">
+                        <span>Selected</span>
+                        <strong id="draw-selected-name">Shape</strong>
+                    </div>
+
+                    <div id="shape-draw-properties" class="draw-type-properties" hidden>
+                        <label class="draw-check-row">
+                            <input id="draw-fill-enabled" type="checkbox" checked>
+                            <span><strong>Fill</strong><small>Color inside the shape.</small></span>
+                        </label>
+
+                        <div class="draw-color-setting">
+                            <span>Fill Color</span>
+                            <div class="draw-color-swatches" data-draw-color-target="fill"></div>
+                            <input id="draw-fill-color" type="color" value="#DCE6FF">
+                        </div>
+
+                        <label class="draw-check-row">
+                            <input id="draw-stroke-enabled" type="checkbox" checked>
+                            <span><strong>Stroke</strong><small>Outline around the shape.</small></span>
+                        </label>
+
+                        <label class="lighting-range-field">
+                            <span>
+                                <strong>Stroke Width</strong>
+                                <b id="draw-stroke-width-value">2</b>
+                            </span>
+                            <input id="draw-stroke-width" type="range" min="0.5" max="8" step="0.5" value="2">
+                        </label>
+
+                        <div class="draw-color-setting">
+                            <span>Stroke Color</span>
+                            <div class="draw-color-swatches" data-draw-color-target="stroke"></div>
+                            <input id="draw-stroke-color" type="color" value="#00024E">
+                        </div>
+                    </div>
+
+                    <div id="line-draw-properties" class="draw-type-properties" hidden>
+                        <label class="draw-check-row">
+                            <input id="draw-line-stroke-enabled" type="checkbox" checked>
+                            <span>
+                                <strong>Stroke</strong>
+                                <small>
+                                    Drag either endpoint on the stage. Drag the center
+                                    handle to curve the line.
+                                </small>
+                            </span>
+                        </label>
+
+                        <label class="lighting-range-field">
+                            <span>
+                                <strong>Stroke Width</strong>
+                                <b id="draw-line-width-value">2</b>
+                            </span>
+                            <input id="draw-line-width" type="range" min="0.5" max="10" step="0.5" value="2">
+                        </label>
+
+                        <div class="draw-color-setting">
+                            <span>Stroke Color</span>
+                            <div class="draw-color-swatches" data-draw-color-target="line"></div>
+                            <input id="draw-line-color" type="color" value="#00024E">
+                        </div>
+
+                        <button id="draw-line-straighten" class="board-inline-action" type="button">
+                            Straighten Line
+                        </button>
+                    </div>
+
+                    <div id="text-draw-properties" class="draw-type-properties" hidden>
+                        <label class="board-info-field">
+                            <span>Text</span>
+                            <textarea id="draw-text-content" class="encore-input" rows="3">Text</textarea>
+                        </label>
+
+                        <label class="board-info-field">
+                            <span>Font</span>
+                            <select id="draw-text-font" class="encore-input">
+                                <option value="Arial, sans-serif">Arial</option>
+                                <option value="Georgia, serif">Georgia</option>
+                                <option value="'Times New Roman', serif">Times New Roman</option>
+                                <option value="'Trebuchet MS', sans-serif">Trebuchet</option>
+                                <option value="'Courier New', monospace">Courier New</option>
+                            </select>
+                        </label>
+
+                        <label class="lighting-range-field">
+                            <span>
+                                <strong>Font Size</strong>
+                                <b id="draw-text-size-value">24</b>
+                            </span>
+                            <input id="draw-text-size" type="range" min="10" max="72" step="1" value="24">
+                        </label>
+
+                        <div class="draw-text-style-buttons">
+                            <button id="draw-text-bold" type="button" title="Bold"><strong>B</strong></button>
+                            <button id="draw-text-italic" type="button" title="Italic"><em>I</em></button>
+                            <button id="draw-text-underline" type="button" title="Underline"><u>U</u></button>
+                        </div>
+
+                        <div class="draw-text-align-buttons">
+                            <button type="button" data-text-align="left">Left</button>
+                            <button type="button" data-text-align="center">Center</button>
+                            <button type="button" data-text-align="right">Right</button>
+                        </div>
+
+                        <div class="draw-color-setting">
+                            <span>Text Color</span>
+                            <div class="draw-color-swatches" data-draw-color-target="text"></div>
+                            <input id="draw-text-color" type="color" value="#00024E">
+                        </div>
+                    </div>
+
+                    <button id="delete-stage-drawing" class="transition-remove-path" type="button">
+                        Delete Selected Drawing
+                    </button>
+                </div>
+            </div>
+            <div class="drawing-panel-content" data-panel-content="options" hidden>
+                <div class="panel-section-heading">
+                    <span>Formation</span>
+                    <strong>Formation Information</strong>
+                    <p>
+                        Update the selected formation's name and how long it stays
+                        in place before the next transition begins.
+                    </p>
+                </div>
+
+                <label class="board-info-field">
+                    <span>Formation Name</span>
+                    <input
+                        id="selected-formation-name"
+                        class="encore-input"
+                        type="text"
+                        maxlength="120"
+                        placeholder="Formation name"
+                    >
+                </label>
+
+                <div class="board-info-field formation-start-time-info">
+                    <span>Start Time</span>
+
+                    <div
+                        id="selected-formation-start-time"
+                        class="formation-start-time-display"
+                    >
+                        0:00
+                    </div>
+
+                    <small>
+                        Calculated from the formations and transitions before this one.
+                    </small>
+                </div>
+
+                <div class="board-info-field formation-length-info">
+                    <span>Formation Length</span>
+
+                    <div class="board-duration-fields">
+                        <input
+                            id="selected-formation-hold-minutes"
+                            class="encore-input"
+                            type="number"
+                            min="0"
+                            value="0"
+                            inputmode="numeric"
+                            aria-label="Selected formation length minutes"
+                        >
+
+                        <b>:</b>
+
+                        <input
+                            id="selected-formation-hold-seconds"
+                            class="encore-input"
+                            type="number"
+                            min="0"
+                            max="59"
+                            value="08"
+                            inputmode="numeric"
+                            aria-label="Selected formation length seconds"
+                        >
+                    </div>
+
+                    <small>
+                        How long this formation stays in place before
+                        its transition begins.
+                    </small>
+                </div>
+
+                <div class="panel-section-heading formation-stage-options-heading">
+                    <span>Board Options</span>
+                    <strong>Stage Display</strong>
+                    <p>More drawing-board options can be added here as Encore grows.</p>
+                </div>
+                <label class="board-option-row">
+                    <input id="show-offstage-wings" type="checkbox">
+                    <span><strong>Show Offstage Wings</strong><small>Add stage-left and stage-right wing areas outside the main playing space.</small></span>
+                </label>
+
+                <label class="board-option-row">
+                    <input id="apron-stage-grid" type="checkbox">
+                    <span>
+                        <strong>Apron Stage Grid</strong>
+                        <small>
+                            Shape the playing grid like a stage with a curved apron.
+                            Offstage wings can still be shown independently.
+                        </small>
+                    </span>
+                </label>
+
+                <div class="panel-section-heading board-music-settings-heading">
+                    <strong>Music Settings</strong>
+                    <p>
+                        Control how the selected board music behaves during
+                        choreography playback and previews.
+                    </p>
+                </div>
+
+<label class="board-option-row transition-display-option">
+                    <input
+                        id="play-music-with-playback"
+                        type="checkbox"
+                        checked
+                    >
+                    <span>
+                        <strong>Play Music During Playback</strong>
+                        <small>
+                            Play the selected song while the choreography
+                            timeline runs.
+                        </small>
+                    </span>
+                </label>
+
+            </div>
+            <div class="drawing-panel-content transition-panel-content" data-panel-content="transition" hidden>
+                <div class="panel-section-heading">
+                    <span>Movement Design</span>
+                    <strong>Transition</strong>
+                    <p>Compare two formations and define how dancers travel between them.</p>
+                </div>
+
+                <div class="transition-info-card">
+                    <span>Transition</span>
+                    <strong id="transition-name">Formation → Formation</strong>
+                    <small id="transition-time">0:00 → 0:00</small>
+                </div>
+
+                <button id="add-movement-path" class="board-inline-action transition-primary-action" type="button">+ Add Movement</button>
+
+                <div id="movement-instruction" class="movement-instruction" hidden>
+                    Select the dancer marker whose movement you want to design.
+                </div>
+
+                <div id="movement-editor" class="movement-editor" hidden>
+                    <div class="transition-selected-marker">
+                        <span>Selected Marker</span>
+                        <strong id="transition-marker-name">Marker</strong>
+                    </div>
+
+                    <div class="format-setting">
+                        <span>Movement Path</span>
+                        <div class="movement-path-picker">
+                            <button type="button" data-path-type="straight">Straight</button>
+                            <button type="button" data-path-type="curve">Curve</button>
+                            <button type="button" data-path-type="angled">Angled Path</button>
+                            <button type="button" class="full" data-path-type="custom">Draw Custom Path</button>
+                        </div>
+                    </div>
+
+                    <div id="control-point-setting" class="control-point-setting" hidden>
+                        <div>
+                            <span id="control-point-label">Curve Points</span>
+                            <small>Drag the dots on the stage to shape the path.</small>
+                        </div>
+
+                        <div class="point-stepper">
+                            <button id="decrease-control-points" type="button" aria-label="Decrease control points">−</button>
+                            <strong id="control-point-count">1</strong>
+                            <button id="increase-control-points" type="button" aria-label="Increase control points">+</button>
+                        </div>
+                    </div>
+
+                    <div id="custom-path-instruction" class="custom-path-instruction" hidden>
+                        Click and drag on the stage to draw the dancer's path. Release when you reach the destination.
+                    </div>
+
+                    <button id="remove-movement-path" class="transition-remove-path" type="button">Remove Movement Path</button>
+                </div>
+
+                <label class="board-option-row transition-display-option">
+                    <input id="show-transition-paths" type="checkbox" checked>
+                    <span>
+                        <strong>Show Movement Paths</strong>
+                        <small>Hide arrows temporarily without deleting them.</small>
+                    </span>
+                </label>
+
+                
+            </div>
+
+            <div class="drawing-panel-content transition-panel-content" data-panel-content="timing" hidden>
+                <div class="panel-section-heading">
+                    <span>Transition Timing</span>
+                    <strong>Timing</strong>
+                    <p>
+                        Set how long the earlier formation is held, then
+                        how long dancers take to move into the next one.
+                    </p>
+                </div>
+
+                <div class="transition-info-card">
+                    <span>Transition</span>
+                    <strong id="timing-transition-name">
+                        Formation → Formation
+                    </strong>
+                    <small id="timing-transition-time">
+                        Hold 0:08 · Move 0:03
+                    </small>
+                </div>
+
+                <div class="duration-editor-card">
+                    <div class="duration-editor-heading">
+                        <div>
+                            <span>Formation Length</span>
+                            <strong id="timing-formation-label">
+                                Formation
+                            </strong>
+                        </div>
+
+                        <small>
+                            How long this formation stays in place.
+                        </small>
+                    </div>
+
+                    <div class="board-duration-fields">
+                        <input
+                            id="formation-hold-minutes"
+                            class="encore-input"
+                            type="number"
+                            min="0"
+                            max="59"
+                            value="0"
+                            inputmode="numeric"
+                            aria-label="Formation length minutes"
+                        >
+                        <b>:</b>
+                        <input
+                            id="formation-hold-seconds"
+                            class="encore-input"
+                            type="number"
+                            min="0"
+                            max="59"
+                            value="08"
+                            inputmode="numeric"
+                            aria-label="Formation length seconds"
+                        >
+                    </div>
+                </div>
+
+                <div class="duration-editor-card">
+                    <div class="duration-editor-heading">
+                        <div>
+                            <span>Transition Length</span>
+                            <strong>Movement Duration</strong>
+                        </div>
+
+                        <small>
+                            Shorter is faster. Longer is slower.
+                        </small>
+                    </div>
+
+                    <div class="board-duration-fields">
+                        <input
+                            id="transition-duration-minutes"
+                            class="encore-input"
+                            type="number"
+                            min="0"
+                            max="9"
+                            value="0"
+                            inputmode="numeric"
+                            aria-label="Transition length minutes"
+                        >
+                        <b>:</b>
+                        <input
+                            id="transition-duration-seconds"
+                            class="encore-input"
+                            type="number"
+                            min="0"
+                            max="59"
+                            value="03"
+                            inputmode="numeric"
+                            aria-label="Transition length seconds"
+                        >
+                    </div>
+                </div>
+
+                <div class="transition-timing-example">
+                    <span>Playback</span>
+                    <strong id="transition-timing-example-text">
+                        Hold Formation → Move → Next Formation
+                    </strong>
+                </div>
+
+                
+
+                <div
+                    id="movement-preview-status"
+                    class="movement-preview-status"
+                    hidden
+                >
+                    Previewing transition…
+                </div>
+            </div>
+            
+            <div id="transition-preview-footer" class="transition-preview-footer" hidden>
+<label class="board-option-row auto-preview-option">
+                    <input
+                        id="movement-auto-preview"
+                        type="checkbox"
+                        checked
+                    >
+                    <span>
+                        <strong>Auto Preview</strong>
+                        <small>
+                            Preview the selected transition whenever its
+                            timing changes.
+                        </small>
+                    </span>
+                </label>
+
+                <button
+                    id="preview-movement"
+                    class="board-inline-action"
+                    type="button"
+                >
+                    ▶ Preview Transition
+                </button>
+            </div>
+
+<div class="drawing-panel-content lighting-panel-content" data-panel-content="lighting-look" hidden>
+                <div class="panel-section-heading">
+                    <span>Lighting Design</span>
+                    <strong>Simple Lighting</strong>
+                    <p>
+                        Build the look visually. Encore will translate the
+                        design into lighting language for the production team.
+                    </p>
+                </div>
+
+                <div class="lighting-mode-switch">
+                    <button id="lighting-simple-mode" type="button" class="active">Simple</button>
+                    <button id="lighting-pro-mode" type="button">Pro</button>
+                </div>
+
+                <div id="simple-lighting-controls" class="simple-lighting-controls">
+                <button id="add-focus-area" class="board-inline-action" type="button">
+                    + Add Focus Area
+                </button>
+
+                <button id="add-follow-spot" class="board-inline-action" type="button">
+                    + Add Follow Spot
+                </button>
+
+                <button id="add-blackout-cue-shortcut" class="lighting-blackout-action" type="button">
+                    + Add Blackout Cue
+                </button>
+
+                <div id="lighting-focus-list" class="lighting-focus-list"></div>
+
+                <div id="lighting-focus-editor" class="lighting-focus-editor" hidden>
+                    <div class="transition-selected-marker">
+                        <span>Selected Focus</span>
+                        <strong id="lighting-focus-name">Focus A</strong>
+                    </div>
+
+                    <label class="board-info-field">
+                        <span>Color</span>
+                        <input id="lighting-focus-color" type="color" value="#FFFFFF">
+                    </label>
+
+                    <label class="lighting-range-field">
+                        <span>
+                            <strong>Intensity</strong>
+                            <b id="lighting-intensity-value">70%</b>
+                        </span>
+                        <input id="lighting-focus-intensity" type="range" min="0" max="100" step="1" value="70">
+                    </label>
+
+                    <label class="lighting-range-field">
+                        <span>
+                            <strong>Softness</strong>
+                            <b id="lighting-softness-value">70%</b>
+                        </span>
+                        <input id="lighting-focus-softness" type="range" min="0" max="100" step="1" value="70">
+                    </label>
+
+                    <label class="board-info-field">
+                        <span>Shape</span>
+                        <select id="lighting-focus-shape" class="encore-input">
+                            <option value="circle">Circle</option>
+                            <option value="ellipse">Ellipse</option>
+                        </select>
+                    </label>
+
+                    <label class="lighting-range-field">
+                        <span>
+                            <strong>Width</strong>
+                            <b id="lighting-width-value">24%</b>
+                        </span>
+                        <input id="lighting-focus-width" type="range" min="4" max="100" step="1" value="24">
+                    </label>
+
+                    <label class="lighting-range-field">
+                        <span>
+                            <strong>Height</strong>
+                            <b id="lighting-height-value">24%</b>
+                        </span>
+                        <input id="lighting-focus-height" type="range" min="4" max="100" step="1" value="24">
+                    </label>
+
+                    <button id="remove-focus-area" class="transition-remove-path" type="button">
+                        Remove Focus Area
+                    </button>
+                </div>
+
+                <div class="lighting-subsection-heading">
+                    <span>Follow Spots</span>
+                </div>
+
+                <div id="lighting-follow-list" class="lighting-follow-list"></div>
+
+                <div id="lighting-follow-editor" class="lighting-focus-editor" hidden>
+                    <div class="transition-selected-marker">
+                        <span>Selected Follow Spot</span>
+                        <strong id="lighting-follow-name">Follow Spot 1</strong>
+                    </div>
+
+                    <label class="board-info-field">
+                        <span>Target</span>
+                        <select id="lighting-follow-target-type" class="encore-input">
+                            <option value="marker">Dancer Marker</option>
+                            <option value="position">Fixed Position</option>
+                        </select>
+                    </label>
+
+                    <label id="lighting-follow-marker-wrap" class="board-info-field">
+                        <span>Dancer Marker</span>
+                        <select id="lighting-follow-marker" class="encore-input"></select>
+                    </label>
+
+                    <div id="lighting-follow-position-help" class="movement-instruction" hidden>
+                        Drag the follow spot directly on the stage to set its fixed position.
+                    </div>
+
+                    <label class="board-info-field">
+                        <span>Color</span>
+                        <input id="lighting-follow-color" type="color" value="#FFFFFF">
+                    </label>
+
+                    <label class="lighting-range-field">
+                        <span>
+                            <strong>Intensity</strong>
+                            <b id="lighting-follow-intensity-value">80%</b>
+                        </span>
+                        <input id="lighting-follow-intensity" type="range" min="0" max="100" step="1" value="80">
+                    </label>
+
+                    <label class="lighting-range-field">
+                        <span>
+                            <strong>Beam Size</strong>
+                            <b id="lighting-follow-size-value">18%</b>
+                        </span>
+                        <input id="lighting-follow-size" type="range" min="4" max="60" step="1" value="18">
+                    </label>
+
+                    <label class="lighting-range-field">
+                        <span>
+                            <strong>Softness</strong>
+                            <b id="lighting-follow-softness-value">55%</b>
+                        </span>
+                        <input id="lighting-follow-softness" type="range" min="0" max="100" step="1" value="55">
+                    </label>
+
+                    <button id="remove-follow-spot" class="transition-remove-path" type="button">
+                        Remove Follow Spot
+                    </button>
+                </div>
+                </div>
+
+                <div id="pro-lighting-controls" class="pro-lighting-controls" hidden>
+                    <div class="pro-fixture-intro">
+                        <span>Persistent Fixture Rig</span>
+                        <p>
+                            Add the physical fixtures once. Placement stays the same
+                            for every cue; cue settings change independently.
+                        </p>
+                    </div>
+
+                    <div class="pro-fixture-palette">
+                        <button type="button" draggable="true" data-pro-fixture-type="par"><span>◉</span><strong>PAR</strong></button>
+                        <button type="button" draggable="true" data-pro-fixture-type="ellipsoidal"><span>▰</span><strong>Ellipsoidal</strong></button>
+                        <button type="button" draggable="true" data-pro-fixture-type="fresnel"><span>◎</span><strong>Fresnel</strong></button>
+                        <button type="button" draggable="true" data-pro-fixture-type="cyc"><span>▥</span><strong>Cyc / Strip</strong></button>
+                        <button type="button" draggable="true" data-pro-fixture-type="follow_spot"><span>◈</span><strong>Follow Spot</strong></button>
+                    </div>
+
+                    <div class="pro-fixture-help">
+                        Drag a fixture onto the stage, or click one to add it at center.
+                    </div>
+
+                    <div class="lighting-subsection-heading">
+                        <span>Fixture Rig</span>
+                    </div>
+
+                    <div id="pro-fixture-list" class="pro-fixture-list"></div>
+                </div>
+            </div>
+
+            <div class="drawing-panel-content lighting-panel-content" data-panel-content="lighting-cue" hidden>
+                <div class="panel-section-heading">
+                    <span>Lighting Design</span>
+                    <strong>Cue</strong>
+                    <p>
+                        Lighting cues run on their own song times and do not
+                        need to match choreography formations.
+                    </p>
+                </div>
+
+                <label class="board-info-field">
+                    <span>Cue Name</span>
+                    <input id="lighting-cue-name" class="encore-input" type="text" maxlength="150">
+                </label>
+
+                <div class="board-info-field">
+                    <span>Cue Time</span>
+                    <div class="board-duration-fields">
+                        <input id="lighting-cue-minute" class="encore-input" type="number" min="0" max="99" value="0">
+                        <b>:</b>
+                        <input id="lighting-cue-second" class="encore-input" type="number" min="0" max="59" value="00">
+                    </div>
+                </div>
+
+                <label class="board-info-field">
+                    <span>Fade Time · Seconds</span>
+                    <input id="lighting-cue-fade" class="encore-input" type="number" min="0" max="120" step="0.1" value="1">
+                </label>
+
+                <label class="board-option-row">
+                    <input id="lighting-cue-blackout" type="checkbox">
+                    <span>
+                        <strong>Blackout</strong>
+                        <small>Turn all designed light off for this cue.</small>
+                    </span>
+                </label>
+
+                <label class="board-info-field">
+                    <span>Notes</span>
+                    <textarea id="lighting-cue-notes" class="encore-input lighting-notes" rows="4"></textarea>
+                </label>
+
+                <div class="lighting-cue-summary-card">
+                    <span>Current Cue</span>
+                    <strong id="lighting-cue-summary-name">Cue 1</strong>
+                    <small id="lighting-cue-summary-time">0:00 · Fade 1.0s</small>
+                </div>
+            </div>
+
+            <div class="drawing-panel-content lighting-panel-content" data-panel-content="lighting-output" hidden>
+                <div class="panel-section-heading">
+                    <span>Production Handoff</span>
+                    <strong>Lighting Cue Sheet</strong>
+                    <p>
+                        Encore converts the visual design into console-neutral
+                        notes a lighting programmer or operator can work from.
+                    </p>
+                </div>
+
+                <button id="copy-lighting-output" class="board-inline-action" type="button">
+                    Copy Cue Sheet
+                </button>
+
+                <div id="lighting-output-sheet" class="lighting-output-sheet"></div>
+            </div>
+
+        </aside>
+        <button id="expand-drawing-panel" class="expand-panel-button" type="button" hidden>›</button>
+
+        <div id="drawing-stage-viewport" class="drawing-stage-viewport">
+            <div id="drawing-stage-zoom-content" class="drawing-stage-zoom-content">
+                <div class="drawing-stage-workspace">
+            <div class="stage-axis-label stage-axis-top">Upstage / Back</div>
+            <div class="stage-axis-label stage-axis-left">Stage Right / Left</div>
+            <div id="formation-stage" class="formation-stage">
+                <div class="stage-grid-overlay"></div>
+                <div class="apron-grid-overlay" aria-hidden="true"></div>
+                <div class="stage-main-outline"></div>
+                <svg class="stage-wings-overlay" viewBox="0 0 1000 600" preserveAspectRatio="none" aria-hidden="true">
+                    <path class="wing-wave" d="M120,0 C80,30 160,60 120,90 C80,120 160,150 120,180 C80,210 160,240 120,270 C80,300 160,330 120,360 C80,390 160,420 120,450 C80,480 160,510 120,540 C80,570 160,600 120,600"></path>
+                    <path class="wing-wave" d="M880,0 C840,30 920,60 880,90 C840,120 920,150 880,180 C840,210 920,240 880,270 C840,300 920,330 880,360 C840,390 920,420 880,450 C840,480 920,510 880,540 C840,570 920,600 880,600"></path>
+                </svg>
+                <svg
+                    id="stage-drawing-layer"
+                    class="stage-drawing-layer"
+                    viewBox="0 0 980 650"
+                    preserveAspectRatio="none"
+                    aria-label="Stage drawings"
+                ></svg>
+
+                <div id="stage-text-layer" class="stage-text-layer"></div>
+
+                <svg id="transition-path-layer" class="transition-path-layer" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                    <defs>
+                        <marker id="transition-arrowhead" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto" markerUnits="strokeWidth">
+                            <path d="M0,0 L5,2.5 L0,5 Z" class="transition-arrowhead-shape"></path>
+                        </marker>
+                    </defs>
+                    <g id="transition-paths"></g>
+                    <path id="custom-path-preview" class="transition-path custom-preview" d="" hidden></path>
+                </svg>
+                <div class="stage-centerline" aria-hidden="true"></div>
+
+                <div class="stage-center-crosshair" aria-hidden="true">
+                    <span class="crosshair-horizontal"></span>
+                    <span class="crosshair-vertical"></span>
+                    <span class="crosshair-dot"></span>
+                </div>
+
+                <div id="lighting-layer" class="lighting-layer"></div>
+                <div id="marker-layer" class="marker-layer"></div>
+                <div id="marker-tooltip" class="marker-tooltip" hidden></div>
+            </div>
+            <div class="stage-axis-label stage-axis-right">Stage Left / Right</div>
+            <div class="stage-axis-label stage-axis-bottom">Downstage / Front</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="formation-timeline-shell">
+        <div id="lighting-cue-tabs-shell" class="lighting-cue-tabs-shell" hidden>
+            <div id="lighting-cue-tabs" class="lighting-cue-tabs"></div>
+            <button id="add-lighting-cue" class="add-lighting-cue-tab" type="button">
+                + Add Cue
+            </button>
+        </div>
+
+        <div class="formation-tabs-shell">
+            <div id="formation-tabs" class="formation-tabs"></div>
+            <button id="add-formation" class="add-formation-tab" type="button">+ Add Formation</button>
+        </div>
+        <div class="drawing-stage-zoom-toolbar">
+            <button
+                id="stage-zoom-out"
+                type="button"
+                title="Zoom out"
+                aria-label="Zoom out"
+            >
+                −
+            </button>
+
+            <span id="stage-zoom-value">100%</span>
+
+            <button
+                id="stage-zoom-in"
+                type="button"
+                title="Zoom in"
+                aria-label="Zoom in"
+            >
+                +
+            </button>
+
+            <button
+                id="stage-zoom-reset"
+                type="button"
+            >
+                Reset View
+            </button>
+        </div>
+
+        <div class="drawing-playback-bar">
+            <button id="playback-restart" class="playback-icon-button" type="button" title="Restart" aria-label="Restart playback">↺</button>
+            <button id="playback-toggle" class="playback-toggle" type="button" aria-label="Play choreography">▶</button>
+            <span id="playback-current-time" class="playback-time">0:00</span>
+            <div class="playback-track-wrap">
+                <input id="playback-scrubber" class="playback-scrubber" type="range" min="0" max="0" step="0.01" value="0" aria-label="Choreography playback position">
+                <div id="playback-formation-markers" class="playback-formation-markers" aria-hidden="true"></div>
+            </div>
+            <span id="playback-total-time" class="playback-time">0:00</span>
+            <button id="playback-exit" class="playback-exit" type="button" hidden>Exit Playback</button>
+        </div>
+    </footer>
+
+    <audio
+        id="drawing-board-audio"
+        preload="metadata"
+        hidden
+    ></audio>
+</div>
+
+<div id="formation-modal" class="formation-modal-backdrop" hidden>
+    <div class="formation-modal" role="dialog" aria-modal="true" aria-labelledby="formation-modal-title">
+        <div class="formation-modal-heading">
+            <div><span>Drawing Board</span><h2 id="formation-modal-title">Add Formation</h2></div>
+            <button id="close-formation-modal" type="button" aria-label="Close">×</button>
+        </div>
+        <div class="formation-modal-body">
+            <label><span>Formation Name</span><input id="new-formation-name" type="text" maxlength="150" placeholder="Optional"></label>
+            <div class="formation-time-fields">
+                <label>
+                    <span>Formation Length · Minutes</span>
+                    <input
+                        id="new-formation-minute"
+                        type="number"
+                        min="0"
+                        value="0"
+                    >
+                </label>
+
+                <b>:</b>
+
+                <label>
+                    <span>Seconds</span>
+                    <input
+                        id="new-formation-second"
+                        type="number"
+                        min="0"
+                        max="59"
+                        value="08"
+                    >
+                </label>
+            </div>
+            <label class="copy-formation-option"><input id="copy-current-formation" type="checkbox" checked><span>Start with the current marker positions</span></label>
+            <div id="formation-modal-error" class="formation-modal-error" hidden></div>
+        </div>
+        <div class="formation-modal-actions">
+            <button id="cancel-formation-modal" class="button secondary" type="button">Cancel</button>
+            <button id="save-new-formation" class="button primary" type="button">Add Formation</button>
+        </div>
+    </div>
+</div>
+
+<div
+    id="dance-modal"
+    class="formation-modal-backdrop"
+    hidden
+>
+    <div class="formation-modal board-info-modal">
+        <div class="formation-modal-heading">
+            <div>
+                <span>Drawing Board</span>
+                <h2>Create Dance</h2>
+            </div>
+
+            <button
+                id="close-dance-modal"
+                type="button"
+                aria-label="Close"
+            >
+                ×
+            </button>
+        </div>
+
+        <div class="formation-modal-body board-modal-grid">
+            <label>
+                <span>Dance Name</span>
+                <input id="dance-title" type="text" maxlength="200">
+            </label>
+
+            <label>
+                <span>Song Title</span>
+                <input id="dance-song-title" type="text" maxlength="200">
+            </label>
+
+            <label>
+                <span>Artist</span>
+                <input id="dance-artist" type="text" maxlength="200">
+            </label>
+
+            <label class="full">
+                <span>Choreography Notes</span>
+                <textarea id="dance-choreography-notes" rows="3"></textarea>
+            </label>
+
+            <label class="full">
+                <span>Teacher Notes</span>
+                <textarea id="dance-teacher-notes" rows="3"></textarea>
+            </label>
+
+            <label class="full">
+                <span>Performance Notes</span>
+                <textarea id="dance-performance-notes" rows="3"></textarea>
+            </label>
+
+            <div
+                id="dance-modal-error"
+                class="formation-modal-error full"
+                hidden
+            ></div>
+        </div>
+
+        <div class="formation-modal-actions">
+            <button
+                id="cancel-dance-modal"
+                class="button secondary"
+                type="button"
+            >
+                Cancel
+            </button>
+
+            <button
+                id="save-dance"
+                class="button primary"
+                type="button"
+            >
+                Save Dance
+            </button>
+        </div>
+    </div>
+</div>
+
+<div
+    id="song-modal"
+    class="formation-modal-backdrop"
+    hidden
+>
+    <div class="formation-modal board-info-modal">
+        <div class="formation-modal-heading">
+            <div>
+                <span>Drawing Board</span>
+                <h2>Add Song</h2>
+            </div>
+
+            <button
+                id="close-song-modal"
+                type="button"
+                aria-label="Close"
+            >
+                ×
+            </button>
+        </div>
+
+        <div class="formation-modal-body board-modal-grid">
+            <label>
+                <span>Song Title</span>
+                <input id="new-song-title" type="text" maxlength="200">
+            </label>
+
+            <label>
+                <span>Artist</span>
+                <input id="new-song-artist" type="text" maxlength="200">
+            </label>
+
+            <label class="full">
+                <span>Audio File</span>
+                <input id="new-song-file" type="file" accept="audio/*">
+            </label>
+
+            <label class="full">
+                <span>External URL</span>
+                <input id="new-song-url" type="url">
+                <small>
+                    Use a file or an external URL, not both.
+                </small>
+            </label>
+
+            <div class="board-info-field full">
+                <span>Song Length</span>
+
+                <div class="board-duration-fields">
+                    <input
+                        id="new-song-minutes"
+                        type="number"
+                        min="0"
+                        max="99"
+                        value="0"
+                    >
+
+                    <b>:</b>
+
+                    <input
+                        id="new-song-seconds"
+                        type="number"
+                        min="0"
+                        max="59"
+                        value="00"
+                    >
+                </div>
+            </div>
+
+            <label class="full">
+                <span>Description</span>
+                <textarea id="new-song-description" rows="3"></textarea>
+            </label>
+
+            <div
+                id="song-modal-error"
+                class="formation-modal-error full"
+                hidden
+            ></div>
+        </div>
+
+        <div class="formation-modal-actions">
+            <button
+                id="cancel-song-modal"
+                class="button secondary"
+                type="button"
+            >
+                Cancel
+            </button>
+
+            <button
+                id="save-song"
+                class="button primary"
+                type="button"
+            >
+                Save Song
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="lighting-cue-modal" class="formation-modal-backdrop" hidden>
+    <div class="formation-modal" role="dialog" aria-modal="true">
+        <div class="formation-modal-heading">
+            <div>
+                <span>Lighting Design</span>
+                <h2>Add Lighting Cue</h2>
+            </div>
+            <button id="close-lighting-cue-modal" type="button" aria-label="Close">×</button>
+        </div>
+
+        <div class="formation-modal-body">
+            <label>
+                <span>Cue Name</span>
+                <input id="new-lighting-cue-name" type="text" maxlength="150" placeholder="Optional">
+            </label>
+
+            <div class="formation-time-fields">
+                <label>
+                    <span>Song Minute</span>
+                    <input id="new-lighting-cue-minute" type="number" min="0" value="0">
+                </label>
+
+                <b>:</b>
+
+                <label>
+                    <span>Second</span>
+                    <input id="new-lighting-cue-second" type="number" min="0" max="59" value="00">
+                </label>
+            </div>
+
+            <label>
+                <span>Fade Time · Seconds</span>
+                <input id="new-lighting-cue-fade" type="number" min="0" max="120" step="0.1" value="1">
+            </label>
+
+            <label class="copy-formation-option">
+                <input id="new-lighting-cue-copy-look" type="checkbox" checked>
+                <span>Start with the current lighting look</span>
+            </label>
+
+            <div id="lighting-cue-modal-error" class="formation-modal-error" hidden></div>
+        </div>
+
+        <div class="formation-modal-actions">
+            <button id="cancel-lighting-cue-modal" class="button secondary" type="button">Cancel</button>
+            <button id="save-lighting-cue" class="button primary" type="button">Add Cue</button>
+        </div>
+    </div>
+</div>
+
+{{ board_payload|json_script:"drawing-board-data" }}
+
+<div id="delete-formation-modal" class="formation-modal-backdrop" hidden>
+  <div class="formation-modal" role="dialog" aria-modal="true" aria-labelledby="delete-formation-title">
+    <div class="formation-modal-heading"><div><span>Drawing Board</span><h2 id="delete-formation-title">Delete Formation?</h2></div><button id="close-delete-formation-modal" type="button" aria-label="Close">×</button></div>
+    <div class="formation-modal-body"><p class="delete-formation-copy">Delete <strong id="delete-formation-name"></strong>? This removes this formation and its marker positions. Marker assignments will not be deleted.</p><div id="delete-formation-error" class="formation-modal-error" hidden></div></div>
+    <div class="formation-modal-actions"><button id="cancel-delete-formation" class="button secondary" type="button">Cancel</button><button id="confirm-delete-formation" class="button danger" type="button">Delete Formation</button></div>
+  </div>
+</div>
+
+<script src="{% static 'js/encore_formation_board.js' %}"></script>
+{% endblock %}

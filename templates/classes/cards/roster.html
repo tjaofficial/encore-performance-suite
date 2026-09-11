@@ -1,0 +1,46 @@
+<article class="class-dashboard-card roster-card">
+    <div class="class-card-heading">
+        <div>
+            <span class="card-kicker">Students</span>
+            <h2>Class Roster</h2>
+        </div>
+        <strong>{{ active_enrollments|length }} / {{ class_instance.capacity }}</strong>
+    </div>
+
+    <div class="class-roster-list">
+        {% for enrollment in active_enrollments %}
+            <div class="class-roster-row">
+                <span class="roster-index">{{ forloop.counter }}</span>
+
+                <div class="roster-student-info">
+                    <div class="roster-student-copy">
+                        <strong>
+                            {{ enrollment.student.first_name }}
+                            {{ enrollment.student.last_name }}
+                        </strong>
+                        <span>Age {{ enrollment.student.age }}</span>
+                    </div>
+
+                    {% if enrollment.student.is_birthday_today %}
+                        <span
+                            class="roster-birthday"
+                            title="Birthday today!"
+                            aria-label="Birthday today"
+                        >
+                            🎂
+                        </span>
+                    {% endif %}
+                </div>
+
+                <a
+                    class="student-detail-next"
+                    href="{% url 'classes:class_student_detail' studio.slug class_instance.id enrollment.student.id %}"
+                >
+                    Student Detail →
+                </a>
+            </div>
+        {% empty %}
+            <div class="class-card-empty">No active students enrolled.</div>
+        {% endfor %}
+    </div>
+</article>

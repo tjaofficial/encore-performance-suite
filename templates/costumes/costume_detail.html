@@ -1,0 +1,230 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ costume.name }} | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_costumes_measurements.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Costume Detail{% endblock %}
+
+{% block content %}
+<section class="wardrobe-page-header">
+    <div>
+        <a
+            class="wardrobe-back-link"
+            href="{% url 'costumes:costume_list' studio.slug class_instance.id %}"
+        >
+            ← Back to Costumes
+        </a>
+
+        <p class="eyebrow">
+            {{ costume.dance.title|default:"Dance Costume" }}
+        </p>
+
+        <h1>{{ costume.name }}</h1>
+
+        <p>
+            {{ class_instance.name }}
+        </p>
+    </div>
+
+    <div class="costume-detail-progress">
+        <strong>
+            {{ ready_assignments }}/{{ total_assignments }}
+        </strong>
+        <span>Students Ready</span>
+    </div>
+</section>
+
+<section class="costume-detail-layout">
+    <div class="costume-detail-main">
+        <section class="wardrobe-form-card">
+            <div class="wardrobe-section-heading">
+                <span>Reference</span>
+                <strong>Costume Photos</strong>
+            </div>
+
+            <div class="costume-photo-sections">
+                {% regroup costume.images.all by get_image_type_display as image_groups %}
+
+                {% for group in image_groups %}
+                    <div class="costume-photo-group">
+                        <h3>{{ group.grouper }}</h3>
+
+                        <div class="costume-photo-grid">
+                            {% for image in group.list %}
+                                <figure>
+                                    <img
+                                        src="{{ image.image.url }}"
+                                        alt="{{ costume.name }} {{ group.grouper }}"
+                                    >
+
+                                    {% if image.caption %}
+                                        <figcaption>
+                                            {{ image.caption }}
+                                        </figcaption>
+                                    {% endif %}
+                                </figure>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="wardrobe-empty-state">
+                        No costume photos uploaded yet.
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="wardrobe-form-card">
+            <div class="wardrobe-section-heading">
+                <span>Students</span>
+                <strong>Costume Assignments</strong>
+                <p>
+                    Update each student's size and costume progress.
+                    Changes save automatically.
+                </p>
+            </div>
+
+            <div class="costume-assignment-table">
+                <div class="costume-assignment-header">
+                    <span>Student</span>
+                    <span>Costume Size</span>
+                    <span>Shoe Size</span>
+                    <span>Status</span>
+                </div>
+
+                {% for assignment in assignments %}
+                    <div
+                        class="costume-assignment-row"
+                        data-costume-assignment
+                        data-save-url="{% url 'costumes:costume_assignment_update' studio.slug class_instance.id costume.id assignment.id %}"
+                    >
+                        <div>
+                            <strong>{{ assignment.student }}</strong>
+
+                            {% if assignment.measurement_set_used %}
+                                <small>
+                                    Measurements:
+                                    {{ assignment.measurement_set_used.measured_at|date:"M j, Y"|default:"Saved set" }}
+                                </small>
+                            {% else %}
+                                <small class="missing-measurements">
+                                    Measurements missing
+                                </small>
+                            {% endif %}
+                        </div>
+
+                        <input
+                            type="text"
+                            value="{{ assignment.costume_size }}"
+                            data-assignment-field="costume_size"
+                            placeholder="Size"
+                        >
+
+                        <input
+                            type="text"
+                            value="{{ assignment.shoe_size }}"
+                            data-assignment-field="shoe_size"
+                            placeholder="Shoe"
+                        >
+
+                        <select data-assignment-field="status">
+                            {% for value, label in assignment_status_choices %}
+                                <option
+                                    value="{{ value }}"
+                                    {% if assignment.status == value %}selected{% endif %}
+                                >
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% empty %}
+                    <div class="wardrobe-empty-state">
+                        No active students are assigned to this costume.
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+
+    <aside class="costume-detail-sidebar">
+        <section class="wardrobe-form-card">
+            <div class="wardrobe-section-heading">
+                <span>Family Information</span>
+                <strong>Student / Guardian Notes</strong>
+            </div>
+
+            {% if costume.student_notes %}
+                <p class="costume-note-copy">
+                    {{ costume.student_notes|linebreaksbr }}
+                </p>
+            {% else %}
+                <p class="muted-copy">
+                    No family-facing instructions entered.
+                </p>
+            {% endif %}
+        </section>
+
+        <section class="wardrobe-form-card">
+            <div class="wardrobe-section-heading">
+                <span>Staff Only</span>
+                <strong>Internal Notes</strong>
+            </div>
+
+            {% if costume.internal_notes %}
+                <p class="costume-note-copy">
+                    {{ costume.internal_notes|linebreaksbr }}
+                </p>
+            {% else %}
+                <p class="muted-copy">
+                    No internal notes entered.
+                </p>
+            {% endif %}
+        </section>
+
+        <section class="wardrobe-form-card">
+            <div class="wardrobe-section-heading">
+                <span>Purchase</span>
+                <strong>Links</strong>
+            </div>
+
+            <div class="costume-purchase-links">
+                {% for link in costume.purchase_links.all %}
+                    <a
+                        href="{{ link.url }}"
+                        target="_blank"
+                        rel="noopener"
+                    >
+                        <strong>{{ link.label }}</strong>
+
+                        {% if link.notes %}
+                            <span>{{ link.notes }}</span>
+                        {% endif %}
+
+                        <small>Open Link ↗</small>
+                    </a>
+                {% empty %}
+                    <p class="muted-copy">
+                        No purchase links entered.
+                    </p>
+                {% endfor %}
+            </div>
+        </section>
+
+        <a
+            class="button secondary full-width"
+            href="{% url 'costumes:measurement_roster' studio.slug class_instance.id %}?filter=needs_remeasurement"
+        >
+            Collect Missing Measurements
+        </a>
+    </aside>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/encore_costume_detail.js' %}" defer></script>
+{% endblock %}

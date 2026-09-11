@@ -1,0 +1,149 @@
+.admin-fixed-card-picker .admin-fixed-card {
+    cursor: default;
+    opacity: .82;
+}
+
+.admin-fixed-card-picker .admin-fixed-card:hover {
+    transform: none;
+}
+
+.admin-fixed-card-picker .admin-fixed-card .choice-check {
+    background: var(--encore-primary);
+    color: #fff;
+}
+
+
+/* =========================================================
+   Admin Snapshot Settings
+   ========================================================= */
+
+.snapshot-settings-heading {
+    align-items: flex-start;
+}
+
+.snapshot-selection-count {
+    color: var(--encore-primary);
+    font-size: .62rem;
+    white-space: nowrap;
+}
+
+.snapshot-metric-picker {
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+}
+
+.snapshot-selection-error {
+    margin: 9px 0 0;
+    color: #B42318;
+    font-size: .58rem;
+    font-weight: 800;
+}
+
+.layout-preview-card.is-locked {
+    border-style: solid;
+    background:
+        color-mix(
+            in srgb,
+            var(--encore-primary) 4%,
+            #fff
+        );
+}
+
+.layout-preview-card.is-locked
+.preview-card-size {
+    color: var(--encore-primary);
+}
+
+.locked-card-note {
+    margin: 0 0 10px;
+    padding: 8px 9px;
+    border-radius: 8px;
+    background: var(--encore-primary-soft);
+    color: var(--encore-primary-deep);
+    font-size: .56rem;
+    line-height: 1.45;
+}
+
+@media (max-width: 900px) {
+    .snapshot-metric-picker {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 560px) {
+    .snapshot-metric-picker {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* =========================================================
+   Admin Quick Links Settings
+   ========================================================= */
+
+.admin-link-picker {
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+}
+
+.custom-link-settings {
+    display: grid;
+    gap: 8px;
+    margin-top: 14px;
+    padding-top: 13px;
+    border-top: 1px solid var(--encore-border);
+}
+
+.custom-link-settings-heading {
+    display: grid;
+    gap: 2px;
+}
+
+.custom-link-settings-heading strong {
+    color: var(--encore-primary-deep);
+    font-size: .66rem;
+}
+
+.custom-link-settings-heading span {
+    color: var(--encore-muted);
+    font-size: .55rem;
+}
+
+.custom-link-row {
+    display: grid;
+    grid-template-columns:
+        minmax(120px, .4fr)
+        minmax(220px, 1fr);
+    gap: 8px;
+}
+
+.custom-link-row .encore-input {
+    min-height: 36px;
+    font-size: .59rem;
+}
+
+@media (max-width: 900px) {
+    .admin-link-picker {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 620px) {
+    .admin-link-picker,
+    .custom-link-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+.snapshot-metric-picker {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 1180px) {
+    .snapshot-metric-picker {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}

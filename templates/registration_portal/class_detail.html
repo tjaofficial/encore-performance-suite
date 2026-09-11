@@ -1,0 +1,179 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>
+        {{ class_instance.name }} | {{ studio.name }}
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_public_registration.css' %}"
+    >
+    <link
+        rel="icon"
+        type="image/png"
+        href="{% static 'images/icon.png' %}"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_tenant_branding.css' %}"
+    >
+    {% include "includes/studio_brand_vars.html" %}
+</head>
+
+<body class="{% if embed_mode %}embed-mode {% endif %}widget-style-{{ widget_style|default:'cards' }}">
+    <main class="public-shell narrow">
+        <a
+            class="public-back-link"
+            href="{% if embed_mode %}{% url 'registration_portal:embedded_class_catalog' studio.slug %}{% else %}{% url 'registration_portal:public_class_catalog' studio.slug %}{% endif %}"
+        >
+            ← Back to Classes
+        </a>
+
+        <section class="public-detail-card">
+            <div class="class-card-top">
+                <div>
+                    <span class="public-kicker">
+                        {{ class_instance.class_id }}
+                    </span>
+
+                    <h1>
+                        {{ class_instance.name }}
+                    </h1>
+
+                    <p>
+                        {{ class_instance.class_type.name }}
+                        ·
+                        {{ class_instance.season.name }}
+                    </p>
+                </div>
+
+                {% if is_full %}
+                    <span class="availability full">
+                        Full
+                    </span>
+                {% else %}
+                    <span class="availability open">
+                        Open
+                    </span>
+                {% endif %}
+            </div>
+
+            {% if class_instance.description %}
+                <div class="detail-section">
+                    <h2>About This Class</h2>
+                    <p>
+                        {{ class_instance.description|linebreaksbr }}
+                    </p>
+                </div>
+            {% endif %}
+
+            <div class="detail-section">
+                <h2>Schedule</h2>
+
+                <div class="meeting-list detail">
+                    {% for meeting in class_instance.meeting_times.all %}
+                        {% if meeting.is_active %}
+                            <span>
+                                {{ meeting.get_day_of_week_display }}
+                                ·
+                                {{ meeting.start_time|time:"g:i A" }}
+                                {% if meeting.location %}
+                                    ·
+                                    {{ meeting.location.name }}
+                                {% endif %}
+                            </span>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h2>Instructor</h2>
+                <p>
+                    {{ class_instance.instructor.full_name }}
+                </p>
+            </div>
+
+
+            {% if class_instance.min_age is not None or class_instance.max_age is not None %}
+                <div class="detail-section">
+                    <h2>Age Range</h2>
+                    <p>
+                        {% if class_instance.min_age is not None and class_instance.max_age is not None %}
+                            Ages {{ class_instance.min_age }}–{{ class_instance.max_age }}
+                        {% elif class_instance.min_age is not None %}
+                            Ages {{ class_instance.min_age }}+
+                        {% else %}
+                            Up to age {{ class_instance.max_age }}
+                        {% endif %}
+                    </p>
+                </div>
+            {% endif %}
+
+            {% if show_class_pricing and class_instance.tuition_amount is not None %}
+                <div class="detail-section">
+                    <h2>Tuition</h2>
+                    <p>
+                        ${{ class_instance.tuition_amount }}
+                        {% if class_instance.tuition_plan %}
+                            · {{ class_instance.tuition_plan.get_frequency_display }}
+                        {% endif %}
+                    </p>
+                    {% if class_instance.tuition_plan and class_instance.tuition_plan.registration_fee %}
+                        <p class="detail-subtext">
+                            Registration fee: ${{ class_instance.tuition_plan.registration_fee }}
+                        </p>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            {% if class_instance.dress_code %}
+                <div class="detail-section">
+                    <h2>Dress Code</h2>
+                    <p>{{ class_instance.dress_code|linebreaksbr }}</p>
+                </div>
+            {% endif %}
+
+            {% if show_class_capacity %}
+                <div class="detail-section">
+                    <h2>Availability</h2>
+                    <p>
+                        {% if is_full %}
+                            This class is currently full.
+                        {% elif remaining is not None %}
+                            {{ remaining }} spot{{ remaining|pluralize }} remaining.
+                        {% else %}
+                            Registration is open.
+                        {% endif %}
+                    </p>
+                </div>
+            {% endif %}
+
+            {% if registration_enabled %}
+                <div class="detail-actions">
+                    <a
+                        class="public-button primary"
+                        href="{% url 'registration_portal:registration_wizard_start' studio.slug %}?class={{ class_instance.id }}{% if embed_mode %}&embed=1{% endif %}"
+                    >
+                        {% if is_full %}
+                            Join Waitlist
+                        {% else %}
+                            Register
+                        {% endif %}
+                    </a>
+                </div>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>

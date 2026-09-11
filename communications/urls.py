@@ -1,0 +1,126 @@
+from django.urls import path
+
+from . import views
+from .notification_views import notification_center
+
+app_name = "communications"
+
+urlpatterns = [
+    path(
+        "<slug:studio_slug>/",
+        views.announcement_list,
+        name="announcement_list",
+    ),
+    path(
+        "<slug:studio_slug>/notifications/",
+        notification_center,
+        name="notification_center",
+    ),
+
+    path(
+        "<slug:studio_slug>/email/",
+        views.email_manager,
+        name="email_manager",
+    ),
+    path(
+        "<slug:studio_slug>/email/compose/",
+        views.email_compose,
+        name="email_compose",
+    ),
+    path(
+        "<slug:studio_slug>/email/recipient-preview/",
+        views.email_recipient_preview,
+        name="email_recipient_preview",
+    ),
+    path(
+        "<slug:studio_slug>/email/campaigns/",
+        views.email_campaign_list,
+        name="email_campaign_list",
+    ),
+    path(
+        "<slug:studio_slug>/email/campaigns/<int:campaign_id>/",
+        views.email_campaign_detail,
+        name="email_campaign_detail",
+    ),
+    path(
+        "<slug:studio_slug>/email/campaigns/<int:campaign_id>/send/",
+        views.email_campaign_send,
+        name="email_campaign_send",
+    ),
+    path(
+        "<slug:studio_slug>/email/campaigns/<int:campaign_id>/edit/",
+        views.email_campaign_edit,
+        name="email_campaign_edit",
+    ),
+    path(
+        "<slug:studio_slug>/email/campaigns/<int:campaign_id>/cancel/",
+        views.email_campaign_cancel,
+        name="email_campaign_cancel",
+    ),
+    path(
+        "<slug:studio_slug>/email/templates/",
+        views.email_template_list,
+        name="email_template_list",
+    ),
+    path(
+        "<slug:studio_slug>/email/templates/add/",
+        views.email_template_create,
+        name="email_template_create",
+    ),
+    path(
+        "<slug:studio_slug>/email/templates/<int:template_id>/edit/",
+        views.email_template_edit,
+        name="email_template_edit",
+    ),
+    path(
+        "<slug:studio_slug>/email/signatures/",
+        views.email_signature_list,
+        name="email_signature_list",
+    ),
+    path(
+        "<slug:studio_slug>/email/signatures/add/",
+        views.email_signature_create,
+        name="email_signature_create",
+    ),
+    path(
+        "<slug:studio_slug>/email/signatures/<int:signature_id>/edit/",
+        views.email_signature_edit,
+        name="email_signature_edit",
+    ),
+    path(
+        "<slug:studio_slug>/email/automations/",
+        views.email_automations,
+        name="email_automations",
+    ),
+    path(
+        "<slug:studio_slug>/email/automations/<int:setting_id>/edit/",
+        views.email_automation_edit,
+        name="email_automation_edit",
+    ),
+    path(
+        "<slug:studio_slug>/email/analytics/",
+        views.email_analytics,
+        name="email_analytics",
+    ),
+    path(
+        "<slug:studio_slug>/email/settings/",
+        views.email_settings,
+        name="email_settings",
+    ),
+
+    path(
+        "<slug:studio_slug>/add/",
+        views.announcement_create,
+        name="announcement_create",
+    ),
+    path(
+        "<slug:studio_slug>/<int:announcement_id>/",
+        views.announcement_detail,
+        name="announcement_detail",
+    ),
+    path(
+        "<slug:studio_slug>/<int:announcement_id>/edit/",
+        views.announcement_edit,
+        name="announcement_edit",
+    ),
+]

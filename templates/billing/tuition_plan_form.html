@@ -1,0 +1,79 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_billing.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_recurring_tuition.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}">
+{% endblock %}
+
+{% block topbar_title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="settings-workspace">
+    {% include "includes/settings_nav.html" %}
+    <div class="settings-workspace-content">
+<section class="billing-heading">
+    <div>
+        <a class="back-link" href="{% url 'billing:tuition_plan_list' studio.slug %}">← Back to Billing Policies</a>
+
+        <p class="eyebrow">Billing Setup</p>
+        <h1>{{ page_title }}</h1>
+        <p>
+            Define reusable tuition and fee rules.
+        </p>
+    </div>
+</section>
+
+<form method="post" class="billing-form">
+    {% csrf_token %}
+
+    <section class="billing-card">
+        <div class="form-grid">
+            {% for field in form %}
+                <div class="field-group {% if field.name == 'description' %}full{% endif %}">
+                    {% if field.field.widget.input_type == "checkbox" %}
+                        <label class="checkbox-line">
+                            {{ field }}
+                            <span>{{ field.label }}</span>
+                        </label>
+                    {% else %}
+                        {{ field.label_tag }}
+                        {{ field }}
+                    {% endif %}
+
+                    {% if field.help_text %}
+                        <small>{{ field.help_text }}</small>
+                    {% endif %}
+
+                    {% for error in field.errors %}
+                        <small class="field-error">{{ error }}</small>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <div class="form-actions">
+        <a
+            class="button secondary"
+            href="{% url 'billing:tuition_plan_list' studio.slug %}"
+        >
+            Cancel
+        </a>
+
+        <button class="button primary" type="submit">
+            {% if plan %}
+                Save Changes
+            {% else %}
+                Create Tuition Plan
+            {% endif %}
+        </button>
+    </div>
+</form>
+
+    </div>
+</div>
+{% endblock %}

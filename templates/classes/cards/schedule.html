@@ -1,0 +1,32 @@
+<article class="class-dashboard-card schedule-card">
+    <div class="class-card-heading">
+        <div>
+            <span class="card-kicker">Schedule</span>
+            <h2>Weekly Meetings</h2>
+        </div>
+    </div>
+
+    <div class="class-meeting-list">
+        {% for meeting in meetings %}
+            <div class="class-meeting-row">
+                <strong>{{ meeting.get_day_of_week_display }}</strong>
+                <span>
+                    {{ meeting.start_time|time:"g:i A" }}
+                    ·
+                    {{ meeting.duration_minutes }} min
+                </span>
+                <small>
+                    {% if meeting.location %}
+                        {{ meeting.location.name }}
+                    {% elif class_instance.default_location %}
+                        {{ class_instance.default_location.name }}
+                    {% else %}
+                        No location
+                    {% endif %}
+                </small>
+            </div>
+        {% empty %}
+            <div class="class-card-empty">No meeting times configured.</div>
+        {% endfor %}
+    </div>
+</article>

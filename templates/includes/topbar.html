@@ -1,0 +1,185 @@
+<header class="app-topbar encore-global-topbar">
+    <button
+        id="mobile-nav-toggle"
+        class="mobile-nav-toggle"
+        type="button"
+        aria-label="Open navigation"
+    >
+        ☰
+    </button>
+
+    {% if studio %}
+        <div class="dashboard-topbar-greeting">
+            <h1>
+                {{ encore_shell_greeting }},
+                {{ encore_shell_name }}! <span>✨</span>
+            </h1>
+
+            <p>
+                {{ encore_shell_subtitle }}
+            </p>
+        </div>
+    {% else %}
+        <div class="topbar-title">
+            {% block topbar_title %}Encore{% endblock %}
+        </div>
+    {% endif %}
+
+    <div class="topbar-actions">
+        {% if studio %}
+            <div class="dashboard-topbar-date">
+                <svg
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                >
+                    <rect
+                        x="3"
+                        y="5"
+                        width="18"
+                        height="16"
+                        rx="2"
+                    ></rect>
+
+                    <path
+                        d="M16 3v4M8 3v4M3 10h18"
+                    ></path>
+                </svg>
+
+                <span>
+                    {{ encore_shell_date|date:"M j, Y" }}
+                    ·
+                    {{ encore_shell_date|date:"l" }}
+                </span>
+            </div>
+        {% endif %}
+
+        {% if request.user.is_superuser %}
+            <a
+                class="topbar-button secondary"
+                href="/admin/"
+            >
+                Django Admin
+            </a>
+        {% endif %}
+
+        {% if studio and encore_notification_studio %}
+            <a
+                class="topbar-icon-button notification-bell"
+                href="{% url 'communications:notification_center' studio.slug %}"
+                aria-label="Notification Center{% if encore_unread_notification_count %} — {{ encore_unread_notification_count }} unread{% endif %}"
+                title="Notifications"
+            >
+                <svg
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                >
+                    <path
+                        d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"
+                    ></path>
+
+                    <path
+                        d="M10 21h4"
+                    ></path>
+                </svg>
+
+                {% if encore_unread_notification_count %}
+                    <span
+                        class="notification-unread-indicator"
+                        aria-hidden="true"
+                    ></span>
+                {% endif %}
+            </a>
+        {% endif %}
+
+        <div
+            class="profile-menu"
+            data-profile-menu
+        >
+            <button
+                class="profile-summary-toggle"
+                type="button"
+                aria-label="Open account menu"
+                aria-expanded="false"
+                data-profile-menu-toggle
+            >
+                <span class="user-badge">
+                    {{ request.user.first_name|default:request.user.username|slice:":1"|upper }}
+                </span>
+
+                <span class="topbar-profile-copy">
+                    <strong>
+                        {{ request.user.first_name|default:request.user.username }}
+                    </strong>
+
+                    {% if encore_workspace_role_label %}
+                        <small>
+                            {{ encore_workspace_role_label }}
+                        </small>
+                    {% endif %}
+                </span>
+
+                <span class="profile-chevron">
+                    ⌄
+                </span>
+            </button>
+
+            <div
+                class="profile-dropdown"
+                data-profile-menu-dropdown
+                hidden
+            >
+                <div class="profile-dropdown-identity">
+                    <span class="profile-dropdown-avatar">
+                        {{ request.user.first_name|default:request.user.username|slice:":1"|upper }}
+                    </span>
+
+                    <div>
+                        <strong>
+                            {{ request.user.get_full_name|default:request.user.username }}
+                        </strong>
+
+                        <span>
+                            {{ request.user.email }}
+                        </span>
+
+                        {% if studio %}
+                            <small>
+                                {{ encore_workspace_role_label }}
+                                ·
+                                {{ studio.name }}
+                            </small>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="profile-dropdown-links">
+                    <a href="{% url 'accounts:profile' %}">
+                        Profile
+                    </a>
+
+                    {% if studio and role == "administrator" or studio and role == "teacher" %}
+                        <a
+                            href="{% url 'studios:onboarding_home' studio.slug %}"
+                        >
+                            Settings
+                        </a>
+                    {% endif %}
+
+                    {% if encore_has_multiple_workspaces %}
+                        <a
+                            href="{% url 'accounts:workspace_selector' %}"
+                        >
+                            Switch Workspace
+                        </a>
+                    {% endif %}
+                </div>
+
+                <div class="profile-dropdown-footer">
+                    <a href="{% url 'accounts:logout' %}">
+                        Sign Out
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>

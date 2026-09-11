@@ -1,0 +1,173 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Costumes · {{ class_instance.name }} | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_costumes_measurements.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Costumes{% endblock %}
+
+{% block content %}
+<section class="wardrobe-page-header">
+    <div>
+        <a
+            class="wardrobe-back-link"
+            href="{% url 'classes:class_detail' studio.slug class_instance.id %}"
+        >
+            ← Back to {{ class_instance.name }}
+        </a>
+
+        <p class="eyebrow">Class Costumes</p>
+
+        <h1>Costumes</h1>
+
+        <p>
+            Manage costume references and student costume progress
+            for every Dance in this class.
+        </p>
+    </div>
+
+    <a
+        class="button primary"
+        href="{% url 'costumes:costume_create' studio.slug class_instance.id %}"
+    >
+        + Add Costume
+    </a>
+</section>
+
+<form method="get" class="costume-toolbar">
+    <div class="costume-toolbar-filters">
+        <input
+            type="search"
+            name="q"
+            value="{{ filters.q }}"
+            placeholder="Search costumes or dances..."
+        >
+
+        <select name="dance">
+            <option value="">All Dances</option>
+
+            {% for dance in dances %}
+                <option
+                    value="{{ dance.id }}"
+                    {% if filters.dance == dance.id|stringformat:"s" %}selected{% endif %}
+                >
+                    {{ dance.title|default:"Untitled Dance" }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <button type="submit" class="button secondary">
+            Filter
+        </button>
+    </div>
+
+    <div class="costume-view-toggle">
+        <a
+            class="{% if view_mode == 'cards' %}active{% endif %}"
+            href="?view=cards&q={{ filters.q|urlencode }}&dance={{ filters.dance }}"
+        >
+            Cards
+        </a>
+
+        <a
+            class="{% if view_mode == 'list' %}active{% endif %}"
+            href="?view=list&q={{ filters.q|urlencode }}&dance={{ filters.dance }}"
+        >
+            List
+        </a>
+    </div>
+</form>
+
+{% if view_mode == "cards" %}
+    <section class="costume-card-grid">
+        {% for costume in costumes %}
+            <a
+                class="costume-card"
+                href="{% url 'costumes:costume_detail' studio.slug class_instance.id costume.id %}"
+            >
+                <div class="costume-card-image">
+                    {% with front=costume.front_image %}
+                        {% if front %}
+                            <img
+                                src="{{ front.image.url }}"
+                                alt="{{ costume.name }}"
+                            >
+                        {% else %}
+                            <span>Costume</span>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+
+                <div class="costume-card-copy">
+                    <span>
+                        {{ costume.dance.title|default:"Untitled Dance" }}
+                    </span>
+
+                    <h2>{{ costume.name }}</h2>
+
+                    {% if costume.student_notes %}
+                        <p>
+                            {{ costume.student_notes|truncatechars:120 }}
+                        </p>
+                    {% endif %}
+
+                    <div class="costume-card-progress">
+                        <strong>
+                            {{ costume.ready_count }}
+                            /
+                            {{ costume.assignment_count }}
+                        </strong>
+
+                        <span>Ready</span>
+                    </div>
+                </div>
+            </a>
+        {% empty %}
+            <div class="wardrobe-empty-state">
+                No costumes have been created for this class yet.
+            </div>
+        {% endfor %}
+    </section>
+{% else %}
+    <section class="costume-table-card">
+        <div class="costume-table-header">
+            <span>Dance</span>
+            <span>Costume</span>
+            <span>Students</span>
+            <span>Ready</span>
+            <span></span>
+        </div>
+
+        {% for costume in costumes %}
+            <div class="costume-table-row">
+                <strong>
+                    {{ costume.dance.title|default:"Untitled Dance" }}
+                </strong>
+
+                <span>{{ costume.name }}</span>
+
+                <span>{{ costume.assignment_count }}</span>
+
+                <span>
+                    {{ costume.ready_count }}
+                    /
+                    {{ costume.assignment_count }}
+                </span>
+
+                <a
+                    href="{% url 'costumes:costume_detail' studio.slug class_instance.id costume.id %}"
+                >
+                    Open →
+                </a>
+            </div>
+        {% empty %}
+            <div class="wardrobe-empty-state">
+                No costumes have been created for this class yet.
+            </div>
+        {% endfor %}
+    </section>
+{% endif %}
+{% endblock %}

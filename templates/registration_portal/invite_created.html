@@ -1,0 +1,72 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}
+Invite Created | Encore
+{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/encore_family_signup.css' %}"
+>
+{% endblock %}
+
+{% block topbar_title %}
+Family Invite
+{% endblock %}
+
+{% block content %}
+<section class="invite-heading">
+    <div>
+        <p class="eyebrow">
+            Invite Ready
+        </p>
+
+        <h1>
+            Family Invite Created
+        </h1>
+
+        <p>
+            Encore attempted to email the setup link.
+            You can also copy it directly below.
+        </p>
+    </div>
+</section>
+
+<section class="invite-panel">
+    <div class="invite-link-block">
+        <span>
+            Invite for {{ invite.email }}
+        </span>
+
+        <input
+            type="text"
+            value="{{ invite_url }}"
+            readonly
+            onclick="this.select();"
+        >
+
+        <small>
+            Expires
+            {{ invite.expires_at|date:"F j, Y · g:i A" }}
+        </small>
+    </div>
+
+    <div class="invite-created-actions">
+        <a
+            class="button primary"
+            href="{% url 'registration_portal:invite_list' studio.slug %}"
+        >
+            Done
+        </a>
+
+        <a
+            class="button secondary"
+            href="{% url 'registration_portal:invite_create' studio.slug %}"
+        >
+            Invite Another Family
+        </a>
+    </div>
+</section>
+{% endblock %}

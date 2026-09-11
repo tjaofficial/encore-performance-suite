@@ -1,0 +1,137 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}
+    Student Dashboard | Encore Performance Suite
+{% endblock %}
+
+{% block extra_css %}
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_family_student.css' %}"
+    >
+{% endblock %}
+
+{% block topbar_title %}
+    Student Dashboard
+{% endblock %}
+
+{% block content %}
+<section class="portal-heading">
+    <div>
+        <p class="eyebrow">Student Portal</p>
+
+        <h1>
+            Hey {{ student.first_name }}.
+        </h1>
+
+        <p>
+            Here's what's happening with your classes.
+        </p>
+    </div>
+
+    <a
+        class="button secondary"
+        href="{% url 'scheduling:calendar' studio.slug %}"
+    >
+        My Calendar
+    </a>
+</section>
+
+<section class="metrics-grid portal-metrics">
+    <article class="metric-card">
+        <span class="metric-label">Active Classes</span>
+        <strong>{{ active_enrollments|length }}</strong>
+        <span>current enrollments</span>
+    </article>
+
+    <article class="metric-card">
+        <span class="metric-label">Attendance</span>
+        <strong>
+            {% if attendance.percentage is not None %}
+                {{ attendance.percentage }}%
+            {% else %}
+                —
+            {% endif %}
+        </strong>
+        <span>{{ attendance.total }} recorded classes</span>
+    </article>
+
+    <article class="metric-card">
+        <span class="metric-label">Absences</span>
+        <strong>{{ attendance.absent }}</strong>
+        <span>{{ attendance.excused }} excused</span>
+    </article>
+</section>
+
+<section class="portal-grid wide-left">
+    <article class="portal-card">
+        <div class="card-heading">
+            <div>
+                <span class="card-kicker">My Classes</span>
+                <h2>Current Classes</h2>
+            </div>
+        </div>
+
+        <div class="class-list">
+            {% for enrollment in active_enrollments %}
+                <div class="class-line">
+                    <div>
+                        <strong>
+                            {{ enrollment.class_instance.class_id }}
+                            ·
+                            {{ enrollment.class_instance.name }}
+                        </strong>
+
+                        <span>
+                            {{ enrollment.class_instance.instructor.full_name }}
+                            ·
+                            {{ enrollment.class_instance.season.name }}
+                        </span>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="empty-state">
+                    No active classes.
+                </div>
+            {% endfor %}
+        </div>
+    </article>
+
+    <article class="portal-card">
+        <div class="card-heading">
+            <div>
+                <span class="card-kicker">Recent</span>
+                <h2>Attendance</h2>
+            </div>
+
+            <a
+                href="{% url 'attendance:student_history' studio.slug %}"
+            >
+                View All
+            </a>
+        </div>
+
+        {% for record in recent_attendance %}
+            <div class="attendance-line">
+                <div>
+                    <strong>
+                        {{ record.session.class_instance.name }}
+                    </strong>
+                    <span>
+                        {{ record.session.session_date|date:"M j, Y" }}
+                    </span>
+                </div>
+
+                <span class="status-pill status-{{ record.status }}">
+                    {{ record.get_status_display }}
+                </span>
+            </div>
+        {% empty %}
+            <div class="empty-state">
+                No attendance has been recorded yet.
+            </div>
+        {% endfor %}
+    </article>
+</section>
+{% endblock %}

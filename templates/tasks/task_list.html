@@ -1,0 +1,157 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Tasks | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_tasks.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Task Management{% endblock %}
+
+{% block content %}
+<section class="task-manager-heading">
+    <div>
+        <p class="eyebrow">My Work</p>
+        <h1>Tasks</h1>
+        <p>Manage assignments, class work, requests, and completed tasks.</p>
+    </div>
+
+    <div class="task-manager-heading-actions">
+        {% if role == "administrator" or role == "teacher" %}
+            <a class="button secondary" href="{% url 'tasks:template_list' studio.slug %}">
+                Task Templates
+            </a>
+            <a class="button primary" href="{% url 'tasks:task_create' studio.slug %}">
+                + Add Task
+            </a>
+        {% endif %}
+    </div>
+</section>
+
+<nav class="task-manager-tabs">
+    <a class="{% if active_tab == 'mine' %}active{% endif %}" href="?tab=mine{% if show_completed %}&completed=1{% endif %}">
+        My Tasks
+    </a>
+
+    {% if role == "administrator" or role == "teacher" %}
+        <a class="{% if active_tab == 'created' %}active{% endif %}" href="?tab=created{% if show_completed %}&completed=1{% endif %}">
+            Created by Me
+        </a>
+    {% endif %}
+
+    {% if role == "teacher" %}
+        <a class="{% if active_tab == 'class' %}active{% endif %}" href="?tab=class{% if show_completed %}&completed=1{% endif %}">
+            Class Tasks
+        </a>
+    {% endif %}
+
+    {% if role == "administrator" %}
+        <a class="{% if active_tab == 'assigned' %}active{% endif %}" href="?tab=assigned{% if show_completed %}&completed=1{% endif %}">
+            Assigned by Me
+        </a>
+        <a class="{% if active_tab == 'requests' %}active{% endif %}" href="?tab=requests">
+            Requests
+        </a>
+    {% endif %}
+</nav>
+
+<div class="task-manager-toolbar">
+    {% if show_completed %}
+        <a href="?tab={{ active_tab }}">Hide Completed</a>
+    {% else %}
+        <a href="?tab={{ active_tab }}&completed=1">Show Completed</a>
+    {% endif %}
+</div>
+
+<section class="task-manager-list">
+    {% for row in task_rows %}
+        <article class="task-manager-row priority-{{ row.task.priority }}{% if row.assignment and row.assignment.completed_at %} is-completed{% endif %}">
+            <div>
+                {% if row.can_complete %}
+                    <form method="post" action="{% url 'tasks:task_toggle_complete' studio.slug row.task.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <button class="task-check-button" type="submit" aria-label="Toggle {{ row.task.title }}">
+                            {% if row.assignment.completed_at %}✓{% endif %}
+                        </button>
+                    </form>
+                {% else %}
+                    <span class="task-reference-dot">•</span>
+                {% endif %}
+            </div>
+
+            <div class="task-manager-copy">
+                <div class="task-title-line">
+                    <strong>{{ row.task.title }}</strong>
+                    <span class="task-priority priority-{{ row.task.priority }}">
+                        {{ row.task.get_priority_display }}
+                    </span>
+
+                    {% if row.task.is_student_facing %}
+                        <span class="task-type-badge student">Student Task</span>
+                    {% elif row.task.context_type == "class" %}
+                        <span class="task-type-badge class">Class Task</span>
+                    {% endif %}
+
+                    {% if row.task.approval_status == "pending" %}
+                        <span class="task-type-badge pending">Pending Approval</span>
+                    {% endif %}
+                </div>
+
+                {% if row.task.description %}
+                    <p>{{ row.task.description }}</p>
+                {% endif %}
+
+                <div class="task-context">
+                    {% if row.task.class_instance %}
+                        <span>{{ row.task.class_instance.name }}</span>
+                    {% endif %}
+                    {% if row.task.student %}
+                        <span>Related: {{ row.task.student }}</span>
+                    {% endif %}
+                    {% if row.assignment_count > 1 %}
+                        <span>{{ row.completed_count }}/{{ row.assignment_count }} completed</span>
+                    {% endif %}
+                    {% if row.task.created_by %}
+                        <span>
+                            Created by
+                            {{ row.task.created_by.get_full_name|default:row.task.created_by.email }}
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="task-manager-due">
+                {% if row.task.due_date %}
+                    <span class="{% if row.task.is_overdue and not row.assignment.completed_at %}overdue{% endif %}">
+                        {{ row.task.due_date|date:"M j" }}
+                    </span>
+                {% else %}
+                    <span class="no-due">No due date</span>
+                {% endif %}
+
+                {% if role == "administrator" and row.task.approval_status == "pending" %}
+                    <div class="task-request-actions">
+                        <form method="post" action="{% url 'tasks:task_approval' studio.slug row.task.id 'deny' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="button secondary">Deny</button>
+                        </form>
+
+                        <form method="post" action="{% url 'tasks:task_approval' studio.slug row.task.id 'approve' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="button primary">Accept</button>
+                        </form>
+                    </div>
+                {% elif row.task.created_by_id == request.user.id or role == "administrator" %}
+                    <a class="task-edit-link" href="{% url 'tasks:task_edit' studio.slug row.task.id %}?next={{ request.get_full_path|urlencode }}">
+                        Edit
+                    </a>
+                {% endif %}
+            </div>
+        </article>
+    {% empty %}
+        <div class="task-empty-state">Nothing to show here right now.</div>
+    {% endfor %}
+</section>
+{% endblock %}

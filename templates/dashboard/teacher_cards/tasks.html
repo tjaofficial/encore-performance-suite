@@ -1,0 +1,161 @@
+<article class="dashboard-widget teacher-card-shell teacher-task-widget">
+    <div class="widget-heading">
+        <div class="widget-title-group">
+            <span class="widget-icon">✓</span>
+
+            <span class="widget-kicker">
+                Reminders / To-Do
+            </span>
+        </div>
+    </div>
+
+    <div class="teacher-task-list task-checklist">
+        {% for task in teacher_tasks %}
+            <div class="teacher-task-row priority-{{ task.priority }}">
+                <form
+                    method="post"
+                    action="{% url 'tasks:task_toggle_complete' studio.slug task.id %}"
+                    class="task-complete-form"
+                >
+                    {% csrf_token %}
+
+                    <input
+                        type="hidden"
+                        name="next"
+                        value="{{ request.path }}"
+                    >
+
+                    <button
+                        type="submit"
+                        class="teacher-task-check compact-task-check"
+                        aria-label="Complete {{ task.title }}"
+                    >
+                        <span aria-hidden="true"></span>
+                    </button>
+                </form>
+
+                <div class="teacher-task-copy">
+                    <strong>
+                        {{ task.title }}
+                    </strong>
+
+                    {% if task.created_by != request.user %}
+                        <small>
+                            Assigned by
+                            {{ task.created_by.get_full_name|default:task.created_by.email }}
+                        </small>
+                    {% elif task.class_instance %}
+                        <small>
+                            {{ task.class_instance.name }}
+                        </small>
+                    {% endif %}
+                </div>
+
+                <div class="task-row-end">
+                    {% if task.due_date %}
+                        <span class="teacher-task-date">
+                            {{ task.due_date|date:"M j" }}
+                        </span>
+                    {% endif %}
+
+                    {% if task.created_by_id == request.user.id or role == "administrator" %}
+                        <div class="task-row-menu" data-task-menu>
+                            <button
+                                type="button"
+                                class="task-row-menu-button"
+                                aria-label="Options for {{ task.title }}"
+                                aria-expanded="false"
+                                data-task-menu-button
+                            >
+                                ⋯
+                            </button>
+
+                            <div
+                                class="task-row-menu-popover"
+                                data-task-menu-popover
+                                hidden
+                            >
+                                <a
+                                    href="{% url 'tasks:task_edit' studio.slug task.id %}?next={{ request.get_full_path|urlencode }}"
+                                >
+                                    Edit
+                                </a>
+
+                                <form
+                                    method="post"
+                                    action="{% url 'tasks:task_delete' studio.slug task.id %}"
+                                    onsubmit="return confirm('Delete this reminder?');"
+                                >
+                                    {% csrf_token %}
+
+                                    <input
+                                        type="hidden"
+                                        name="next"
+                                        value="{{ request.get_full_path }}"
+                                    >
+
+                                    <button type="submit">
+                                        Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% empty %}
+            <div class="teacher-task-empty">
+                Nothing on your list right now.
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="quick-task-inline" data-quick-task>
+        <button
+            type="button"
+            class="quick-task-trigger"
+            data-quick-task-trigger
+        >
+            <span>+</span>
+            Add Reminder
+        </button>
+
+        <form
+            class="quick-task-inline-form"
+            method="post"
+            action="{% url 'tasks:task_quick_add' studio.slug %}"
+            data-quick-task-form
+            hidden
+        >
+            {% csrf_token %}
+
+            <input
+                type="hidden"
+                name="next"
+                value="{{ request.get_full_path }}"
+            >
+
+            <span class="quick-task-inline-plus">
+                +
+            </span>
+
+            <input
+                class="quick-task-inline-input"
+                type="text"
+                name="title"
+                maxlength="255"
+                placeholder="Type a reminder..."
+                autocomplete="off"
+                aria-label="Add a reminder"
+                data-quick-task-input
+            >
+        </form>
+    </div>
+
+    <a
+        class="teacher-card-footer-action"
+        href="{% url 'tasks:task_list' studio.slug %}"
+    >
+        View All
+    </a>
+</article>

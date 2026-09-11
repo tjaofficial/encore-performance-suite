@@ -1,0 +1,145 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_tasks.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Task Management{% endblock %}
+
+{% block content %}
+<section class="task-manager-heading">
+    <div>
+        <a class="task-back-link" href="{% url 'tasks:task_list' studio.slug %}">
+            ← Back to Tasks
+        </a>
+        <p class="eyebrow">Task Management</p>
+        <h1>{{ page_title }}</h1>
+        <p>Choose what the task belongs to separately from who must complete it.</p>
+    </div>
+</section>
+
+<form
+    method="post"
+    class="task-form"
+    data-task-form
+    data-roster-url="{% url 'tasks:class_roster_options' studio.slug %}"
+>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+        <div class="task-form-errors">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <section class="task-form-card">
+        <div class="task-form-section-heading">
+            <span>Task</span>
+            <strong>What needs to happen?</strong>
+        </div>
+
+        <div class="task-form-grid">
+            <div class="task-form-field full">
+                {{ form.title.label_tag }}
+                {{ form.title }}
+                {% for error in form.title.errors %}
+                    <small class="task-field-error">{{ error }}</small>
+                {% endfor %}
+            </div>
+
+            <div class="task-form-field full">
+                {{ form.description.label_tag }}
+                {{ form.description }}
+            </div>
+
+            <div class="task-form-field">
+                {{ form.priority.label_tag }}
+                {{ form.priority }}
+            </div>
+
+            <div class="task-form-field">
+                {{ form.due_date.label_tag }}
+                {{ form.due_date }}
+            </div>
+        </div>
+    </section>
+
+    <section class="task-form-card">
+        <div class="task-form-section-heading">
+            <span>Context</span>
+            <strong>What does this task belong to?</strong>
+        </div>
+
+        <div class="task-form-grid">
+            <div class="task-form-field">
+                {{ form.context_type.label_tag }}
+                {{ form.context_type }}
+            </div>
+
+            <div class="task-form-field">
+                {{ form.class_instance.label_tag }}
+                {{ form.class_instance }}
+                {% for error in form.class_instance.errors %}
+                    <small class="task-field-error">{{ error }}</small>
+                {% endfor %}
+            </div>
+
+            <div class="task-form-field">
+                {{ form.student.label_tag }}
+                {{ form.student }}
+                <small>This links the task to a student record. It does not assign the task to that student.</small>
+            </div>
+        </div>
+    </section>
+
+    <section class="task-form-card">
+        <div class="task-form-section-heading">
+            <span>Assignment</span>
+            <strong>Who needs to complete it?</strong>
+        </div>
+
+        <div class="task-form-grid">
+            <div class="task-form-field">
+                {{ form.audience_type.label_tag }}
+                {{ form.audience_type }}
+            </div>
+
+            <div class="task-form-field full" data-selected-teachers hidden>
+                {{ form.selected_teachers.label_tag }}
+                {{ form.selected_teachers }}
+                {% for error in form.selected_teachers.errors %}
+                    <small class="task-field-error">{{ error }}</small>
+                {% endfor %}
+            </div>
+
+            <div class="task-form-field full" data-selected-students hidden>
+                {{ form.selected_students.label_tag }}
+                <div data-student-options>{{ form.selected_students }}</div>
+                {% for error in form.selected_students.errors %}
+                    <small class="task-field-error">{{ error }}</small>
+                {% endfor %}
+            </div>
+
+            <div class="task-form-field full">
+                <label class="task-checkbox-row">
+                    {{ form.notify_assignees }}
+                    <span>
+                        <strong>Notify Assignees</strong>
+                        <small>Send an Encore notification when the task is assigned.</small>
+                    </span>
+                </label>
+            </div>
+        </div>
+    </section>
+
+    <div class="task-form-actions">
+        <a class="button secondary" href="{% url 'tasks:task_list' studio.slug %}">Cancel</a>
+        <button class="button primary" type="submit">Save Task</button>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/encore_task_form.js' %}" defer></script>
+{% endblock %}

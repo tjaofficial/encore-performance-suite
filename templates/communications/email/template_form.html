@@ -1,0 +1,215 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_communications.css' %}">
+{% endblock %}
+
+{% block topbar_title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<section class="communication-heading">
+    <div>
+        <a class="back-link" href="{% url 'communications:email_template_list' studio.slug %}">
+            ← Back to Templates
+        </a>
+        <p class="eyebrow">Email Manager</p>
+        <h1>{{ page_title }}</h1>
+        <p>
+            Design reusable email content and optionally tell Encore when it should send automatically.
+        </p>
+    </div>
+</section>
+
+{% include "communications/email/_nav.html" %}
+
+<form method="post" class="communication-form email-template-builder" data-template-builder>
+    {% csrf_token %}
+
+    <section class="communication-form-card">
+        <div class="template-section-heading">
+            <span>01</span>
+            <div>
+                <strong>Template Details</strong>
+                <small>Name and categorize this reusable email.</small>
+            </div>
+        </div>
+
+        <div class="form-grid">
+            <div class="field-group">
+                {{ form.name.label_tag }}
+                {{ form.name }}
+                {{ form.name.errors }}
+            </div>
+
+            <div class="field-group">
+                {{ form.category.label_tag }}
+                {{ form.category }}
+                {{ form.category.errors }}
+            </div>
+
+            <div class="field-group full">
+                {{ form.subject.label_tag }}
+                {{ form.subject }}
+                {{ form.subject.errors }}
+            </div>
+
+            <div class="field-group">
+                {{ form.signature.label_tag }}
+                {{ form.signature }}
+            </div>
+
+            <div class="field-group">
+                <label class="checkbox-line">
+                    {{ form.is_active }}
+                    <span>{{ form.is_active.label }}</span>
+                </label>
+            </div>
+        </div>
+    </section>
+
+    <section class="communication-form-card">
+        <div class="template-section-heading">
+            <span>02</span>
+            <div>
+                <strong>Email Design</strong>
+                <small>Use the visual editor or switch to HTML whenever you need it.</small>
+            </div>
+        </div>
+
+        <div class="field-group">
+            <label>Email Body</label>
+            {% include "communications/email/_editor.html" with field=form.html_body %}
+        </div>
+
+        <details class="email-advanced-field template-plain-text">
+            <summary>Plain Text Version</summary>
+            <div class="field-group">
+                {{ form.text_body }}
+                <small>{{ form.text_body.help_text }}</small>
+            </div>
+        </details>
+    </section>
+
+    <section class="communication-form-card template-automation-builder">
+        <div class="template-section-heading">
+            <span>03</span>
+            <div>
+                <strong>Automation</strong>
+                <small>
+                    Optional. Attach a preset trigger to this template now.
+                    Custom rules can be expanded later without changing the email design.
+                </small>
+            </div>
+        </div>
+
+        <label class="automation-master-toggle">
+            {{ automation_form.enabled }}
+            <span class="audience-checkmark">✓</span>
+            <span>
+                <strong>Automatically send this template</strong>
+                <small>Turn this on to configure when Encore should send the message.</small>
+            </span>
+        </label>
+
+        <div class="automation-rule-fields" data-automation-fields hidden>
+            <div class="form-grid">
+                <div class="field-group full">
+                    {{ automation_form.name.label_tag }}
+                    {{ automation_form.name }}
+                    <small>Optional internal label, such as “3 Absences - Parent Warning”.</small>
+                </div>
+
+                <div class="field-group">
+                    {{ automation_form.trigger_type.label_tag }}
+                    {{ automation_form.trigger_type }}
+                </div>
+
+                <div class="field-group">
+                    {{ automation_form.audience_type.label_tag }}
+                    {{ automation_form.audience_type }}
+                </div>
+
+                <div class="field-group" data-automation-field="threshold">
+                    {{ automation_form.threshold_value.label_tag }}
+                    {{ automation_form.threshold_value }}
+                </div>
+
+                <div class="field-group" data-automation-field="amount">
+                    {{ automation_form.threshold_amount.label_tag }}
+                    {{ automation_form.threshold_amount }}
+                </div>
+
+                <div class="field-group">
+                    {{ automation_form.timing_mode.label_tag }}
+                    {{ automation_form.timing_mode }}
+                </div>
+
+                <div class="field-group" data-automation-field="delay">
+                    {{ automation_form.delay_minutes.label_tag }}
+                    {{ automation_form.delay_minutes }}
+                </div>
+
+                <div class="automation-relative-grid full" data-automation-field="relative">
+                    <div class="field-group">
+                        {{ automation_form.offset_value.label_tag }}
+                        {{ automation_form.offset_value }}
+                    </div>
+
+                    <div class="field-group">
+                        {{ automation_form.offset_unit.label_tag }}
+                        {{ automation_form.offset_unit }}
+                    </div>
+
+                    <div class="field-group">
+                        {{ automation_form.offset_direction.label_tag }}
+                        {{ automation_form.offset_direction }}
+                    </div>
+                </div>
+
+                <div class="field-group" data-automation-field="weekday">
+                    {{ automation_form.weekday.label_tag }}
+                    {{ automation_form.weekday }}
+                </div>
+
+                <div class="field-group" data-automation-field="monthday">
+                    {{ automation_form.day_of_month.label_tag }}
+                    {{ automation_form.day_of_month }}
+                </div>
+
+                <div class="automation-relative-grid full" data-automation-field="yearly">
+                    <div class="field-group">
+                        {{ automation_form.month.label_tag }}
+                        {{ automation_form.month }}
+                    </div>
+
+                    <div class="field-group">
+                        {{ automation_form.day_of_month_yearly.label_tag }}
+                        {{ automation_form.day_of_month_yearly }}
+                    </div>
+                </div>
+
+                <div class="field-group" data-automation-field="time">
+                    {{ automation_form.time_of_day.label_tag }}
+                    {{ automation_form.time_of_day }}
+                </div>
+            </div>
+
+            <div class="automation-trigger-help" data-automation-trigger-help></div>
+        </div>
+    </section>
+
+    <div class="form-actions">
+        <a class="button secondary" href="{% url 'communications:email_template_list' studio.slug %}">
+            Cancel
+        </a>
+        <button class="button primary" type="submit">Save Template</button>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/encore_email_manager.js' %}?v=20260909-email-v2-runtime-fix" defer></script>
+{% endblock %}

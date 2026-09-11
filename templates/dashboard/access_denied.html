@@ -1,0 +1,26 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+    <title>Access Denied | Encore Performance Suite</title>
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_app.css' %}"
+    >
+</head>
+<body class="simple-page">
+    <div class="simple-card">
+        <p class="eyebrow">Encore Performance Suite</p>
+        <h1>Administrator access required</h1>
+        <p>
+            Your account does not have administrator access to
+            {{ studio.name }}.
+        </p>
+    </div>
+</body>
+</html>

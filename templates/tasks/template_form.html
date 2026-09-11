@@ -1,0 +1,507 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_tasks.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Task Templates{% endblock %}
+
+{% block content %}
+<section class="task-manager-heading">
+    <div>
+        <a
+            class="task-back-link"
+            href="{% url 'tasks:template_list' studio.slug %}"
+        >
+            ← Back to Task Templates
+        </a>
+
+        <p class="eyebrow">Automation</p>
+        <h1>{{ page_title }}</h1>
+        <p>
+            Build the checklist once, then decide when Encore should create it.
+        </p>
+    </div>
+</section>
+
+<form
+    method="post"
+    class="task-form"
+    data-template-builder
+>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+        <div class="task-form-errors">
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
+
+    <section class="task-form-card">
+        <div class="task-form-section-heading">
+            <span>Template</span>
+            <strong>Template Information</strong>
+        </div>
+
+        <div class="task-form-grid">
+            {% for field in form %}
+                <div
+                    class="task-form-field{% if field.name == 'description' %} full{% endif %}"
+                >
+                    {{ field.label_tag }}
+                    {{ field }}
+
+                    {% for error in field.errors %}
+                        <small class="task-field-error">
+                            {{ error }}
+                        </small>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="task-form-card">
+        <div class="template-builder-section-header">
+            <div class="task-form-section-heading compact">
+                <span>Checklist</span>
+                <strong>Tasks Created by This Template</strong>
+                <p>
+                    Add every task that should be created when this template runs.
+                </p>
+            </div>
+
+            <button
+                type="button"
+                class="button secondary"
+                data-add-template-task
+            >
+                + Add Task
+            </button>
+        </div>
+
+        {{ item_formset.management_form }}
+
+        <div
+            class="template-item-list"
+            data-template-task-list
+        >
+            {% for item_form in item_formset.forms %}
+                <article
+                    class="template-item-editor"
+                    data-template-task
+                >
+                    {% for hidden in item_form.hidden_fields %}
+                        {{ hidden }}
+                    {% endfor %}
+
+                    <div class="template-item-heading">
+                        <div>
+                            <span class="template-item-number">
+                                Task {{ forloop.counter }}
+                            </span>
+                            <strong>
+                                {% if item_form.instance.pk %}
+                                    {{ item_form.instance.title|default:"Task" }}
+                                {% else %}
+                                    New Task
+                                {% endif %}
+                            </strong>
+                        </div>
+
+                        <button
+                            type="button"
+                            class="template-remove-button"
+                            data-remove-template-task
+                        >
+                            Remove Task
+                        </button>
+                    </div>
+
+                    <div class="template-item-grid">
+                        {% for field in item_form.visible_fields %}
+                            {% if field.name == "DELETE" %}
+                                <div
+                                    class="template-delete-field"
+                                    data-delete-field
+                                    hidden
+                                >
+                                    {{ field }}
+                                </div>
+                            {% elif field.name == "due_offset_days" %}
+                                <div
+                                    class="task-form-field"
+                                    data-due-offset-field
+                                    hidden
+                                >
+                                    {{ field.label_tag }}
+                                    {{ field }}
+                                    <small>
+                                        Enter how many days after the template runs
+                                        this task should be due.
+                                    </small>
+                                    {% for error in field.errors %}
+                                        <small class="task-field-error">
+                                            {{ error }}
+                                        </small>
+                                    {% endfor %}
+                                </div>
+                            {% elif field.name == "notify_assignees" %}
+                                <div class="task-form-field full">
+                                    <label class="task-checkbox-row">
+                                        {{ field }}
+                                        <span>
+                                            <strong>Notify Assignees</strong>
+                                            <small>
+                                                Send an Encore notification when
+                                                this task is assigned.
+                                            </small>
+                                        </span>
+                                    </label>
+                                </div>
+                            {% else %}
+                                <div
+                                    class="task-form-field{% if field.name == 'description' %} full{% endif %}"
+                                >
+                                    {{ field.label_tag }}
+                                    {{ field }}
+
+                                    {% for error in field.errors %}
+                                        <small class="task-field-error">
+                                            {{ error }}
+                                        </small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+
+        <template id="template-task-empty-form">
+            <article
+                class="template-item-editor"
+                data-template-task
+            >
+                {% for hidden in item_formset.empty_form.hidden_fields %}
+                    {{ hidden }}
+                {% endfor %}
+
+                <div class="template-item-heading">
+                    <div>
+                        <span class="template-item-number">
+                            Task
+                        </span>
+                        <strong>New Task</strong>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="template-remove-button"
+                        data-remove-template-task
+                    >
+                        Remove Task
+                    </button>
+                </div>
+
+                <div class="template-item-grid">
+                    {% for field in item_formset.empty_form.visible_fields %}
+                        {% if field.name == "DELETE" %}
+                            <div
+                                class="template-delete-field"
+                                data-delete-field
+                                hidden
+                            >
+                                {{ field }}
+                            </div>
+                        {% elif field.name == "due_offset_days" %}
+                            <div
+                                class="task-form-field"
+                                data-due-offset-field
+                                hidden
+                            >
+                                {{ field.label_tag }}
+                                {{ field }}
+                                <small>
+                                    Enter how many days after the template runs
+                                    this task should be due.
+                                </small>
+                            </div>
+                        {% elif field.name == "notify_assignees" %}
+                            <div class="task-form-field full">
+                                <label class="task-checkbox-row">
+                                    {{ field }}
+                                    <span>
+                                        <strong>Notify Assignees</strong>
+                                        <small>
+                                            Send an Encore notification when
+                                            this task is assigned.
+                                        </small>
+                                    </span>
+                                </label>
+                            </div>
+                        {% else %}
+                            <div
+                                class="task-form-field{% if field.name == 'description' %} full{% endif %}"
+                            >
+                                {{ field.label_tag }}
+                                {{ field }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </article>
+        </template>
+    </section>
+
+    <section class="task-form-card">
+        <div class="template-builder-section-header">
+            <div class="task-form-section-heading compact">
+                <span>Automation</span>
+                <strong>When Should This Template Run?</strong>
+                <p>
+                    Keep it manual, run it when something happens in Encore,
+                    or schedule it for specific days.
+                </p>
+            </div>
+
+            <button
+                type="button"
+                class="button secondary"
+                data-add-template-trigger
+            >
+                + Add Trigger
+            </button>
+        </div>
+
+        {{ trigger_formset.management_form }}
+
+        {% if trigger_formset.non_form_errors %}
+            <div class="task-form-errors">
+                {{ trigger_formset.non_form_errors }}
+            </div>
+        {% endif %}
+
+        <div
+            class="template-trigger-editor-list"
+            data-template-trigger-list
+        >
+            {% for trigger_form in trigger_formset.forms %}
+                <article
+                    class="template-trigger-editor"
+                    data-template-trigger
+                >
+                    {% for hidden in trigger_form.hidden_fields %}
+                        {{ hidden }}
+                    {% endfor %}
+
+                    <div class="template-item-heading">
+                        <div>
+                            <span class="template-item-number">
+                                Trigger {{ forloop.counter }}
+                            </span>
+                            <strong>Template Trigger</strong>
+                        </div>
+
+                        <button
+                            type="button"
+                            class="template-remove-button"
+                            data-remove-template-trigger
+                        >
+                            Remove Trigger
+                        </button>
+                    </div>
+
+                    <div class="task-form-grid">
+                        {% for field in trigger_form.visible_fields %}
+                            {% if field.name == "DELETE" %}
+                                <div
+                                    data-trigger-delete-field
+                                    hidden
+                                >
+                                    {{ field }}
+                                </div>
+                            {% elif field.name == "weekdays" %}
+                                <div
+                                    class="task-form-field full"
+                                    data-trigger-weekdays
+                                    hidden
+                                >
+                                    {{ field.label_tag }}
+                                    {{ field }}
+                                    {% for error in field.errors %}
+                                        <small class="task-field-error">
+                                            {{ error }}
+                                        </small>
+                                    {% endfor %}
+                                </div>
+                            {% elif field.name == "run_date" %}
+                                <div
+                                    class="task-form-field"
+                                    data-trigger-date
+                                    hidden
+                                >
+                                    {{ field.label_tag }}
+                                    {{ field }}
+                                    {% for error in field.errors %}
+                                        <small class="task-field-error">
+                                            {{ error }}
+                                        </small>
+                                    {% endfor %}
+                                </div>
+                            {% elif field.name == "run_time" %}
+                                <div
+                                    class="task-form-field"
+                                    data-trigger-time
+                                    hidden
+                                >
+                                    {{ field.label_tag }}
+                                    {{ field }}
+                                    {% for error in field.errors %}
+                                        <small class="task-field-error">
+                                            {{ error }}
+                                        </small>
+                                    {% endfor %}
+                                </div>
+                            {% elif field.name == "is_enabled" %}
+                                <div class="task-form-field full">
+                                    <label class="task-checkbox-row">
+                                        {{ field }}
+                                        <span>
+                                            <strong>Trigger Active</strong>
+                                            <small>
+                                                Turn this off to keep the trigger
+                                                configured without running it.
+                                            </small>
+                                        </span>
+                                    </label>
+                                </div>
+                            {% else %}
+                                <div class="task-form-field full">
+                                    {{ field.label_tag }}
+                                    {{ field }}
+                                    {% for error in field.errors %}
+                                        <small class="task-field-error">
+                                            {{ error }}
+                                        </small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+
+        <template id="template-trigger-empty-form">
+            <article
+                class="template-trigger-editor"
+                data-template-trigger
+            >
+                {% for hidden in trigger_formset.empty_form.hidden_fields %}
+                    {{ hidden }}
+                {% endfor %}
+
+                <div class="template-item-heading">
+                    <div>
+                        <span class="template-item-number">
+                            Trigger
+                        </span>
+                        <strong>Template Trigger</strong>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="template-remove-button"
+                        data-remove-template-trigger
+                    >
+                        Remove Trigger
+                    </button>
+                </div>
+
+                <div class="task-form-grid">
+                    {% for field in trigger_formset.empty_form.visible_fields %}
+                        {% if field.name == "DELETE" %}
+                            <div data-trigger-delete-field hidden>
+                                {{ field }}
+                            </div>
+                        {% elif field.name == "weekdays" %}
+                            <div
+                                class="task-form-field full"
+                                data-trigger-weekdays
+                                hidden
+                            >
+                                {{ field.label_tag }}
+                                {{ field }}
+                            </div>
+                        {% elif field.name == "run_date" %}
+                            <div
+                                class="task-form-field"
+                                data-trigger-date
+                                hidden
+                            >
+                                {{ field.label_tag }}
+                                {{ field }}
+                            </div>
+                        {% elif field.name == "run_time" %}
+                            <div
+                                class="task-form-field"
+                                data-trigger-time
+                                hidden
+                            >
+                                {{ field.label_tag }}
+                                {{ field }}
+                            </div>
+                        {% elif field.name == "is_enabled" %}
+                            <div class="task-form-field full">
+                                <label class="task-checkbox-row">
+                                    {{ field }}
+                                    <span>
+                                        <strong>Trigger Active</strong>
+                                        <small>
+                                            Turn this off to keep the trigger
+                                            configured without running it.
+                                        </small>
+                                    </span>
+                                </label>
+                            </div>
+                        {% else %}
+                            <div class="task-form-field full">
+                                {{ field.label_tag }}
+                                {{ field }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </article>
+        </template>
+    </section>
+
+    <div class="task-form-actions">
+        <a
+            class="button secondary"
+            href="{% url 'tasks:template_list' studio.slug %}"
+        >
+            Cancel
+        </a>
+
+        <button
+            class="button primary"
+            type="submit"
+        >
+            Save Template
+        </button>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script
+    src="{% static 'js/encore_task_template_form.js' %}"
+    defer
+></script>
+{% endblock %}

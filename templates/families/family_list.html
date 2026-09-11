@@ -1,0 +1,232 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Families | Encore Performance Suite{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_people_manager.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_list_views.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_billing.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Family Manager{% endblock %}
+
+{% block content %}
+<section class="people-heading">
+    <div>
+        <p class="eyebrow">People</p>
+        <h1>Families</h1>
+
+        <p>
+            Manage households, guardians, contact information,
+            and connected students.
+        </p>
+    </div>
+
+    <div class="list-heading-actions">
+        {% include "includes/list_view_toggle.html" with list_view_label="Family display" %}
+
+        <a
+            class="button primary"
+            href="{% url 'families:family_create' studio.slug %}"
+        >
+            + Add Family
+        </a>
+    </div>
+</section>
+
+<form method="get" class="people-filters family-filters">
+    <div class="wide-filter">
+        <label>Search</label>
+        <input
+            type="search"
+            name="q"
+            value="{{ filters.q }}"
+            placeholder="Family, guardian, student, email..."
+        >
+    </div>
+
+    <div>
+        <label>Status</label>
+        <select name="status">
+            <option value="">All</option>
+            <option value="active" {% if filters.status == "active" %}selected{% endif %}>
+                Active
+            </option>
+            <option value="inactive" {% if filters.status == "inactive" %}selected{% endif %}>
+                Inactive
+            </option>
+        </select>
+    </div>
+
+    <div class="filter-buttons">
+        <button class="button primary" type="submit">
+            Filter
+        </button>
+
+        <a
+            class="button secondary"
+            href="{% url 'families:family_list' studio.slug %}"
+        >
+            Reset
+        </a>
+    </div>
+</form>
+
+{% if view_mode == "table" %}
+<section class="encore-list-table-card">
+    <div class="encore-list-table-wrap">
+        <table class="encore-list-table">
+            <thead>
+                <tr>
+                    <th>Family</th>
+                    <th>Primary Guardian</th>
+                    <th>Students</th>
+                    <th>Guardians</th>
+                    <th>Primary Contact</th>
+                    <th>Current Balance</th>
+                    <th>Status</th>
+                    <th class="action-cell">Open</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in family_rows %}
+                    <tr{% if item.has_balance_due %} class="family-balance-row-due"{% endif %}>
+                        <td>
+                            <a
+                                class="primary-cell"
+                                href="{% url 'families:family_detail' studio.slug item.family.id %}"
+                            >
+                                {{ item.family }}
+                            </a>
+                        </td>
+                        <td>
+                            {% if item.primary_guardian %}
+                                {{ item.primary_guardian.first_name }}
+                                {{ item.primary_guardian.last_name }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                        <td class="numeric-cell">{{ item.family.student_count }}</td>
+                        <td class="numeric-cell">{{ item.family.guardian_count }}</td>
+                        <td>
+                            {% if item.primary_guardian %}
+                                {{ item.primary_guardian.email|default:"—" }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                        <td class="balance-cell">
+                            {% if item.has_balance_due %}
+                                <span class="family-balance family-balance-due">
+                                    ${{ item.current_balance|floatformat:2 }} Due
+                                </span>
+                            {% else %}
+                                <span class="family-balance family-balance-clear">
+                                    ${{ item.current_balance|floatformat:2 }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="table-badges">
+                                {% if item.family.is_active %}
+                                    <span class="status-pill active">Active</span>
+                                {% else %}
+                                    <span class="status-pill inactive">Inactive</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="action-cell">
+                            <a href="{% url 'families:family_detail' studio.slug item.family.id %}">
+                                Open →
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td class="empty-cell" colspan="8">
+                            No families matched your filters.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% else %}
+<section class="family-grid">
+    {% for item in family_rows %}
+        <a
+            class="family-card{% if item.has_balance_due %} family-card-balance-due{% endif %}"
+            href="{% url 'families:family_detail' studio.slug item.family.id %}"
+        >
+            <div class="family-card-top">
+                <div>
+                    <span class="family-icon">F</span>
+                </div>
+
+                <div class="family-card-title">
+                    <h2>{{ item.family }}</h2>
+
+                    {% if item.primary_guardian %}
+                        <p>
+                            {{ item.primary_guardian.first_name }}
+                            {{ item.primary_guardian.last_name }}
+                        </p>
+                    {% endif %}
+                </div>
+
+                {% if item.family.is_active %}
+                    <span class="status-pill active">Active</span>
+                {% else %}
+                    <span class="status-pill inactive">Inactive</span>
+                {% endif %}
+            </div>
+
+            <div class="family-card-metrics">
+                <div>
+                    <span>Students</span>
+                    <strong>{{ item.family.student_count }}</strong>
+                </div>
+
+                <div>
+                    <span>Guardians</span>
+                    <strong>{{ item.family.guardian_count }}</strong>
+                </div>
+
+                <div>
+                    <span>Primary Contact</span>
+                    <strong>
+                        {% if item.primary_guardian %}
+                            {{ item.primary_guardian.email|default:"—" }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </strong>
+                </div>
+
+                <div>
+                    <span>Current Balance</span>
+                    <strong>
+                        {% if item.has_balance_due %}
+                            <span class="family-balance family-balance-due">
+                                ${{ item.current_balance|floatformat:2 }} Due
+                            </span>
+                        {% else %}
+                            <span class="family-balance family-balance-clear">
+                                ${{ item.current_balance|floatformat:2 }}
+                            </span>
+                        {% endif %}
+                    </strong>
+                </div>
+            </div>
+        </a>
+    {% empty %}
+        <div class="empty-state">
+            No families matched your filters.
+        </div>
+    {% endfor %}
+</section>
+{% endif %}
+{% endblock %}

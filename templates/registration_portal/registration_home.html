@@ -1,0 +1,76 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Register | {{ studio.name }}</title>
+    <link rel="stylesheet" href="{% static 'css/encore_public_registration.css' %}">
+    <link rel="stylesheet" href="{% static 'css/encore_tenant_branding.css' %}">
+    {% include "includes/studio_brand_vars.html" %}
+</head>
+<body class="{% if embed_mode %}embed-mode {% endif %}widget-style-{{ widget_style }}">
+<main class="public-shell">
+    {% if not embed_mode %}
+        <header class="public-header">
+            <div>
+                <span class="public-kicker">{{ studio.name }}</span>
+                <h1>Register for Classes</h1>
+                <p>Select a class to begin registration.</p>
+            </div>
+        </header>
+    {% endif %}
+
+    <section class="registration-entry-card">
+        <div class="registration-entry-heading">
+            <div>
+                <span class="public-kicker">Online Registration</span>
+                <h2>Choose a class</h2>
+                <p>
+                    You can review class details before continuing.
+                    You can select additional classes during registration.
+                </p>
+            </div>
+        </div>
+
+        <div class="registration-class-list">
+            {% for row in class_rows %}
+                <article>
+                    <div>
+                        <span class="public-kicker">{{ row.class.class_id }}</span>
+                        <h3>{{ row.class.name }}</h3>
+                        <p>{{ row.class.class_type.name }} · {{ row.class.season.name }}</p>
+                        <div class="meeting-list">
+                            {% for meeting in row.class.meeting_times.all %}
+                                {% if meeting.is_active %}
+                                    <span>{{ meeting.get_day_of_week_display }} · {{ meeting.start_time|time:"g:i A" }}</span>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="registration-class-action">
+                        {% if row.is_full %}
+                            <span class="availability full">Waitlist</span>
+                        {% else %}
+                            <span class="availability open">Open</span>
+                        {% endif %}
+                        <a
+                            class="public-button primary"
+                            href="{% url 'registration_portal:registration_wizard_start' studio.slug %}?class={{ row.class.id }}{% if embed_mode %}&embed=1{% endif %}"
+                        >
+                            Select
+                        </a>
+                    </div>
+                </article>
+            {% empty %}
+                <div class="public-empty">There are no classes currently available for online registration.</div>
+            {% endfor %}
+        </div>
+    </section>
+
+    {% if embed_mode %}
+        <footer class="embed-footer">Powered by Encore Performance Suite</footer>
+    {% endif %}
+</main>
+</body>
+</html>

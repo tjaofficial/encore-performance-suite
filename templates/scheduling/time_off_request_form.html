@@ -1,0 +1,132 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Request Time Off | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_calendar.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Request Time Off{% endblock %}
+
+{% block content %}
+<section class="time-off-page">
+    <header class="time-off-page-header">
+        <div>
+            <a
+                class="time-off-back-link"
+                href="{% url 'scheduling:calendar' studio.slug %}"
+            >
+                ← Back to Calendar
+            </a>
+
+            <p class="eyebrow">Teacher Calendar</p>
+
+            <h1>Request Time Off</h1>
+
+            <p>
+                Select one or more dates. Each date can be approved
+                or denied separately by the administrator.
+            </p>
+        </div>
+    </header>
+
+    <form
+        method="post"
+        class="time-off-form-card"
+        data-time-off-form
+    >
+        {% csrf_token %}
+
+        {{ form.dates }}
+
+        {% if form.non_field_errors %}
+            <div class="time-off-errors">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        {% if form.dates.errors %}
+            <div class="time-off-errors">
+                {{ form.dates.errors }}
+            </div>
+        {% endif %}
+
+        <section class="time-off-form-section">
+            <div class="time-off-section-heading">
+                <span>01</span>
+                <div>
+                    <strong>Dates Requested</strong>
+                    <small>
+                        Add every day you are requesting off.
+                    </small>
+                </div>
+            </div>
+
+            <div class="time-off-date-picker">
+                <input
+                    type="date"
+                    data-time-off-date-input
+                >
+
+                <button
+                    type="button"
+                    class="button secondary"
+                    data-add-time-off-date
+                >
+                    + Add Date
+                </button>
+            </div>
+
+            <div
+                class="time-off-selected-dates"
+                data-selected-time-off-dates
+            ></div>
+        </section>
+
+        <section class="time-off-form-section">
+            <div class="time-off-section-heading">
+                <span>02</span>
+                <div>
+                    <strong>Request Details</strong>
+                    <small>
+                        Tell the administrator why you need the time off.
+                    </small>
+                </div>
+            </div>
+
+            <label class="time-off-field">
+                <span>{{ form.reason.label }}</span>
+                {{ form.reason }}
+                {{ form.reason.errors }}
+            </label>
+
+            <label class="time-off-field">
+                <span>{{ form.notes.label }}</span>
+                {{ form.notes }}
+                {{ form.notes.errors }}
+            </label>
+        </section>
+
+        <div class="time-off-form-actions">
+            <a
+                class="button secondary"
+                href="{% url 'scheduling:calendar' studio.slug %}"
+            >
+                Cancel
+            </a>
+
+            <button
+                type="submit"
+                class="button primary"
+            >
+                Submit Request
+            </button>
+        </div>
+    </form>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/encore_time_off.js' %}" defer></script>
+{% endblock %}

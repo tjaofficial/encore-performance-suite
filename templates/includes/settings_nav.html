@@ -1,0 +1,115 @@
+<aside class="settings-section-nav">
+    <div class="settings-nav-heading">
+        <span>Settings</span>
+        <strong>
+            {{ request.user.first_name|default:request.user.username }}
+        </strong>
+    </div>
+
+    <nav>
+        <a
+            class="{% if settings_section == 'home' %}active{% endif %}"
+            href="{% url 'studios:onboarding_home' studio.slug %}"
+        >
+            <span>⌂</span>
+            Settings Home
+        </a>
+
+        <div class="settings-nav-group">
+            <span>Personal</span>
+
+            <a
+                class="{% if settings_section == 'class_dashboard' %}active{% endif %}"
+                href="{% url 'studios:class_dashboard_settings' studio.slug %}"
+            >
+                <span>▦</span>
+                Class Dashboard
+            </a>
+
+            {% if role == "teacher" %}
+                <a
+                    class="{% if settings_section == 'teacher_dashboard' %}active{% endif %}"
+                    href="{% url 'studios:teacher_dashboard_settings' studio.slug %}"
+                >
+                    <span>▦</span>
+                    Teacher Dashboard
+                </a>
+            {% endif %}
+
+            {% if role == "administrator" %}
+                <a
+                    class="{% if settings_section == 'admin_dashboard' %}active{% endif %}"
+                    href="{% url 'studios:admin_dashboard_settings' studio.slug %}"
+                >
+                    <span>▦</span>
+                    Admin Dashboard
+                </a>
+            {% endif %}
+        </div>
+
+        {% if role == "administrator" %}
+            <div class="settings-nav-group">
+                <span>Studio</span>
+
+                <a class="{% if settings_section == 'profile' %}active{% endif %}" href="{% url 'studios:studio_profile' studio.slug %}">
+                    <span>◎</span>
+                    Studio Profile
+                </a>
+
+                <a class="{% if settings_section == 'branding' %}active{% endif %}" href="{% url 'studios:studio_branding' studio.slug %}">
+                    <span>✦</span>
+                    Branding
+                </a>
+
+                <a class="{% if settings_section == 'widgets' %}active{% endif %}" href="{% url 'studios:widget_settings' studio.slug %}">
+                    <span>⌘</span>
+                    Widgets & Public Pages
+                </a>
+
+                <a class="{% if settings_section == 'locations' %}active{% endif %}" href="{% url 'studios:location_list' studio.slug %}">
+                    <span>⌖</span>
+                    Locations
+                </a>
+
+                <a class="{% if settings_section == 'seasons' %}active{% endif %}" href="{% url 'studios:season_list' studio.slug %}">
+                    <span>◫</span>
+                    Seasons
+                </a>
+
+                <a class="{% if settings_section == 'class_types' %}active{% endif %}" href="{% url 'studios:class_type_list' studio.slug %}">
+                    <span>◇</span>
+                    Class Types
+                </a>
+
+                <a class="{% if settings_section == 'staff' %}active{% endif %}" href="{% url 'studios:staff_invite' studio.slug %}">
+                    <span>△</span>
+                    Staff Access
+                </a>
+
+                <a
+                    class="{% if request.resolver_match.app_name == 'billing' and request.resolver_match.url_name == 'tuition_plan_list' %}active{% endif %}"
+                    href="{% url 'billing:tuition_plan_list' studio.slug %}"
+                >
+                    <span>▤</span>
+                    Billing Policies
+                </a>
+
+                <a
+                    class="{% if settings_section == 'subscription' %}active{% endif %}"
+                    href="{% url 'billing:studio_subscription' studio.slug %}"
+                >
+                    <span>＄</span>
+                    Subscription & Billing
+                </a>
+
+                <a
+                    class="{% if settings_section == 'billing_history' %}active{% endif %}"
+                    href="{% url 'billing:billing_history' studio.slug %}"
+                >
+                    <span>▧</span>
+                    Billing History
+                </a>
+            </div>
+        {% endif %}
+    </nav>
+</aside>

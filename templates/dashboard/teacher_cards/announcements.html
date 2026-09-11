@@ -1,0 +1,47 @@
+<article class="dashboard-widget teacher-card-shell">
+    <div class="widget-heading">
+        <div class="widget-title-group">
+            <span class="widget-icon">◌</span>
+
+            <span class="widget-kicker">
+                Announcements
+            </span>
+        </div>
+
+        <a
+            class="teacher-card-action"
+            href="{% url 'communications:announcement_list' studio.slug %}"
+        >
+            View All
+        </a>
+    </div>
+
+    <div class="teacher-announcement-list">
+        {% for announcement in teacher_announcements %}
+            <a
+                class="teacher-announcement-row priority-{{ announcement.priority }}"
+                href="{% url 'communications:announcement_detail' studio.slug announcement.id %}"
+            >
+                <span class="announcement-priority-dot"></span>
+
+                <div>
+                    <strong>
+                        {{ announcement.title }}
+                    </strong>
+
+                    <span>
+                        {{ announcement.message|truncatechars:70 }}
+                    </span>
+                </div>
+
+                <small>
+                    {{ announcement.publish_at|date:"M j" }}
+                </small>
+            </a>
+        {% empty %}
+            <div class="teacher-card-empty">
+                No current announcements.
+            </div>
+        {% endfor %}
+    </div>
+</article>

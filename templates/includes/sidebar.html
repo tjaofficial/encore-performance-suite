@@ -1,6 +1,6 @@
 {% load static %}
 
-<aside id="app-sidebar" class="app-sidebar">
+<aside id="app-sidebar" class="app-sidebar" data-encore-tour-target="sidebar">
     <a
         class="brand-block encore-logo-link"
         href="
@@ -141,7 +141,7 @@
                 </a>
 
                 <a
-                    class="nav-link {% if request.resolver_match.app_name == 'instructors' %}active{% endif %}"
+                    class="nav-link {% if request.resolver_match.app_name == 'instructors' and 'payroll' not in request.resolver_match.url_name %}active{% endif %}"
                     href="{% url 'instructors:instructor_list' studio.slug %}"
                 >
                     <span class="nav-icon">△</span>
@@ -151,6 +151,10 @@
 
             <div class="sidebar-nav-section">
                 <span class="nav-section-label">Operations</span>
+
+                <a class="nav-link {% if request.resolver_match.url_name == 'approval_codes_overview' or request.resolver_match.url_name == 'class_approval_codes' %}active{% endif %}" href="{% url 'classes:approval_codes_overview' studio.slug %}">
+                    <span class="nav-icon">⌗</span><span>In-Person Approval Codes</span>
+                </a>
 
                 {% url 'communications:email_manager' studio.slug as email_manager_url %}
                 {% if email_manager_url %}
@@ -162,6 +166,28 @@
                         <span>Email Manager</span>
                     </a>
                 {% endif %}
+
+                <a class="nav-link {% if request.resolver_match.app_name == 'tasks' %}active{% endif %}" href="{% url 'tasks:task_list' studio.slug %}"><span class="nav-icon">☑</span><span>Task Manager</span></a>
+
+                <a class="nav-link {% if request.resolver_match.app_name == 'attendance' and request.resolver_match.url_name == 'manager' %}active{% endif %}" href="{% url 'attendance:manager' studio.slug %}">
+                    <span class="nav-icon">✓</span><span>Attendance Manager</span>
+                </a>
+
+                <a
+                    class="nav-link {% if request.resolver_match.app_name == 'scheduling' and 'time_off' in request.resolver_match.url_name %}active{% endif %}"
+                    href="{% url 'scheduling:time_off_admin_list' studio.slug %}"
+                >
+                    <span class="nav-icon">◴</span>
+                    <span>Time Off Requests</span>
+                </a>
+
+                <a
+                    class="nav-link {% if request.resolver_match.app_name == 'instructors' and 'payroll' in request.resolver_match.url_name %}active{% endif %}"
+                    href="{% url 'instructors:payroll_management' studio.slug %}"
+                >
+                    <span class="nav-icon">◫</span>
+                    <span>Payroll Management</span>
+                </a>
 
                 <a
                     class="nav-link {% if request.resolver_match.app_name == 'reports' %}active{% endif %}"
@@ -239,6 +265,30 @@
                 </a>
 
                 <a
+                    class="nav-link {% if request.resolver_match.app_name == 'timekeeping' %}active{% endif %}"
+                    href="{% url 'timekeeping:extra_work_list' studio.slug %}"
+                >
+                    <span class="nav-icon">◷</span>
+                    <span>Log Extra Work</span>
+                </a>
+
+                <a
+                    class="nav-link {% if request.resolver_match.app_name == 'instructors' and request.resolver_match.url_name == 'teacher_hours_pay' %}active{% endif %}"
+                    href="{% url 'instructors:teacher_hours_pay' studio.slug %}"
+                >
+                    <span class="nav-icon">▤</span>
+                    <span>My Hours &amp; Pay</span>
+                </a>
+
+                <a
+                    class="nav-link {% if request.resolver_match.app_name == 'scheduling' and request.resolver_match.url_name == 'time_off_request_create' %}active{% endif %}"
+                    href="{% url 'scheduling:time_off_request_create' studio.slug %}"
+                >
+                    <span class="nav-icon">◴</span>
+                    <span>Request Time Off</span>
+                </a>
+
+                <a
                     class="nav-link performance-nav-link {% if request.resolver_match.app_name == 'performance' %}active{% endif %}"
                     href="{% url 'performance:plan_list' studio.slug %}"
                 >
@@ -251,6 +301,7 @@
         {% if role == "student" %}
             <div class="sidebar-nav-section">
                 <span class="nav-section-label">Student</span>
+                <a class="nav-link {% if request.resolver_match.url_name == 'makeup_schedule' or request.resolver_match.url_name == 'absence_request_create' %}active{% endif %}" href="{% url 'attendance:makeup_schedule' studio.slug %}"><span class="nav-icon">◫</span><span>Make-Up Schedule</span></a>
 
                 <a
                     class="nav-link {% if request.resolver_match.app_name == 'attendance' %}active{% endif %}"
@@ -261,5 +312,28 @@
                 </a>
             </div>
         {% endif %}
+
+        <div class="sidebar-nav-section">
+            <span class="nav-section-label">Help</span>
+            <a
+                class="nav-link {% if request.resolver_match.app_name == 'support_center' %}active{% endif %}"
+                href="{% url 'support_center:home' %}"
+            >
+                <span class="nav-icon">?</span>
+                <span>Support Center</span>
+            </a>
+        </div>
     </nav>
 </aside>
+
+<style>
+/* Keep studio and default Encore branding centered inside the staff sidebar. */
+#app-sidebar .brand-block.encore-logo-link {
+  display: flex; align-items: center; justify-content: center;
+  text-align: center; min-height: 112px; padding: 14px 16px;
+}
+#app-sidebar .brand-block.encore-logo-link img {
+  display: block; width: auto; height: auto; max-width: 100%; max-height: 94px;
+  object-fit: contain; object-position: center; margin: 0 auto;
+}
+</style>

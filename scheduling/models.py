@@ -367,6 +367,7 @@ class TeacherTimeOffRequest(models.Model):
         PARTIAL = "partial", "Partially Approved"
         APPROVED = "approved", "Approved"
         DENIED = "denied", "Denied"
+        CANCELLED = "cancelled", "Cancelled"
 
     studio = models.ForeignKey(
         Studio,

@@ -14,6 +14,8 @@ from .models import (
 )
 
 
+from .announcement_richtext import sanitize_announcement_html
+
 class AnnouncementForm(forms.ModelForm):
     class Meta:
         model = Announcement
@@ -43,6 +45,15 @@ class AnnouncementForm(forms.ModelForm):
                 attrs={"size": 8}
             ),
         }
+
+    def clean_message(self):
+        message = self.cleaned_data['message']
+        # Rich editor submits its HTML; legacy clients can still submit text.
+        if self.data.get('announcement_rich_editor') == '1':
+            message = sanitize_announcement_html(message)
+            if not message.replace('<p>', '').replace('</p>', '').replace('<br>', '').strip():
+                raise forms.ValidationError('Enter an announcement message.')
+        return message
 
     def __init__(
         self,

@@ -1,0 +1,35 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+{% block title %}Overdue Family Review | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}"><link rel="stylesheet" href="{% static 'css/encore_billing.css' %}"><link rel="stylesheet" href="{% static 'css/encore_overdue_settings.css' %}">{% endblock %}
+{% block topbar_title %}Family Billing Review{% endblock %}
+{% block content %}
+<div class="settings-workspace">{% include "includes/settings_nav.html" %}
+<main class="settings-workspace-content billing-review-workspace">
+<a class="back-link" href="{% url 'billing:studio_billing_reviews' studio.slug %}">← Overdue accounts & withdrawals</a>
+<div class="billing-review-intro"><span class="card-kicker">Administrator account review</span><h1>{{ account.family }}</h1><p>Review unpaid charges, payment attempts, and enrollments before deciding. Actions are recorded; previous transactions remain intact.</p></div>
+{% if messages %}<div class="message-stack">{% for message in messages %}<div class="message-banner">{{ message }}</div>{% endfor %}</div>{% endif %}
+<section class="billing-card billing-review-section"><h2>Account summary</h2>
+<p><strong>Outstanding balance:</strong> ${{ account.balance|floatformat:2 }} · <strong>AutoPay:</strong> {% if account.autopay_enabled %}Enabled{% else %}Disabled{% endif %} · <strong>Review:</strong> {% if hold %}{{ hold.get_status_display }}{% else %}Not flagged{% endif %}</p>
+{% if pending_payment %}<p style="color:#9a4c00"><strong>Payment processing:</strong> Do not excuse or remove affected enrollments until Stripe has reconciled.</p>{% endif %}
+<a class="button secondary" href="{% url 'billing:account_detail' studio.slug account.id %}">View complete family ledger</a></section>
+<section class="billing-card billing-review-section"><h2>Charges and deadlines</h2><p>Due-date extensions apply to the selected unpaid charge. Excused tuition is recorded as a credit, not a deletion.</p>
+{% for c in charges %}<article class="billing-review-item" style="display:block"><strong>{{ c.description }} · ${{ c.balance_remaining|floatformat:2 }} remaining</strong><p>Due {{ c.due_date|default:"Not scheduled" }} · Policy review {{ c.review_deadline|default:"N/A" }} · {{ c.get_status_display }}</p>
+{% if c.balance_remaining > 0 and c.status != 'void' %}
+<form method="post" action="{% url 'billing:studio_overdue_account_action' studio.slug account.pk %}" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0">{% csrf_token %}<input type="hidden" name="charge_id" value="{{ c.pk }}"><input type="hidden" name="action" value="extend"><label>New due date <input type="date" name="new_due_date" required></label><label>Reason <input name="reason" required maxlength="500" placeholder="Reason for extension"></label><button class="button secondary" type="submit">Extend due date</button></form>
+<form method="post" action="{% url 'billing:studio_overdue_account_action' studio.slug account.pk %}" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0">{% csrf_token %}<input type="hidden" name="charge_id" value="{{ c.pk }}"><input type="hidden" name="action" value="excuse"><label>Excuse amount ($) <input type="number" step="0.01" min="0.01" max="{{ c.balance_remaining }}" name="amount" required></label><label>Reason <input name="reason" required maxlength="500" placeholder="Reason for adjustment"></label><button class="button secondary" type="submit">Apply auditable credit</button></form>
+{% endif %}</article>{% empty %}<p>No charges.</p>{% endfor %}</section>
+<section class="billing-card billing-review-section"><h2>Administrator review decision</h2>
+
+<form method="post" action="{% url 'billing:studio_overdue_account_action' studio.slug account.pk %}" style="display:flex;flex-wrap:wrap;gap:9px;align-items:center">{% csrf_token %}<label>Reason <input name="reason" required maxlength="500" placeholder="Reason for decision"></label><button class="button secondary" name="action" value="retain">Keep enrolled / retain review</button><button class="button secondary" name="action" value="release">Dismiss review</button></form>
+<form method="post" action="{% url 'billing:studio_overdue_account_action' studio.slug account.pk %}" style="margin-top:12px;display:flex;gap:9px;align-items:center;flex-wrap:wrap">{% csrf_token %}<input type="hidden" name="action" value="defer"><label>Next review date <input type="date" name="review_date" required></label><label>Reason <input name="reason" required maxlength="500" placeholder="Reason for deferral"></label><button class="button secondary">Defer review</button></form></section>
+<section class="billing-card billing-review-section"><h2>Remove selected student enrollments</h2><p>Only administrators can withdraw for nonpayment. Select all classes for a student or specific classes. Existing invoices, attendance, and Drawing Board history remain preserved.</p>
+<form method="post" action="{% url 'billing:studio_hold_decision' studio.slug account.pk %}">{% csrf_token %}<input type="hidden" name="decision" value="remove">
+{% for e in enrollments %}<label style="display:flex;gap:9px;align-items:center;padding:7px 0"><input type="checkbox" name="enrollment_ids" value="{{ e.pk }}" style="width:17px;height:17px"><span>{{ e.student }} — {{ e.class_instance.name }}</span></label>{% empty %}<p>No active enrollments.</p>{% endfor %}
+<label style="display:flex;gap:9px;align-items:center;margin-top:10px"><input type="checkbox" name="confirm_removal" value="yes" required style="width:17px;height:17px"><span>Confirm the selected enrollments are to be removed for unpaid tuition.</span></label>
+<label style="display:flex;gap:9px;align-items:center;margin-top:10px"><input type="checkbox" name="verify_payment" value="yes" required style="width:17px;height:17px"><span>I verified no ACH or card payment is still processing.</span></label>
+{% if enrollments %}<button class="button primary" style="margin-top:12px" type="submit">Remove selected enrollments</button>{% endif %}</form></section>
+<section class="billing-card billing-review-section"><h2>Recent AutoPay attempts</h2>{% for a in attempts %}<p>Charge #{{ a.charge_id }} · {{ a.status }} · {{ a.created_at }}</p>{% empty %}<p>No attempts.</p>{% endfor %}
+<h2>Recent payments</h2>{% for p in payments %}<p>{{ p.created_at }} · ${{ p.amount }} · {{ p.get_status_display }}</p>{% empty %}<p>No payments.</p>{% endfor %}</section>
+<section class="billing-card billing-review-section"><h2>Administrator decision history</h2>{% for a in actions %}<p><strong>{{ a.get_action_display|default:a.action }}</strong> · {{ a.created_at }} · {{ a.performed_by|default:"System" }} — {{ a.reason }}{% if a.charge_id %} (Charge #{{ a.charge_id }}){% endif %}</p>{% empty %}<p>No prior administrator actions.</p>{% endfor %}</section>
+</main></div>{% endblock %}

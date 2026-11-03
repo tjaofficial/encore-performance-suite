@@ -213,14 +213,34 @@ def evaluation_create(request, studio_slug):
 
     teacher_mode = instructor is not None and not admin
 
+    locked_student = locked_class = None
+    if request.GET.get('student') and request.GET.get('class'):
+        from students.models import Student
+        from classes.models import Class
+        from enrollments.models import Enrollment
+        locked_student = get_object_or_404(Student, pk=request.GET['student'], studio=studio)
+        locked_class = get_object_or_404(Class, pk=request.GET['class'], studio=studio)
+        if teacher_mode and instructor.id not in (locked_class.instructor_id, locked_class.assistant_instructor_id):
+            return render(request, 'dashboard/access_denied.html', {'studio': studio}, status=403)
+        if not Enrollment.objects.filter(student=locked_student, class_instance=locked_class).exists():
+            return render(request, 'dashboard/access_denied.html', {'studio': studio}, status=403)
+
     if request.method == "POST":
+        posted = request.POST.copy()
+        if locked_student is not None:
+            posted['student'] = str(locked_student.pk)
+            posted['class_instance'] = str(locked_class.pk)
         form = StudentEvaluationForm(
-            request.POST,
+            posted,
             studio=studio,
             instructor=instructor,
             teacher_mode=teacher_mode,
         )
 
+        if locked_student is not None:
+            for name in ('student', 'class_instance'):
+                form.fields[name].disabled = True
+                form.fields[name].initial = locked_student.pk if name == 'student' else locked_class.pk
         if form.is_valid():
             evaluation = form.save(commit=False)
             evaluation.studio = studio
@@ -250,8 +270,14 @@ def evaluation_create(request, studio_slug):
             initial={
                 "evaluation_date": timezone.localdate(),
                 "status": StudentEvaluation.Status.DRAFT,
+                **({'student': locked_student, 'class_instance': locked_class} if locked_student is not None else {}),
             },
         )
+
+    if locked_student is not None:
+        for name in ('student', 'class_instance'):
+            form.fields[name].disabled = True
+            form.fields[name].initial = locked_student.pk if name == 'student' else locked_class.pk
 
     return render(
         request,
@@ -260,6 +286,8 @@ def evaluation_create(request, studio_slug):
             "studio": studio,
             "role": "administrator" if admin else "teacher",
             "form": form,
+            "locked_student": locked_student,
+            "locked_class": locked_class,
         },
     )
 

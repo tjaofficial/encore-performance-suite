@@ -1,0 +1,103 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Notification Settings | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_notification_settings.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Notification Settings{% endblock %}
+
+{% block content %}
+<div class="settings-workspace">
+    {% include "includes/settings_nav.html" %}
+
+    <main class="settings-workspace-content">
+        <section class="settings-heading">
+            <div>
+                <p class="eyebrow">Personal Notifications</p>
+                <h1>Notifications</h1>
+                <p>Choose which Encore events should create notifications for you in this studio.</p>
+            </div>
+        </section>
+
+        <form method="post" class="notification-settings-form">
+            {% csrf_token %}
+
+            <section class="notification-settings-card">
+                <div class="notification-settings-card-heading">
+                    <span>Task Notifications</span>
+                    <h2>Tasks & Reminders</h2>
+                    <p>Control assignment, due-date, overdue, and completion updates.</p>
+                </div>
+
+                <div class="notification-setting-list">
+                    <label class="notification-setting-row">
+                        <span><strong>Notify when assigned a task</strong><small>Get a notification when a task is newly assigned to you.</small></span>
+                        <input type="checkbox" name="task_assigned" {% if notification_preference.task_assigned %}checked{% endif %}>
+                    </label>
+                    <label class="notification-setting-row">
+                        <span><strong>Notify when a task is reassigned</strong><small>Get a notification when an edited task is newly reassigned to you.</small></span>
+                        <input type="checkbox" name="task_reassigned" {% if notification_preference.task_reassigned %}checked{% endif %}>
+                    </label>
+                    <div class="notification-setting-row notification-setting-reminder">
+                        <label>
+                            <span><strong>Reminder before task is due</strong><small>Receive a reminder before an incomplete task reaches its due date.</small></span>
+                            <input type="checkbox" name="task_due_reminder" {% if notification_preference.task_due_reminder %}checked{% endif %}>
+                        </label>
+                        <div class="notification-days-control">
+                            <input type="number" name="task_due_reminder_days" min="0" max="30" value="{{ notification_preference.task_due_reminder_days }}">
+                            <span>days before due</span>
+                        </div>
+                    </div>
+                    <label class="notification-setting-row">
+                        <span><strong>Notify when overdue</strong><small>Get a notification when an incomplete assigned task passes its due date.</small></span>
+                        <input type="checkbox" name="task_overdue" {% if notification_preference.task_overdue %}checked{% endif %}>
+                    </label>
+                    <label class="notification-setting-row">
+                        <span><strong>Notify creator when task is completed</strong><small>If you created the task, notify you when another assignee completes it.</small></span>
+                        <input type="checkbox" name="task_creator_completed" {% if notification_preference.task_creator_completed %}checked{% endif %}>
+                    </label>
+                </div>
+            </section>
+
+            {% if role == "administrator" %}
+            <section class="notification-settings-card">
+                <div class="notification-settings-card-heading">
+                    <span>Registration Notifications</span>
+                    <h2>New Registrations</h2>
+                    <p>Receive studio-level registration activity that needs administrator awareness.</p>
+                </div>
+                <div class="notification-setting-list">
+                    <label class="notification-setting-row">
+                        <span><strong>New parent / student registration</strong><small>Notify when a public Encore registration finishes successfully.</small></span>
+                        <input type="checkbox" name="registration_new" {% if notification_preference.registration_new %}checked{% endif %}>
+                    </label>
+                </div>
+            </section>
+
+            <section class="notification-settings-card">
+                <div class="notification-settings-card-heading">
+                    <span>Time / Extra Work</span>
+                    <h2>Teacher Extra Work</h2>
+                    <p>Receive updates when teachers log paid work outside their normal class schedule.</p>
+                </div>
+                <div class="notification-setting-list">
+                    <label class="notification-setting-row">
+                        <span><strong>Teacher logs extra work</strong><small>Notify when a teacher creates a new Extra Work entry.</small></span>
+                        <input type="checkbox" name="extra_work_logged" {% if notification_preference.extra_work_logged %}checked{% endif %}>
+                    </label>
+                </div>
+                <p class="notification-settings-note">Time-request approval/denial notifications will be added with the future Time Request approval workflow.</p>
+            </section>
+            {% endif %}
+
+            <div class="notification-settings-actions">
+                <button class="button primary" type="submit">Save Notification Settings</button>
+            </div>
+        </form>
+    </main>
+</div>
+{% endblock %}

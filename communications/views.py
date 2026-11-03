@@ -6,7 +6,9 @@ from urllib.parse import urlencode
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.db.models import Q, Sum
+from django.core.paginator import Paginator
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -14,6 +16,7 @@ from classes.models import Class
 from instructors.models import Instructor
 from students.models import Student
 from studios.models import Studio
+from dashboard.parent_portal import parent_portal_context
 
 from .forms import (
     AnnouncementForm,
@@ -33,6 +36,7 @@ from .models import (
     EmailSignature,
     EmailSuppression,
     EmailTemplate,
+    OutboundEmailLog,
 )
 from .services import (
     ensure_default_email_setup,
@@ -185,44 +189,60 @@ def announcement_list(
         for item in announcements
     ]
 
+    context = {
+        "studio": studio,
+        "role": role,
+        "announcement_rows": rows,
+        "priority_choices": Announcement.Priority.choices,
+        "filters": {
+            "q": search,
+            "priority": priority,
+        },
+        "can_create": role in {
+            "administrator",
+            "teacher",
+        },
+        "view_mode": view_mode,
+        "card_view_url": (
+            "?"
+            + urlencode(
+                {
+                    "q": search,
+                    "priority": priority,
+                    "view": "cards",
+                }
+            )
+        ),
+        "table_view_url": (
+            "?"
+            + urlencode(
+                {
+                    "q": search,
+                    "priority": priority,
+                    "view": "table",
+                }
+            )
+        ),
+    }
+
+    template_name = "communications/announcement_list.html"
+
+    if role == "family":
+        context.update(
+            parent_portal_context(
+                request,
+                studio,
+                section="announcements",
+            )
+        )
+        template_name = (
+            "communications/parent_announcement_list.html"
+        )
+
     return render(
         request,
-        "communications/announcement_list.html",
-        {
-            "studio": studio,
-            "role": role,
-            "announcement_rows": rows,
-            "priority_choices": Announcement.Priority.choices,
-            "filters": {
-                "q": search,
-                "priority": priority,
-            },
-            "can_create": role in {
-                "administrator",
-                "teacher",
-            },
-            "view_mode": view_mode,
-            "card_view_url": (
-                "?"
-                + urlencode(
-                    {
-                        "q": search,
-                        "priority": priority,
-                        "view": "cards",
-                    }
-                )
-            ),
-            "table_view_url": (
-                "?"
-                + urlencode(
-                    {
-                        "q": search,
-                        "priority": priority,
-                        "view": "table",
-                    }
-                )
-            ),
-        },
+        template_name,
+        context,
     )
 
 
@@ -281,15 +301,31 @@ def announcement_detail(
         )
     )
 
+    context = {
+        "studio": studio,
+        "role": role,
+        "announcement": announcement,
+        "can_edit": can_edit,
+    }
+
+    template_name = "communications/announcement_detail.html"
+
+    if role == "family":
+        context.update(
+            parent_portal_context(
+                request,
+                studio,
+                section="announcements",
+            )
+        )
+        template_name = (
+            "communications/parent_announcement_detail.html"
+        )
+
     return render(
         request,
-        "communications/announcement_detail.html",
-        {
-            "studio": studio,
-            "role": role,
-            "announcement": announcement,
-            "can_edit": can_edit,
-        },
+        template_name,
+        context,
     )
 
 
@@ -2109,3 +2145,87 @@ def email_campaign_cancel(
         studio_slug=studio.slug,
         campaign_id=campaign.pk,
     )
+
+
+@login_required
+def email_activity(request, studio_slug):
+    studio = get_object_or_404(Studio, slug=studio_slug, is_active=True)
+    role, _instructor = _require_email_staff(request, studio)
+    if role != "administrator":
+        return render(request, "dashboard/access_denied.html", {"studio": studio}, status=403)
+    records = OutboundEmailLog.objects.filter(studio=studio)
+    search = request.GET.get("q", "").strip()
+    status = request.GET.get("status", "").strip()
+    if search:
+        records = records.filter(Q(subject__icontains=search) | Q(sender__icontains=search) | Q(to_addresses__icontains=search))
+    if status:
+        records = records.filter(status=status)
+    page = Paginator(records, 30).get_page(request.GET.get("page"))
+    return render(request, "communications/email/activity.html", {"studio": studio, "role": role, "page": page, "q": search, "status_filter": status, "status_options": [("accepted", "Accepted by SES"), ("delivered", "Delivered"), ("failed", "Failed"), ("bounced", "Bounced"), ("sending", "Sending"), ("queued", "Queued"), ("complained", "Complaint"), ("delayed", "Delayed"), ("rejected", "Rejected")]})
+
+
+@login_required
+def email_activity_detail(request, studio_slug, email_id):
+    studio = get_object_or_404(Studio, slug=studio_slug, is_active=True)
+    role, _instructor = _require_email_staff(request, studio)
+    if role != "administrator":
+        return render(request, "dashboard/access_denied.html", {"studio": studio}, status=403)
+    record = get_object_or_404(OutboundEmailLog.objects.prefetch_related("delivery_events"), pk=email_id, studio=studio)
+    return render(request, "communications/email/activity_detail.html", {"studio": studio, "role": role, "record": record})
+
+@csrf_exempt
+def outbound_email_events(request):
+    """Authenticated SES event forwarder endpoint; not a public unauthenticated SNS endpoint.
+
+    Configure a trusted forwarder (e.g. SNS -> Lambda) to POST the SES event
+    JSON with X-Encore-Email-Event-Secret. Direct SNS calls are not authenticated
+    by this endpoint and must NOT be configured without a verifying forwarder.
+    """
+    from django.http import HttpResponse, HttpResponseNotAllowed
+    import os
+    from django.utils.dateparse import parse_datetime
+    from django.utils import timezone
+    from django.db import transaction
+    from .models import OutboundEmailEvent
+    from datetime import datetime, timezone as datetime_timezone
+    import hashlib, hmac
+
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+    secret = os.environ.get("ENCORE_EMAIL_EVENT_SECRET", "")
+    provided = request.headers.get("X-Encore-Email-Event-Secret", "")
+    if not secret or not hmac.compare_digest(provided, secret):
+        return HttpResponse(status=403)
+    try:
+        payload = json.loads(request.body)
+        if isinstance(payload, dict) and "Message" in payload:
+            payload = json.loads(payload["Message"])
+        event_type = str(payload.get("eventType") or payload.get("notificationType") or "").lower()
+        mail = payload.get("mail") or {}
+        message_id = str(mail.get("messageId") or "")
+        if not message_id or event_type not in {"delivery", "bounce", "complaint", "reject", "deliverydelay", "send", "renderingfailure"}:
+            return HttpResponse(status=400)
+        stamp = str((payload.get(event_type) or {}).get("timestamp") or mail.get("timestamp") or "")
+        occurred = parse_datetime(stamp) or timezone.now()
+        if timezone.is_naive(occurred):
+            occurred = timezone.make_aware(occurred, datetime_timezone.utc)
+        digest = hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
+        with transaction.atomic():
+            records = OutboundEmailLog.objects.select_for_update().filter(provider_message_id=message_id)
+            for record in records:
+                _event, created = OutboundEmailEvent.objects.get_or_create(
+                    event_key=f"ses:{record.pk}:{digest}",
+                    defaults={"email": record, "event_type": event_type, "occurred_at": occurred, "detail": payload},
+                )
+                if not created:
+                    continue
+                status_map = {"delivery": "delivered", "bounce": "bounced", "complaint": "complained", "reject": "rejected", "deliverydelay": "delayed", "renderingfailure": "failed"}
+                if event_type in status_map:
+                    record.status = status_map[event_type]
+                    if event_type == "delivery":
+                        record.delivered_at = occurred
+                    record.last_event_at = occurred
+                    record.save(update_fields=["status", "delivered_at", "last_event_at"])
+        return HttpResponse(status=204)
+    except (ValueError, TypeError, KeyError):
+        return HttpResponse(status=400)

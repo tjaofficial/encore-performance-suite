@@ -1,0 +1,103 @@
+<div
+    class="availability-editor"
+    data-availability-editor
+>
+    <input
+        type="hidden"
+        name="availability_json"
+        data-availability-json
+    >
+
+    <div class="availability-editor-list" data-availability-list></div>
+
+    <button
+        type="button"
+        class="button secondary availability-add-button"
+        data-add-availability
+    >
+        + Add Availability
+    </button>
+
+    <template data-availability-template>
+        <article class="availability-block" data-availability-block>
+            <div class="availability-block-heading">
+                <div>
+                    <span>Weekly Availability</span>
+                    <strong data-availability-title>Availability</strong>
+                </div>
+                <button
+                    type="button"
+                    class="availability-remove"
+                    data-remove-availability
+                >
+                    Remove
+                </button>
+            </div>
+
+            <div class="availability-block-grid">
+                <div class="availability-status-field">
+                    <label>Status</label>
+                    <select
+                        class="encore-input"
+                        data-availability-status
+                    >
+                        <option value="available">Available</option>
+                        <option value="unavailable">Not Available</option>
+                    </select>
+                </div>
+
+                <div class="availability-days-field">
+                    <label>Day(s)</label>
+                    <div class="availability-day-shortcuts">
+                        <button type="button" data-day-preset="weekdays">Weekdays</button>
+                        <button type="button" data-day-preset="weekends">Weekends</button>
+                        <button type="button" data-day-preset="everyday">Every Day</button>
+                        <button type="button" data-day-preset="clear">Clear</button>
+                    </div>
+                    <div class="availability-day-grid">
+                        {% for value, label in availability_day_choices %}
+                            <label>
+                                <input
+                                    type="checkbox"
+                                    value="{{ value }}"
+                                    data-availability-day
+                                >
+                                <span>{{ label|slice:":3" }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div>
+                    <label>Start</label>
+                    <input
+                        class="encore-input"
+                        type="time"
+                        data-availability-start
+                    >
+                </div>
+
+                <div>
+                    <label>End</label>
+                    <input
+                        class="encore-input"
+                        type="time"
+                        data-availability-end
+                    >
+                </div>
+
+                <div class="availability-notes-field">
+                    <label>Notes</label>
+                    <textarea
+                        class="encore-input"
+                        rows="2"
+                        placeholder="Optional details"
+                        data-availability-notes
+                    ></textarea>
+                </div>
+            </div>
+        </article>
+    </template>
+
+    {{ availability_blocks|json_script:"availability-initial-data" }}
+</div>

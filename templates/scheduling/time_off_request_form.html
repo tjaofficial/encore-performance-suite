@@ -5,6 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/encore_calendar.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_time_off_polish.css' %}">
 {% endblock %}
 
 {% block topbar_title %}Request Time Off{% endblock %}
@@ -15,14 +16,14 @@
         <div>
             <a
                 class="time-off-back-link"
-                href="{% url 'scheduling:calendar' studio.slug %}"
+                href="{% url 'scheduling:time_off_my_requests' studio.slug %}"
             >
-                ← Back to Calendar
+                ← My Time Off Requests
             </a>
 
             <p class="eyebrow">Teacher Calendar</p>
 
-            <h1>Request Time Off</h1>
+            <h1>{% if editing %}Edit Pending Request{% else %}Request Time Off{% endif %}</h1>
 
             <p>
                 Select one or more dates. Each date can be approved
@@ -31,6 +32,7 @@
         </div>
     </header>
 
+    <div style="margin-bottom:12px"><a class="button secondary" href="{% url 'scheduling:time_off_my_requests' studio.slug %}">View My Requests</a></div>
     <form
         method="post"
         class="time-off-form-card"
@@ -78,6 +80,7 @@
                 </button>
             </div>
 
+            <p class="time-off-date-hint">Choose a date, then select <strong>+ Add Date</strong> to add more. You can also submit with a single date selected in the field.</p>
             <div
                 class="time-off-selected-dates"
                 data-selected-time-off-dates
@@ -111,7 +114,7 @@
         <div class="time-off-form-actions">
             <a
                 class="button secondary"
-                href="{% url 'scheduling:calendar' studio.slug %}"
+                href="{% url 'scheduling:time_off_my_requests' studio.slug %}"
             >
                 Cancel
             </a>
@@ -120,7 +123,7 @@
                 type="submit"
                 class="button primary"
             >
-                Submit Request
+                {% if editing %}Save Changes{% else %}Submit Request{% endif %}
             </button>
         </div>
     </form>

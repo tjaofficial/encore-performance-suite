@@ -1,0 +1,29 @@
+/* Parent notifications and bell (loaded globally by parent base below) */
+.parent-bell-wrap{position:relative;display:flex;align-items:center}.parent-bell-wrap .parent-notification-button{position:relative;cursor:pointer}.parent-notification-count{position:absolute;right:-5px;top:-6px;display:grid;place-items:center;min-width:18px;height:18px;padding:0 4px;border-radius:12px;color:white;background:#315ff4;font-size:10px;font-weight:800}.parent-bell-dropdown{position:absolute;z-index:1050;right:0;top:calc(100% + 12px);width:min(365px,calc(100vw - 25px));border:1px solid #d9e2f3;border-radius:16px;background:white;box-shadow:0 18px 44px #14224e30;overflow:hidden}.parent-bell-dropdown[hidden]{display:none!important}.parent-bell-head{display:flex;justify-content:space-between;align-items:center;padding:15px 17px;border-bottom:1px solid #e8edf7;color:#142045}.parent-bell-head span{font-size:12px;color:#62718a}.parent-bell-list{max-height:390px;overflow-y:auto}.parent-bell-item{display:grid;gap:4px;padding:13px 17px;border-bottom:1px solid #eef1f7;color:#1b2a4a;text-decoration:none}.parent-bell-item:hover{background:#f3f7ff}.parent-bell-item strong{font-size:13px}.parent-bell-item span{font-size:12px;line-height:1.45;color:#5b6c88}.parent-bell-item small{font-size:11px;color:#75819b}.parent-bell-empty{text-align:center;padding:26px 12px;color:#65718c;font-size:13px}.parent-bell-all{display:block;padding:14px;text-align:center;color:#2d5ce7;text-decoration:none;font-size:13px;font-weight:800;background:#f7faff}.parent-notifications-page{padding:20px}.parent-notifications-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1px solid #e4eaf5}.parent-notifications-tabs{display:flex;gap:8px}.parent-notifications-tabs a{padding:9px 14px;border-radius:9px;text-decoration:none;color:#61718d;font-size:13px;font-weight:750}.parent-notifications-tabs a.active{background:#e7efff;color:#2451d2}.parent-notifications-mark,.parent-notification-mark-form button{border:0;background:none;color:#2e62e8;font-size:12px;font-weight:750;cursor:pointer}.parent-notification-record{position:relative;border-bottom:1px solid #e9edf5}.parent-notification-record.unread{background:#f6f9ff}.parent-notification-record-link{display:flex;align-items:center;gap:14px;padding:19px 12px 26px;text-decoration:none;color:#142045}.parent-notification-record-link:hover{background:#edf4ff}.parent-notification-record-icon{display:grid;place-items:center;flex:0 0 39px;height:39px;border-radius:12px;background:#e5edff;color:#2a5adf}.parent-notification-record-body{flex:1;display:grid;gap:5px;min-width:0}.parent-notification-record-body strong{font-size:14px}.parent-notification-record-body span{font-size:13px;color:#5b6c85}.parent-notification-record-body small{font-size:11px;color:#7887a0}.parent-notification-new{padding:4px 7px;background:#e1eaff;border-radius:7px;color:#2859dd;font-size:10px;font-weight:800}.parent-notification-mark-form{position:absolute;bottom:7px;left:65px}@media(max-width:600px){.parent-bell-dropdown{right:-45px}.parent-notifications-page{padding:10px}}
+
+/* Keep both header menus above the notification feed and page cards.
+   The topbar itself needs a stacking level because its backdrop filter
+   creates a stacking context. */
+.parent-portal-shell .parent-topbar {
+    position: relative;
+    z-index: 2000;
+    overflow: visible;
+}
+.parent-portal-shell .parent-topbar-actions {
+    position: relative;
+    z-index: 1;
+}
+.parent-portal-shell .parent-bell-wrap {
+    position: relative;
+    z-index: 10;
+}
+.parent-portal-shell .parent-profile-menu {
+    position: relative;
+    z-index: 20;
+}
+.parent-portal-shell .parent-profile-dropdown {
+    z-index: 30;
+}
+.parent-portal-shell .parent-bell-dropdown {
+    z-index: 15;
+}

@@ -1,0 +1,8 @@
+/* scoped styles for special-case refunds */
+.refund-shell{max-width:820px;margin:0 auto;padding:28px;border:1px solid #cad3e9;border-radius:18px;background:#fff;box-shadow:0 12px 28px rgba(25,48,98,.06)}
+.refund-shell h1{margin:.3rem 0 .75rem;color:#111c40}.refund-shell p{color:#42516e}
+.refund-warning{border:1px solid #f0cf8c;background:#fff8e7;border-radius:10px;color:#7c4f10;padding:14px;margin:18px 0}
+.refund-form{display:grid;gap:17px}.refund-field{display:grid;gap:6px}.refund-field label{font-weight:700;color:#1d2b52}
+.refund-field select,.refund-field input,.refund-field textarea{width:100%;padding:12px;border:1px solid #bac7dd;border-radius:10px;background:white;color:#172544;font:inherit}
+.refund-field small{color:#60708c}.refund-field .errorlist{color:#b42318}.refund-dialog{border:1px solid #ccd6eb;border-radius:18px;max-width:min(540px,95vw);width:100%;padding:0;box-shadow:0 24px 70px rgba(20,35,80,.25)}
+.refund-dialog::backdrop{background:rgba(9,21,50,.58)}.refund-dialog-inner{padding:26px}.refund-dialog h2{margin-top:0}.refund-dialog dl{display:grid;grid-template-columns:125px 1fr;gap:12px}.refund-dialog dt{font-weight:700}.refund-dialog dd{margin:0;overflow-wrap:anywhere}.refund-dialog-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:22px}

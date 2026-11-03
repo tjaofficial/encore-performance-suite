@@ -341,3 +341,28 @@ textarea.encore-input {
         align-items: flex-start;
     }
 }
+
+
+/* =========================================================
+   Reuse Existing Music
+   ========================================================= */
+.resource-heading-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:9px}
+.resource-action-count{display:inline-grid;min-width:20px;height:20px;place-items:center;margin-left:5px;padding:0 5px;border-radius:999px;background:var(--encore-primary-soft);color:var(--encore-primary);font-size:.66rem;font-weight:900}
+.resource-class-context{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:18px;padding:14px 16px;border:1px solid color-mix(in srgb,var(--encore-primary) 18%,var(--encore-border));border-radius:14px;background:var(--encore-primary-soft)}
+.resource-class-context>div{display:grid;gap:2px}.resource-class-context span{color:var(--encore-primary);font-size:.64rem;font-weight:850;text-transform:uppercase}.resource-class-context strong{color:var(--encore-primary-deep)}.resource-class-context small{color:var(--encore-muted)}.resource-class-context>a{color:var(--encore-primary);font-size:.76rem;font-weight:850;text-decoration:none}
+.reuse-music-destination,.reuse-music-panel{display:grid;gap:16px;margin-bottom:20px;padding:20px;border:1px solid var(--encore-border);border-radius:18px;background:var(--encore-surface);box-shadow:var(--encore-shadow)}
+.reuse-music-destination>div,.reuse-music-panel-heading>div{display:grid;gap:4px}.reuse-music-destination span,.reuse-music-panel-heading span{color:var(--encore-primary);font-size:.66rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase}.reuse-music-destination strong,.reuse-music-panel h2{color:var(--encore-primary-deep)}.reuse-music-destination p,.reuse-music-panel-heading p{margin:0;color:var(--encore-muted);font-size:.78rem}
+.reuse-class-picker{display:grid;grid-template-columns:minmax(260px,1fr) auto;gap:10px;align-items:end}
+.reuse-music-form{display:grid;gap:18px}.reuse-music-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.reuse-music-card{position:relative;display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:10px;align-items:start;padding:14px;border:1px solid var(--encore-border);border-radius:14px;background:#fff;cursor:pointer}.reuse-music-card:hover{border-color:color-mix(in srgb,var(--encore-primary) 35%,var(--encore-border));background:var(--encore-primary-soft)}.reuse-music-card>input{position:absolute;opacity:0;pointer-events:none}.reuse-music-radio{display:grid;width:18px;height:18px;place-items:center;margin-top:2px;border:2px solid var(--encore-border);border-radius:50%;background:#fff}.reuse-music-card>input:checked + .reuse-music-radio{border-color:var(--encore-primary);box-shadow:inset 0 0 0 4px #fff;background:var(--encore-primary)}.reuse-music-card:has(input:checked){border-color:var(--encore-primary);background:var(--encore-primary-soft)}
+.reuse-music-card-copy{display:grid;min-width:0;gap:3px}.reuse-music-card-copy>strong{overflow:hidden;color:var(--encore-primary-deep);text-overflow:ellipsis;white-space:nowrap}.reuse-music-card-copy>small,.reuse-music-card-copy>p{margin:0;color:var(--encore-muted);font-size:.7rem;line-height:1.4}.reuse-music-source{padding:4px 7px;border-radius:999px;background:var(--encore-background);color:var(--encore-muted);font-size:.62rem;font-weight:800;white-space:nowrap}
+.reuse-music-actions{display:flex;align-items:center;justify-content:space-between;gap:18px;padding-top:16px;border-top:1px solid var(--encore-border)}.reuse-music-actions>div{display:grid;gap:2px}.reuse-music-actions strong{color:var(--encore-primary-deep);font-size:.78rem}.reuse-music-actions span{color:var(--encore-muted);font-size:.7rem}.reuse-music-empty{grid-column:1/-1}
+@media(max-width:850px){.reuse-music-grid{grid-template-columns:1fr}.reuse-class-picker{grid-template-columns:1fr}.reuse-music-actions,.resource-class-context{align-items:stretch;flex-direction:column}.resource-heading-actions{width:100%;justify-content:flex-start}}
+
+/* Refined class/dance resource editor */
+.resource-heading{margin:14px 0 24px!important}.resource-heading h1{letter-spacing:-.045em;line-height:1.08}.resource-heading .eyebrow{font-weight:850;letter-spacing:.1em}
+.resource-form{max-width:1160px;margin-inline:auto}.resource-form-card{border:1.5px solid #c6d3eb!important;border-radius:20px!important;background:#fff!important;box-shadow:0 14px 35px rgba(24,46,103,.055);padding:clamp(20px,3vw,36px)!important}
+.resource-form .form-grid{gap:20px!important}.resource-form .field-group{min-width:0}.resource-form .field-group label{display:block;font-size:.77rem;letter-spacing:.045em;color:#27395f;font-weight:800;margin-bottom:8px}
+.resource-form .field-group input:not([type=checkbox]),.resource-form .field-group select,.resource-form .field-group textarea{width:100%;min-height:45px;border:1.5px solid #bfcee8;border-radius:11px;padding:10px 13px;box-sizing:border-box;background:#fcfdff;color:#131f37;transition:border-color .2s,box-shadow .2s}
+.resource-form .field-group textarea{min-height:105px}.resource-form .field-group :is(input,select,textarea):focus{outline:0;border-color:#2765f2;box-shadow:0 0 0 3px #2765f21a}.resource-form .field-group input[type=file]{padding:9px;background:#f4f7fc}
+.resource-form .form-actions{margin-top:16px}.resource-form .field-error{color:#b82139;font-weight:700}

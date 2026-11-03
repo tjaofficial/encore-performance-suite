@@ -6,6 +6,7 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/encore_staff_enrollment.css' %}">
 <link rel="stylesheet" href="{% static 'css/encore_list_views.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_instructor_bulk.css' %}">
 {% endblock %}
 
 {% block topbar_title %}Instructor Manager{% endblock %}
@@ -34,6 +35,7 @@
 </section>
 
 <form method="get" class="filter-panel compact-filter">
+    <input type="hidden" name="page_size" value="{{ page_size }}">
     <div class="wide-filter">
         <label>Search</label>
         <input
@@ -47,7 +49,7 @@
     <div>
         <label>Status</label>
         <select name="status">
-            <option value="">All</option>
+            <option value="all" {% if filters.status == "all" %}selected{% endif %}>All</option>
             <option value="active" {% if filters.status == "active" %}selected{% endif %}>
                 Active
             </option>
@@ -69,23 +71,44 @@
 </form>
 
 {% if view_mode == "table" %}
+<section class="instructor-selection-bar" data-instructor-selection-bar hidden>
+    <div><strong><span data-instructor-count>0</span> instructors selected</strong><small>Select instructors on this page to update one shared field.</small></div>
+    <div class="instructor-selection-actions">
+        <button type="button" class="button secondary" data-clear-instructors>Clear</button>
+        <button type="button" class="button primary" data-open-instructor-bulk>Edit Selected Instructors</button>
+    </div>
+</section>
 <section class="encore-list-table-card">
     <div class="encore-list-table-wrap">
         <table class="encore-list-table">
             <thead>
                 <tr>
-                    <th>Instructor</th>
-                    <th>Email</th>
-                    <th>Primary Classes</th>
-                    <th>Assistant Classes</th>
-                    <th>Phone</th>
-                    <th>Status</th>
+                    <th class="instructor-selection-cell"><input type="checkbox" data-select-all-instructors aria-label="Select all instructors on this page"></th>
+                    <th><a class="encore-sort-heading{% if sort_columns.instructor.active %} active{% endif %}" href="{{ sort_columns.instructor.url }}">
+<span>Instructor</span><span class="sort-indicator">{% if sort_columns.instructor.active %}{% if sort_columns.instructor.direction == "asc" %}↑{% else %}↓{% endif %}{% else %}↕{% endif %}</span>
+</a></th>
+                    <th><a class="encore-sort-heading{% if sort_columns.email.active %} active{% endif %}" href="{{ sort_columns.email.url }}">
+<span>Email</span><span class="sort-indicator">{% if sort_columns.email.active %}{% if sort_columns.email.direction == "asc" %}↑{% else %}↓{% endif %}{% else %}↕{% endif %}</span>
+</a></th>
+                    <th><a class="encore-sort-heading{% if sort_columns.primary_classes.active %} active{% endif %}" href="{{ sort_columns.primary_classes.url }}">
+<span>Primary Classes</span><span class="sort-indicator">{% if sort_columns.primary_classes.active %}{% if sort_columns.primary_classes.direction == "asc" %}↑{% else %}↓{% endif %}{% else %}↕{% endif %}</span>
+</a></th>
+                    <th><a class="encore-sort-heading{% if sort_columns.assistant_classes.active %} active{% endif %}" href="{{ sort_columns.assistant_classes.url }}">
+<span>Assistant Classes</span><span class="sort-indicator">{% if sort_columns.assistant_classes.active %}{% if sort_columns.assistant_classes.direction == "asc" %}↑{% else %}↓{% endif %}{% else %}↕{% endif %}</span>
+</a></th>
+                    <th><a class="encore-sort-heading{% if sort_columns.phone.active %} active{% endif %}" href="{{ sort_columns.phone.url }}">
+<span>Phone</span><span class="sort-indicator">{% if sort_columns.phone.active %}{% if sort_columns.phone.direction == "asc" %}↑{% else %}↓{% endif %}{% else %}↕{% endif %}</span>
+</a></th>
+                    <th><a class="encore-sort-heading{% if sort_columns.status.active %} active{% endif %}" href="{{ sort_columns.status.url }}">
+<span>Status</span><span class="sort-indicator">{% if sort_columns.status.active %}{% if sort_columns.status.direction == "asc" %}↑{% else %}↓{% endif %}{% else %}↕{% endif %}</span>
+</a></th>
                     <th class="action-cell">Open</th>
                 </tr>
             </thead>
             <tbody>
                 {% for instructor in instructors %}
                     <tr>
+                        <td class="instructor-selection-cell"><input type="checkbox" data-select-instructor value="{{ instructor.pk }}" aria-label="Select {{ instructor.full_name }}"></td>
                         <td>
                             <a
                                 class="primary-cell"
@@ -100,10 +123,16 @@
                         <td>{{ instructor.phone|default:"—" }}</td>
                         <td>
                             <div class="table-badges">
-                                {% if instructor.is_active %}
-                                    <span class="status-pill active">Active</span>
+                                {% if instructor.activation_status == "claimed" %}
+                                    <span class="status-pill active">Claimed</span>
+                                {% elif instructor.activation_status == "invite_sent" %}
+                                    <span class="status-pill registration">Invite Sent</span>
+                                {% elif instructor.activation_status == "missing_email" %}
+                                    <span class="status-pill inactive">Missing Email</span>
+                                {% elif instructor.is_active %}
+                                    <span class="status-pill registration">Active · Unclaimed</span>
                                 {% else %}
-                                    <span class="status-pill inactive">Inactive</span>
+                                    <span class="status-pill inactive">Needs Activation</span>
                                 {% endif %}
                             </div>
                         </td>
@@ -115,7 +144,7 @@
                     </tr>
                 {% empty %}
                     <tr>
-                        <td class="empty-cell" colspan="7">
+                        <td class="empty-cell" colspan="8">
                             No instructors matched your filters.
                         </td>
                     </tr>
@@ -172,4 +201,40 @@
     {% endfor %}
 </section>
 {% endif %}
+
+{% if view_mode == "table" %}
+<form method="post" action="{% url 'instructors:instructor_list' studio.slug %}" class="instructor-bulk-modal" data-instructor-bulk-modal hidden>
+    {% csrf_token %}
+    <input type="hidden" name="bulk_action" value="update">
+    <input type="hidden" name="selected_ids_json" data-bulk-instructor-ids>
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    <div class="instructor-bulk-backdrop" data-close-instructor-bulk></div>
+    <div class="instructor-bulk-dialog" role="dialog" aria-modal="true" aria-labelledby="instructor-bulk-title">
+        <header class="instructor-bulk-header">
+            <div><span class="card-kicker">Bulk management</span><h2 id="instructor-bulk-title">Edit Instructors</h2><p>Change one field for <strong><span data-modal-instructor-count>0</span> selected instructors</strong>.</p></div>
+            <button type="button" data-close-instructor-bulk class="instructor-bulk-close" aria-label="Close dialog">×</button>
+        </header>
+        <div class="instructor-bulk-body">
+            <label for="instructor-bulk-field">Field to update</label>
+            <select id="instructor-bulk-field" name="field" required data-instructor-bulk-field>
+                <option value="is_active" selected>Instructor status (Active / Inactive)</option>
+                <option value="phone">Phone number</option>
+            </select>
+            <div data-instructor-bulk-value></div>
+            <div class="instructor-bulk-warning">Names, email addresses, login credentials, and class assignments cannot be bulk changed. Setting an instructor inactive does not automatically change their assigned classes or linked login membership.</div>
+            <label class="instructor-bulk-confirm"><input type="checkbox" required data-instructor-bulk-confirm> I understand this update will affect every selected instructor.</label>
+        </div>
+        <footer class="instructor-bulk-footer">
+            <button type="button" class="button secondary" data-close-instructor-bulk>Cancel</button>
+            <button type="submit" class="button primary">Apply to Selected Instructors</button>
+        </footer>
+    </div>
+</form>
+{% endif %}
+{% include "includes/list_pagination.html" with pagination_label="Instructor pages" %}
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'js/encore_instructor_bulk.js' %}" defer></script>
 {% endblock %}

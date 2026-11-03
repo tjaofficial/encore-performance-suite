@@ -1,120 +1,22 @@
 {% extends "dashboard/base_dashboard.html" %}
 {% load static %}
-
-{% block title %}Performance Tools | Encore{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/encore_performance.css' %}">
-{% endblock %}
-
-{% block topbar_title %}Performance Tools{% endblock %}
-
+{% block title %}Dances | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_performance.css' %}"><link rel="stylesheet" href="{% static 'css/encore_dance_list.css' %}">{% endblock %}
+{% block topbar_title %}Dances{% endblock %}
 {% block content %}
-<section class="performance-heading">
-    <div>
-        <p class="eyebrow">Choreography</p>
-        <h1>Performance Plans</h1>
-
-        <p>
-            Choreography notes, formations, lighting cues,
-            and recital preparation organized by class.
-        </p>
-    </div>
-
-    <a
-        class="button primary"
-        href="{% url 'performance:plan_create' studio.slug %}"
-    >
-        + Performance Plan
-    </a>
-</section>
-
-<form method="get" class="performance-search">
-    <input
-        type="search"
-        name="q"
-        value="{{ search }}"
-        placeholder="Search class, routine, or song..."
-    >
-
-    <button
-        class="button primary"
-        type="submit"
-    >
-        Search
-    </button>
-
-    {% if search %}
-        <a
-            class="button secondary"
-            href="{% url 'performance:plan_list' studio.slug %}"
-        >
-            Reset
-        </a>
-    {% endif %}
+<div class="edl-back-wrap"><a class="edl-back" href="{% if selected_class %}{% url 'classes:class_detail' studio.slug selected_class %}{% else %}{% url 'dashboard:admin_dashboard' studio.slug %}{% endif %}" data-smart-back>← Back</a></div>
+<section class="performance-heading"><div><p class="eyebrow">DANCE WORKSPACE</p><h1>Dances</h1><p>Music, videos, choreography and costumes, organized by dance.</p></div><a class="button primary" href="{% url 'performance:plan_create' studio.slug %}{% if selected_class %}?class={{ selected_class }}{% endif %}">+ Add Dance</a></section>
+<form method="get" class="performance-search edl-filters">
+  <label>Search<input type="search" name="q" value="{{ search }}" placeholder="Dance, class or soundtrack"></label>
+  <label>Season<select name="season"><option value="" {% if selected_season == 'current' %}selected{% endif %}>Current season</option><option value="all" {% if selected_season == 'all' %}selected{% endif %}>All seasons</option>{% for season in seasons %}<option value="{{ season.pk }}" {% if selected_season == season.pk|stringformat:'s' %}selected{% endif %}>{{ season.name }}</option>{% endfor %}</select></label>
+  <label>Class<select name="class"><option value="">All classes</option>{% for cls in classes_filter %}<option value="{{ cls.pk }}" {% if selected_class == cls.pk|stringformat:'s' %}selected{% endif %}>{{ cls.name }}</option>{% endfor %}</select></label>
+  {% if role == 'administrator' %}<label>Teacher<select name="teacher"><option value="">All teachers</option>{% for teacher in teachers_filter %}<option value="{{ teacher.pk }}" {% if selected_teacher == teacher.pk|stringformat:'s' %}selected{% endif %}>{{ teacher.first_name }} {{ teacher.last_name }}</option>{% endfor %}</select></label>{% endif %}
+  <label>Dance<select name="dance"><option value="">All dances</option>{% for dance in dances_filter %}<option value="{{ dance.pk }}" {% if selected_dance == dance.pk|stringformat:'s' %}selected{% endif %}>{{ dance.title }}</option>{% endfor %}</select></label>
+  <button class="button primary" type="submit">Apply Filters</button><a class="button secondary" href="{% url 'performance:plan_list' studio.slug %}">Reset</a>
 </form>
-
-<section class="performance-plan-grid">
-    {% for plan in plans %}
-        <a
-            class="performance-plan-card"
-            href="{% url 'performance:plan_detail' studio.slug plan.id %}"
-        >
-            <div class="performance-card-top">
-                <div>
-                    <span class="class-code">
-                        {{ plan.class_instance.class_id }}
-                    </span>
-
-                    <h2>
-                        {{ plan.title|default:plan.class_instance.name }}
-                    </h2>
-
-                    <p>
-                        {{ plan.class_instance.name }}
-                        ·
-                        {{ plan.class_instance.season.name }}
-                    </p>
-                </div>
-
-                <span class="performance-arrow">→</span>
-            </div>
-
-            {% if plan.song_title %}
-                <div class="song-line">
-                    <span>♫</span>
-
-                    <div>
-                        <strong>{{ plan.song_title }}</strong>
-
-                        {% if plan.artist %}
-                            <small>{{ plan.artist }}</small>
-                        {% endif %}
-                    </div>
-                </div>
-            {% endif %}
-
-            <div class="performance-metrics">
-                <div>
-                    <span>Formations</span>
-                    <strong>{{ plan.formation_count }}</strong>
-                </div>
-
-                <div>
-                    <span>Lighting</span>
-                    <strong>{{ plan.lighting_count }}</strong>
-                </div>
-
-                <div>
-                    <span>Prep Items</span>
-                    <strong>{{ plan.prep_count }}</strong>
-                </div>
-            </div>
-        </a>
-    {% empty %}
-        <div class="empty-state">
-            No performance plans yet.
-        </div>
-    {% endfor %}
-</section>
+<div class="edl-table-wrap"><table class="edl-table"><thead><tr><th>Dance</th><th>Class</th><th>Season</th><th>Soundtrack</th><th>Drawing Board</th><th>Actions</th></tr></thead><tbody>{% for plan in plans %}<tr><td><a class="edl-name" href="{% url 'performance:plan_detail' studio.slug plan.id %}?return={{ request.get_full_path|urlencode }}">{{ plan.title|default:plan.class_instance.name }}</a></td><td>{{ plan.class_instance.name }}</td><td>{{ plan.class_instance.season.name }}</td><td>{% if plan.song_title %}♫ {{ plan.song_title }}{% else %}<span class="edl-muted">No music</span>{% endif %}</td><td>{{ plan.formation_count }} formations</td><td><a class="edl-open" href="{% url 'performance:plan_detail' studio.slug plan.id %}?return={{ request.get_full_path|urlencode }}">Open Dance →</a></td></tr>{% empty %}<tr><td class="edl-empty" colspan="6">No dances found. Create a dance to start organizing resources.</td></tr>{% endfor %}</tbody></table></div>
 {% endblock %}
+
+
+
+{% block extra_js %}<script src="{% static 'js/encore_context_back.js' %}" defer></script>{% endblock %}

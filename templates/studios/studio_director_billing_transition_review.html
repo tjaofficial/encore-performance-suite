@@ -1,0 +1,129 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Review Billing Transition | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}">{% endblock %}
+{% block topbar_title %}Studio Director Onboarding{% endblock %}
+
+{% block content %}
+<div class="settings-workspace">
+    {% include "includes/settings_nav.html" %}
+    <main class="settings-workspace-content">
+        <section class="settings-heading">
+            <div>
+                <a class="back-link" href="{% url 'studios:studio_director_billing_transition' studio.slug %}">← Choose Different Files</a>
+                <p class="eyebrow">Studio Director · Billing Transition</p>
+                <h1>Review Opening Balances</h1>
+                <p>{{ state.summary_filename }} + {{ state.detail_filename }}</p>
+            </div>
+        </section>
+
+        <section class="import-review-summary billing-reconciliation-summary">
+            <div class="import-review-stat">
+                <span>Ready Families</span>
+                <strong>{{ analysis.ready_count }}</strong>
+                <small>{{ analysis.issue_count }} need review</small>
+            </div>
+            <div class="import-review-stat">
+                <span>Unpaid Charges</span>
+                <strong>${{ analysis.reconciliation.summary_unpaid|floatformat:2 }}</strong>
+                <small>Family Balance Summary</small>
+            </div>
+            <div class="import-review-stat">
+                <span>Unapplied</span>
+                <strong>${{ analysis.reconciliation.unapplied|floatformat:2 }}</strong>
+                <small>Imported as account credits</small>
+            </div>
+            <div class="import-review-stat create">
+                <span>Net Balance</span>
+                <strong>${{ analysis.reconciliation.summary_balance|floatformat:2 }}</strong>
+                <small>Opening receivables</small>
+            </div>
+        </section>
+
+        <section class="settings-section-block billing-reconcile-card">
+            <div class="settings-section-heading">
+                <div>
+                    <span>Reconciliation</span>
+                    <h2>{% if not analysis.errors %}Both CSVs reconcile ✓{% else %}Partial import available{% endif %}</h2>
+                    <p>Encore imports every family that safely matches and reconciles. Families with issues are skipped and written to an Issues CSV instead of blocking the entire billing transition.</p>
+                </div>
+            </div>
+            <div class="billing-reconcile-grid">
+                <div><span>Detail unpaid total</span><strong>${{ analysis.reconciliation.detail_unpaid|floatformat:2 }}</strong></div>
+                <div><span>Summary unpaid total</span><strong>${{ analysis.reconciliation.summary_unpaid|floatformat:2 }}</strong></div>
+                <div><span>Unpaid difference</span><strong>${{ analysis.reconciliation.unpaid_difference|floatformat:2 }}</strong></div>
+                <div><span>Calculated net balance</span><strong>${{ analysis.reconciliation.calculated_balance|floatformat:2 }}</strong></div>
+                <div><span>Reported balance due</span><strong>${{ analysis.reconciliation.summary_balance|floatformat:2 }}</strong></div>
+                <div><span>Balance difference</span><strong>${{ analysis.reconciliation.balance_difference|floatformat:2 }}</strong></div>
+            </div>
+        </section>
+
+        {% if analysis.errors %}
+            <div class="message-banner warning">
+                <strong>{{ analysis.issue_count }} famil{{ analysis.issue_count|pluralize:"y,ies" }} need review.</strong>
+                They will not be imported. The {{ analysis.ready_count }} ready famil{{ analysis.ready_count|pluralize:"y,ies" }} can continue now.
+                <a href="{% url 'studios:studio_director_billing_transition_issues_csv' studio.slug %}">Download Issues CSV</a>
+            </div>
+        {% endif %}
+
+        <section class="settings-panel vendor-discovery-panel">
+            <div class="vendor-discovery-list">
+                {% for item in analysis.families %}
+                    <article class="vendor-discovery-row {% if item.errors %}status-error{% else %}status-create{% endif %}">
+                        <div class="vendor-discovery-select">
+                            {% if item.errors %}<span class="vendor-discovery-dot"></span>{% else %}✓{% endif %}
+                        </div>
+                        <div class="vendor-discovery-main">
+                            <div class="vendor-class-title">
+                                <strong>{{ item.guardian_first_name }} {{ item.guardian_last_name }}</strong>
+                                <span>{{ item.email }}</span>
+                            </div>
+                            <div class="vendor-class-meta">
+                                <span>Charges ${{ item.total_unpaid|floatformat:2 }}</span>
+                                <span>Unapplied ${{ item.unapplied|floatformat:2 }}</span>
+                                <span>Balance ${{ item.balance_due|floatformat:2 }}</span>
+                                <span>{{ item.details|length }} category row{{ item.details|length|pluralize }}</span>
+                            </div>
+                            {% if item.family %}
+                                <small>Encore family: {{ item.family.family_name }}</small>
+                            {% endif %}
+                            {% for error in item.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+                        </div>
+                        <div class="vendor-discovery-status">
+                            <span class="import-status-badge {% if item.errors %}error{% else %}create{% endif %}">
+                                {% if item.errors %}Needs Review{% else %}Matched{% endif %}
+                            </span>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="settings-section-block">
+            <div class="settings-section-heading">
+                <div>
+                    <span>Cutover</span>
+                    <h2>{{ state.opening_balance_date }} → Encore billing {{ state.billing_start_date }}</h2>
+                    <p>Opening charges and credits are historical carry-forward balances. New tuition is calculated separately by Encore after cutover.</p>
+                </div>
+            </div>
+        </section>
+
+        <div class="form-actions">
+            <a class="button secondary" href="{% url 'studios:studio_director_billing_transition' studio.slug %}">Back</a>
+            <form method="post" action="{% url 'studios:studio_director_billing_transition_commit' studio.slug %}">
+                {% csrf_token %}
+                <button
+                    class="button primary"
+                    type="submit"
+                    {% if not analysis.ready_count %}disabled{% endif %}
+                    onclick="return confirm('Import the ready Studio Director opening balances? Any families with issues will be skipped and reported separately.');"
+                >
+                    Import {{ analysis.ready_count }} Ready Famil{{ analysis.ready_count|pluralize:"y,ies" }}
+                </button>
+            </form>
+        </div>
+    </main>
+</div>
+{% endblock %}

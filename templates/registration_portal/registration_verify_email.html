@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Confirm Email | {{ studio.name }}</title>
+    <link rel="stylesheet" href="{% static 'css/encore_public_registration.css' %}">
+    <link rel="stylesheet" href="{% static 'css/encore_tenant_branding.css' %}">
+    {% include "includes/studio_brand_vars.html" %}
+</head>
+<body class="{% if embed_mode %}embed-mode{% endif %}">
+<main class="public-shell narrow">
+    <section class="public-registration-card verification-card">
+        {% if verification_valid %}
+        <div class="verification-icon success">✓</div>
+        <span class="public-kicker">{{ studio.name }}</span>
+        <h1>Confirm Your Email</h1>
+        <p>
+            This link matches the registration for <strong>{{ registration_session.contact_email }}</strong>.
+            Confirm below to continue to checkout.
+        </p>
+        <form method="post" class="public-form">
+            {% csrf_token %}
+            <input type="hidden" name="code" value="{{ code }}">
+            <button class="public-button primary large" type="submit">Confirm Email & Continue</button>
+        </form>
+        {% else %}
+        <div class="verification-icon error">!</div>
+        <span class="public-kicker">Verification Problem</span>
+        <h1>This Link Can't Be Used</h1>
+        <div class="public-notice">{{ verification_error }}</div>
+        <div class="wizard-actions">
+            <a class="public-button primary large" href="{% url 'registration_portal:registration_verification_pending' studio.slug registration_session.token %}">Request a New Email</a>
+        </div>
+        {% endif %}
+    </section>
+</main>
+</body>
+</html>

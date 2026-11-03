@@ -1,0 +1,225 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_vendor_conversions.css' %}">
+{% endblock %}
+
+{% block title %}{{ page_title }} | Encore{% endblock %}
+{% block topbar_title %}Vendor Size Chart{% endblock %}
+
+{% block content %}
+<div class="settings-workspace">
+    {% include "includes/settings_nav.html" %}
+
+    <main class="settings-workspace-content">
+        <section class="vendor-page-heading">
+            <div>
+                <a
+                    class="wardrobe-back-link"
+                    href="{% url 'costumes:vendor_detail' studio.slug vendor.id %}"
+                >
+                    ← {{ vendor.name }}
+                </a>
+                <p class="eyebrow">Size Conversion</p>
+                <h1>{{ page_title }}</h1>
+                <p>
+                    Enter only the measurements this chart actually uses.
+                    Chest, waist, hips, girth, and height can use ranges;
+                    inseam and outseam use one measurement.
+                </p>
+            </div>
+        </section>
+
+        <form method="post" class="vendor-chart-form" data-vendor-size-chart-form>
+            {% csrf_token %}
+
+            <section class="vendor-form-card">
+                <div class="vendor-form-grid three">
+                    {% for field in form %}
+                        <label class="{% if field.name == 'notes' %}full{% endif %}">
+                            <span>{{ field.label }}</span>
+                            {{ field }}
+                            {% for error in field.errors %}
+                                <small class="vendor-field-error">{{ error }}</small>
+                            {% endfor %}
+                        </label>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section class="vendor-form-card">
+                <div class="vendor-section-heading vendor-size-builder-heading">
+                    <div>
+                        <span>Entries</span>
+                        <h2>Chart Sizes</h2>
+                        <p>
+                            Add one vendor size at a time. Opening a size collapses
+                            the previous one so the chart stays easy to work through.
+                        </p>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="button secondary"
+                        data-add-vendor-size
+                    >
+                        + Add Size
+                    </button>
+                </div>
+
+                {{ formset.management_form }}
+                {{ formset.non_form_errors }}
+
+                <div class="vendor-entry-stack" data-vendor-entry-stack>
+                    {% for entry_form in formset.forms %}
+                        <article class="vendor-entry-row" data-vendor-entry>
+                            {% for hidden in entry_form.hidden_fields %}
+                                {{ hidden }}
+                            {% endfor %}
+
+                            <div class="vendor-entry-delete-field" hidden>
+                                {{ entry_form.DELETE }}
+                            </div>
+
+                            <div class="vendor-entry-header">
+                                <button
+                                    type="button"
+                                    class="vendor-entry-toggle"
+                                    data-vendor-entry-toggle
+                                    aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
+                                >
+                                    <span>
+                                        <small>Vendor Size</small>
+                                        <strong data-vendor-entry-label>
+                                            {{ entry_form.size_label.value|default:"New Size" }}
+                                        </strong>
+                                    </span>
+                                    <span class="vendor-entry-chevron" aria-hidden="true">⌄</span>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="vendor-entry-remove"
+                                    data-remove-vendor-size
+                                >
+                                    Remove
+                                </button>
+                            </div>
+
+                            <div
+                                class="vendor-entry-body"
+                                data-vendor-entry-body
+                                {% if not forloop.first %}hidden{% endif %}
+                            >
+                                <div class="vendor-entry-title-fields">
+                                    <label>
+                                        <span>Size</span>
+                                        {{ entry_form.size_label }}
+                                        {% for error in entry_form.size_label.errors %}<small class="vendor-field-error">{{ error }}</small>{% endfor %}
+                                    </label>
+                                    <label>
+                                        <span>Order</span>
+                                        {{ entry_form.sort_order }}
+                                        {% for error in entry_form.sort_order.errors %}<small class="vendor-field-error">{{ error }}</small>{% endfor %}
+                                    </label>
+                                </div>
+
+                                <div class="vendor-range-grid">
+                                    {% for field in entry_form.visible_fields %}
+                                        {% if field.name != 'size_label' and field.name != 'sort_order' and field.name != 'DELETE' %}
+                                            <label class="{% if field.name == 'notes' %}wide{% endif %}">
+                                                <span>{{ field.label }}</span>
+                                                {{ field }}
+                                                {% for error in field.errors %}<small class="vendor-field-error">{{ error }}</small>{% endfor %}
+                                            </label>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </article>
+                    {% endfor %}
+
+                    <div
+                        class="vendor-empty"
+                        data-vendor-entry-empty
+                        {% if formset.forms %}hidden{% endif %}
+                    >
+                        No sizes have been added yet. Click <strong>+ Add Size</strong> to begin.
+                    </div>
+                </div>
+
+                <template data-vendor-entry-template>
+                    <article class="vendor-entry-row" data-vendor-entry>
+                        {% for hidden in formset.empty_form.hidden_fields %}
+                            {{ hidden }}
+                        {% endfor %}
+
+                        <div class="vendor-entry-delete-field" hidden>
+                            {{ formset.empty_form.DELETE }}
+                        </div>
+
+                        <div class="vendor-entry-header">
+                            <button
+                                type="button"
+                                class="vendor-entry-toggle"
+                                data-vendor-entry-toggle
+                                aria-expanded="true"
+                            >
+                                <span>
+                                    <small>Vendor Size</small>
+                                    <strong data-vendor-entry-label>New Size</strong>
+                                </span>
+                                <span class="vendor-entry-chevron" aria-hidden="true">⌄</span>
+                            </button>
+
+                            <button
+                                type="button"
+                                class="vendor-entry-remove"
+                                data-remove-vendor-size
+                            >
+                                Remove
+                            </button>
+                        </div>
+
+                        <div class="vendor-entry-body" data-vendor-entry-body>
+                            <div class="vendor-entry-title-fields">
+                                <label>
+                                    <span>Size</span>
+                                    {{ formset.empty_form.size_label }}
+                                </label>
+                                <label>
+                                    <span>Order</span>
+                                    {{ formset.empty_form.sort_order }}
+                                </label>
+                            </div>
+
+                            <div class="vendor-range-grid">
+                                {% for field in formset.empty_form.visible_fields %}
+                                    {% if field.name != 'size_label' and field.name != 'sort_order' and field.name != 'DELETE' %}
+                                        <label class="{% if field.name == 'notes' %}wide{% endif %}">
+                                            <span>{{ field.label }}</span>
+                                            {{ field }}
+                                        </label>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </article>
+                </template>
+            </section>
+
+            <div class="vendor-form-actions">
+                <button class="button primary" type="submit">
+                    Save Size Chart
+                </button>
+            </div>
+        </form>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/encore_vendor_size_chart.js' %}" defer></script>
+{% endblock %}

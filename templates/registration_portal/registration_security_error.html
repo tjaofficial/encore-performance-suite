@@ -1,0 +1,22 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Registration Temporarily Limited | {{ studio.name }}</title>
+    <link rel="stylesheet" href="{% static 'css/encore_public_registration.css' %}">
+    <link rel="stylesheet" href="{% static 'css/encore_tenant_branding.css' %}">
+    {% include "includes/studio_brand_vars.html" %}
+</head>
+<body>
+<main class="public-shell narrow">
+    <section class="public-registration-card verification-card">
+        <div class="verification-icon error">!</div>
+        <span class="public-kicker">{{ studio.name }}</span>
+        <h1>Please Try Again Later</h1>
+        <p>{{ message }}</p>
+    </section>
+</main>
+</body>
+</html>

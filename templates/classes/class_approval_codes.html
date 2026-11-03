@@ -1,0 +1,87 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+{% block title %}Registration Approval Codes | Encore{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/encore_approval_codes.css' %}">
+<div class="approval-workspace">
+  <a class="approval-back" href="{% url 'classes:approval_codes_overview' studio.slug %}">← Back to Approval Codes</a>
+  <header class="approval-heading">
+    <div>
+      <span class="approval-eyebrow">REGISTRATION · IN-PERSON APPROVAL</span>
+      <h1>Registration Approval Codes</h1>
+      <p>Issue secure registration access to families after an in-person assessment.</p>
+    </div>
+    <div class="approval-class-summary">
+      <span class="approval-class-summary__caption">Selected class</span>
+      <strong>{{ class_instance.name }}</strong>
+      <span>{{ class_instance.season.name|default:"Season not assigned" }}</span>
+    </div>
+  </header>
+
+  {% if class_instance.registration_mode != 'approval' %}
+    <div class="approval-alert approval-alert--warning" role="alert">
+      <strong>This class doesn't require an approval code.</strong>
+      <span>Set the class registration method to <b>In-Person Approval Required</b> before issuing codes.</span>
+    </div>
+  {% endif %}
+
+  {% if displayed_code %}
+    <section class="approval-generated" role="status" aria-live="polite">
+      <div><span class="approval-eyebrow">CODE GENERATED</span><h2>Code generated</h2><p>The code is shown only once here. Encore attempts to email it automatically; check the notification above for send status.</p></div>
+      <div class="approval-code-box"><code id="approval-generated-code">{{ displayed_code }}</code><button type="button" class="approval-btn approval-btn--outline" id="approval-copy-code">Copy Code</button></div>
+      <span class="approval-copy-status" id="approval-copy-status" aria-live="polite"></span>
+    </section>
+  {% endif %}
+
+  <div class="approval-layout">
+    <section class="approval-panel">
+      <div class="approval-panel__header"><div><span class="approval-eyebrow">NEW AUTHORIZATION</span><h2>Issue an approval code</h2><p>Generate a single-use code and automatically email it to the parent from your studio.</p></div><span class="approval-number">01</span></div>
+      {% if form.non_field_errors %}<div class="approval-alert approval-alert--error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+      <form method="post" class="approval-form">
+        {% csrf_token %}
+        {% for field in form %}
+          <div class="approval-field{% if field.errors %} approval-field--error{% endif %}">
+            <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="approval-required" aria-label="required">*</span>{% endif %}</label>
+            {{ field }}
+            {% if field.name == 'email' %}<small>Use the email address the parent will register with.</small>{% endif %}
+            {% if field.name == 'valid_days' %}<small>The code automatically expires after this period.</small>{% endif %}
+            {% for error in field.errors %}<small class="approval-error">{{ error }}</small>{% endfor %}
+          </div>
+        {% endfor %}
+        <button type="submit" class="approval-btn approval-btn--primary" {% if class_instance.registration_mode != 'approval' %}disabled{% endif %}>Generate Approval Code →</button>
+      </form>
+    </section>
+
+    <section class="approval-panel approval-panel--history">
+      <div class="approval-panel__header"><div><span class="approval-eyebrow">CODE HISTORY</span><h2>Issued codes</h2><p>Review previous authorizations and revoke unused codes.</p></div><span class="approval-count">{{ codes|length }} records</span></div>
+      <div class="approval-table-scroll">
+        <table class="approval-table">
+          <thead><tr><th>Guardian email</th><th>Created</th><th>Expires</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>
+            {% for row in codes %}
+              <tr><td class="approval-email">{{ row.parent_email }}</td><td>{{ row.created_at|date:"M j, Y" }}<small>{{ row.created_at|date:"g:i A" }}</small></td><td>{{ row.expires_at|date:"M j, Y" }}<small>{{ row.expires_at|date:"g:i A" }}</small></td>
+                <td>{% if row.revoked_at %}<span class="approval-status approval-status--revoked">Revoked</span>{% elif row.used_at %}<span class="approval-status approval-status--used">Used</span>{% elif row.claimed_session_id %}<span class="approval-status approval-status--claimed">Claimed</span>{% else %}<span class="approval-status approval-status--available">Available</span>{% endif %}</td>
+                <td>{% if not row.revoked_at and not row.used_at %}<form method="post" class="approval-inline-form" onsubmit="return confirm('Revoke this approval code? The parent will no longer be able to use it.');">{% csrf_token %}<input type="hidden" name="revoke_id" value="{{ row.pk }}"><button type="submit" class="approval-btn approval-btn--danger">Revoke</button></form>{% if not row.claimed_session_id and not row.revoked_at and not row.used_at %}<form method="post" class="approval-inline-form" onsubmit="return confirm('The original code cannot be resent. Generate and email a replacement, revoking the original only if the new email is accepted?');">{% csrf_token %}<input type="hidden" name="resend_id" value="{{ row.pk }}"><button type="submit" class="approval-btn approval-btn--outline">Email replacement</button></form>{% endif %}{% else %}<span class="approval-muted">—</span>{% endif %}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="5"><div class="approval-empty"><span class="approval-empty__icon">✉</span><strong>No approval codes issued yet</strong><p>Generate a code to grant a family access to this class.</p></div></td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</div>
+<script>
+(function(){
+  const button=document.getElementById('approval-copy-code');
+  const code=document.getElementById('approval-generated-code');
+  const status=document.getElementById('approval-copy-status');
+  if(!button||!code)return;
+  button.addEventListener('click',async function(){
+    try { await navigator.clipboard.writeText(code.textContent.trim()); status.textContent='Copied to clipboard'; }
+    catch(e){ status.textContent='Please select and copy the code manually.'; }
+  });
+})();
+</script>
+{% endblock %}

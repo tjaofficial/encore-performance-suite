@@ -1,0 +1,115 @@
+{% extends "dashboard/parent_portal_base.html" %}
+
+{% block title %}My Family | {{ studio.name }}{% endblock %}
+{% block parent_portal_heading %}My Family{% endblock %}
+
+{% block parent_content %}
+<section class="parent-page-heading">
+    <div class="parent-page-icon parent-card-icon-family">⌂</div>
+    <div>
+        <span class="parent-eyebrow">Family Profile</span>
+        <h2>{{ family.family_name|default:"Family Account" }}</h2>
+        <p>Household information, guardians, pickup permissions, and account access.</p>
+    </div>
+
+    {% if can_manage_family %}
+        <a class="parent-outline-button" href="{% url 'families:parent_family_edit' studio.slug %}">
+            Edit Family
+        </a>
+    {% endif %}
+</section>
+
+<section class="parent-profile-grid">
+    <article class="parent-page-card">
+        <div class="parent-section-heading">
+            <div>
+                <span class="parent-eyebrow">Household</span>
+                <h3>Contact Information</h3>
+            </div>
+        </div>
+
+        <dl class="parent-detail-list">
+            <div><dt>Primary Email</dt><dd>{{ family.primary_email|default:"—" }}</dd></div>
+            <div><dt>Primary Phone</dt><dd>{{ family.primary_phone|default:"—" }}</dd></div>
+            <div><dt>Address</dt><dd>
+                {% if family.address_line_1 %}
+                    {{ family.address_line_1 }}{% if family.address_line_2 %}, {{ family.address_line_2 }}{% endif %},
+                    {{ family.city }} {{ family.state }} {{ family.postal_code }}
+                {% else %}—{% endif %}
+            </dd></div>
+            <div><dt>Emergency Contact</dt><dd>{{ family.emergency_contact_name|default:"—" }}</dd></div>
+        </dl>
+    </article>
+
+    <article class="parent-page-card">
+        <div class="parent-section-heading">
+            <div>
+                <span class="parent-eyebrow">Emergency</span>
+                <h3>Emergency Contact</h3>
+            </div>
+        </div>
+
+        <dl class="parent-detail-list">
+            <div><dt>Name</dt><dd>{{ family.emergency_contact_name|default:"—" }}</dd></div>
+            <div><dt>Phone</dt><dd>{{ family.emergency_contact_phone|default:"—" }}</dd></div>
+            <div><dt>Relationship</dt><dd>{{ family.emergency_contact_relationship|default:"—" }}</dd></div>
+        </dl>
+    </article>
+
+    <article class="parent-page-card span-2">
+        <div class="parent-section-heading">
+            <div>
+                <span class="parent-eyebrow">Parents & Guardians</span>
+                <h3>Family Access</h3>
+            </div>
+
+            {% if can_manage_family %}
+                <div class="parent-inline-actions" aria-label="Guardian profile and login actions">
+                    <a class="parent-outline-button" href="{% url 'families:parent_guardian_add' studio.slug %}">
+                        + Add Guardian Profile
+                    </a>
+                    <a class="parent-primary-button" href="{% url 'families:parent_guardian_invite' studio.slug %}">
+                        Invite Guardian to Portal
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="parent-page-list">
+            {% for person in guardians %}
+                <div class="parent-page-row">
+                    <span class="parent-profile-avatar">
+                        {{ person.first_name|slice:":1"|upper }}{{ person.last_name|slice:":1"|upper }}
+                    </span>
+
+                    <span class="parent-page-row-copy">
+                        <small>
+                            {{ person.relationship|default:"Guardian" }}
+                            {% if person.is_primary %} · Primary Guardian{% endif %}
+                        </small>
+                        <strong>{{ person.first_name }} {{ person.last_name }}</strong>
+                        <span>
+                            {{ person.email|default:"No email" }}
+                            {% if person.phone %} · {{ person.phone }}{% endif %}
+                        </span>
+                    </span>
+
+                    <span class="parent-access-tags">
+                        {% if person.user_id %}<b>Encore Login</b>{% else %}<b>Profile Only</b>{% endif %}
+                        {% if person.is_authorized_for_pickup %}<b>Pickup</b>{% endif %}
+                        {% if person.is_financially_responsible %}<b>Financial</b>{% endif %}
+                    </span>
+                </div>
+            {% empty %}
+                <div class="parent-empty-state">No active guardians are attached.</div>
+            {% endfor %}
+        </div>
+
+        {% if not can_manage_family %}
+            <p class="parent-panel-note">
+                Only the primary guardian can change household details or invite additional account users.
+            </p>
+        {% endif %}
+    </article>
+</section>
+{% endblock %}

@@ -17,6 +17,17 @@ class ClassResource(models.Model):
         ENROLLED = "enrolled", "Enrolled Students & Families"
         STAFF = "staff", "Staff Only"
 
+    class ApprovalStatus(models.TextChoices):
+        APPROVED = "approved", "Approved"
+        PENDING = "pending", "Pending Approval"
+        REJECTED = "rejected", "Rejected"
+        REPLACED = "replaced", "Replaced"
+
+    approval_status = models.CharField(max_length=12, choices=ApprovalStatus.choices, default=ApprovalStatus.APPROVED, db_index=True)
+    reviewed_by = models.ForeignKey("accounts.User", null=True, blank=True, on_delete=models.SET_NULL, related_name="reviewed_dance_music")
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    review_comment = models.TextField(blank=True)
+
     studio = models.ForeignKey(
         Studio,
         on_delete=models.CASCADE,
@@ -27,6 +38,15 @@ class ClassResource(models.Model):
         Class,
         on_delete=models.CASCADE,
         related_name="resources",
+    )
+
+    dance = models.ForeignKey(
+        "performance.ChoreographyPlan",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="linked_resources",
+        help_text="Optional dance this resource belongs to.",
     )
 
     uploaded_by = models.ForeignKey(
@@ -131,6 +151,10 @@ class ClassResource(models.Model):
                     )
                 }
             )
+
+        if self.dance_id:
+            if self.dance.studio_id != self.studio_id or self.dance.class_instance_id != self.class_instance_id:
+                raise ValidationError({"dance": "Dance must belong to the selected studio and class."})
 
         if not self.file and not self.external_url:
             raise ValidationError(

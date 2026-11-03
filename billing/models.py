@@ -63,12 +63,11 @@ class FamilyAccount(models.Model):
 
     @property
     def total_payments(self):
-        return (
-            self.payments
-            .filter(status=Payment.Status.SUCCEEDED)
-            .aggregate(total=Sum("amount"))["total"]
-            or Decimal("0.00")
-        )
+        received = (self.payments.filter(status=Payment.Status.SUCCEEDED)
+                    .aggregate(total=Sum("amount"))["total"] or Decimal("0.00"))
+        refunded = (PaymentRefund.objects.filter(payment__account=self, status=PaymentRefund.Status.SUCCEEDED)
+                    .aggregate(total=Sum("amount"))["total"] or Decimal("0.00"))
+        return received - refunded
 
     @property
     def total_credits(self):
@@ -166,6 +165,16 @@ class TuitionPlan(models.Model):
     )
 
     grace_period_days = models.PositiveIntegerField(default=0)
+    grace_period_enabled = models.BooleanField(default=True)
+    # Studio staff always decide whether to withdraw students; there is no auto-removal.
+    overdue_reminders_enabled = models.BooleanField(default=False)
+    overdue_notice_enabled = models.BooleanField(default=True)
+    grace_warning_notice_enabled = models.BooleanField(default=True)
+    resolved_notice_enabled = models.BooleanField(default=True)
+    overdue_template_id = models.PositiveIntegerField(null=True, blank=True)
+    grace_warning_template_id = models.PositiveIntegerField(null=True, blank=True)
+    grace_expired_template_id = models.PositiveIntegerField(null=True, blank=True)
+    resolved_template_id = models.PositiveIntegerField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -199,6 +208,130 @@ class TuitionPlan(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.get_frequency_display()})"
+
+
+class StudioTuitionSettings(models.Model):
+    class PricingMode(models.TextChoices):
+        PER_CLASS = "per_class", "Per-Class Tuition"
+        STUDIO_WIDE = "studio_wide", "Studio-Wide Tuition"
+
+    class StudioWideMethod(models.TextChoices):
+        FLAT_HOURLY = "flat_hourly", "Flat Hourly Rate"
+        TIERED_HOURLY = "tiered_hourly", "Tiered Hourly Rates"
+
+    studio = models.OneToOneField(
+        Studio, on_delete=models.CASCADE, related_name="tuition_settings"
+    )
+    pricing_mode = models.CharField(
+        max_length=20, choices=PricingMode.choices, default=PricingMode.PER_CLASS
+    )
+    studio_wide_method = models.CharField(
+        max_length=20,
+        choices=StudioWideMethod.choices,
+        default=StudioWideMethod.TIERED_HOURLY,
+    )
+    flat_hourly_rate = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True
+    )
+    additional_hour_rate = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text=(
+            "Optional rate used after the final tier. If blank, Encore "
+            "continues using the final tier rate."
+        ),
+    )
+    family_monthly_cap = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True
+    )
+    default_tuition_plan = models.ForeignKey(
+        "TuitionPlan",
+        on_delete=models.SET_NULL,
+        related_name="studio_tuition_defaults",
+        null=True,
+        blank=True,
+    )
+    overdue_grace_days = models.PositiveSmallIntegerField(default=7, help_text="Calendar days after the charge due date before an attendance review is eligible.")
+    overdue_email_enabled = models.BooleanField(default=False, help_text="Off by default: enable after reviewing email templates.")
+    overdue_template_id = models.PositiveIntegerField(null=True, blank=True, help_text="Optional ID of this studio's EmailTemplate for overdue notices.")
+    grace_warning_template_id = models.PositiveIntegerField(null=True, blank=True)
+    grace_expired_template_id = models.PositiveIntegerField(null=True, blank=True)
+    resolved_template_id = models.PositiveIntegerField(null=True, blank=True)
+    attendance_review_enabled = models.BooleanField(default=False, help_text="Flag overdue accounts for staff review only; never automatically mark a student absent.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def clean(self):
+        super().clean()
+        for field_name in [
+            "flat_hourly_rate",
+            "additional_hour_rate",
+            "family_monthly_cap",
+        ]:
+            value = getattr(self, field_name)
+            if value is not None and value < Decimal("0.00"):
+                raise ValidationError({field_name: "Amount cannot be negative."})
+
+        if (
+            self.default_tuition_plan_id
+            and self.default_tuition_plan.studio_id != self.studio_id
+        ):
+            raise ValidationError(
+                {"default_tuition_plan": "Billing policy must belong to this studio."}
+            )
+
+        if self.pricing_mode == self.PricingMode.STUDIO_WIDE:
+            if self.default_tuition_plan_id is None:
+                raise ValidationError(
+                    {
+                        "default_tuition_plan": (
+                            "Choose a default billing policy for studio-wide tuition."
+                        )
+                    }
+                )
+            if (
+                self.studio_wide_method == self.StudioWideMethod.FLAT_HOURLY
+                and self.flat_hourly_rate is None
+            ):
+                raise ValidationError(
+                    {"flat_hourly_rate": "Enter the studio-wide hourly rate."}
+                )
+
+    @property
+    def is_studio_wide(self):
+        return self.pricing_mode == self.PricingMode.STUDIO_WIDE
+
+    def __str__(self):
+        return f"{self.studio.name} Tuition Settings"
+
+
+class TuitionRateTier(models.Model):
+    settings = models.ForeignKey(
+        StudioTuitionSettings, on_delete=models.CASCADE, related_name="rate_tiers"
+    )
+    hour_number = models.PositiveIntegerField()
+    hourly_rate = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        ordering = ["hour_number"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["settings", "hour_number"],
+                name="unique_tuition_hour_tier_per_studio",
+            )
+        ]
+
+    def clean(self):
+        super().clean()
+        if self.hour_number < 1:
+            raise ValidationError({"hour_number": "Hour number must be at least 1."})
+        if self.hourly_rate < Decimal("0.00"):
+            raise ValidationError({"hourly_rate": "Rate cannot be negative."})
+
+    def __str__(self):
+        return f"Hour {self.hour_number}: ${self.hourly_rate}"
 
 
 class RecurringChargeSchedule(models.Model):
@@ -256,6 +389,11 @@ class RecurringChargeSchedule(models.Model):
         max_length=20,
         choices=ScheduleType.choices,
         default=ScheduleType.TUITION,
+    )
+
+    universal_tuition = models.BooleanField(
+        default=False,
+        help_text="True for a family-level studio-wide tuition schedule.",
     )
 
     start_date = models.DateField()
@@ -597,10 +735,9 @@ class Payment(models.Model):
 
     @property
     def unallocated_amount(self):
-        return max(
-            self.amount - self.allocated_amount,
-            Decimal("0.00"),
-        )
+        refunded = (self.refunds.filter(status=PaymentRefund.Status.SUCCEEDED)
+                    .aggregate(total=Sum("amount"))["total"] or Decimal("0.00"))
+        return max(self.amount - refunded - self.allocated_amount, Decimal("0.00"))
 
     def clean(self):
         super().clean()
@@ -615,6 +752,34 @@ class Payment(models.Model):
             f"{self.account.family} - "
             f"${self.amount} - {self.get_method_display()}"
         )
+
+
+class PaymentRefund(models.Model):
+    """One Stripe refund for one payment allocation; never repurpose Payment.status."""
+    class Status(models.TextChoices):
+        PROCESSING = "processing", "Processing"
+        PENDING = "pending", "Pending at Stripe"
+        SUCCEEDED = "succeeded", "Succeeded"
+        FAILED = "failed", "Failed"
+        CANCELED = "canceled", "Canceled"
+
+    payment = models.ForeignKey(Payment, on_delete=models.PROTECT, related_name="refunds")
+    charge = models.ForeignKey(Charge, on_delete=models.PROTECT, related_name="refunds")
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PROCESSING)
+    reason = models.CharField(max_length=30)
+    notes = models.TextField()
+    requested_by = models.ForeignKey("accounts.User", on_delete=models.SET_NULL, null=True)
+    stripe_refund_id = models.CharField(max_length=255, blank=True, unique=True, null=True)
+    stripe_account_id = models.CharField(max_length=255)
+    idempotency_key = models.CharField(max_length=100, unique=True)
+    last_error = models.TextField(blank=True)
+    ledger_applied = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
 
 
 class PaymentAllocation(models.Model):
@@ -874,10 +1039,6 @@ class StudioSubscription(models.Model):
         ESSENTIALS = "essentials", "Essentials"
         PRO = "pro", "Pro"
 
-    class PaymentMode(models.TextChoices):
-        SOFTWARE_ONLY = "software_only", "Software Only"
-        SOFTWARE_PAYMENTS = "software_payments", "Software + Payments"
-
     class Status(models.TextChoices):
         PENDING = "pending", "Pending Activation"
         ACTIVE = "active", "Active"
@@ -899,12 +1060,6 @@ class StudioSubscription(models.Model):
     plan_tier = models.CharField(
         max_length=20,
         choices=PlanTier.choices,
-    )
-
-    payment_mode = models.CharField(
-        max_length=30,
-        choices=PaymentMode.choices,
-        default=PaymentMode.SOFTWARE_ONLY,
     )
 
     student_band = models.CharField(
@@ -973,12 +1128,6 @@ class StudioSubscription(models.Model):
         blank=True,
     )
 
-    pending_payment_mode = models.CharField(
-        max_length=30,
-        choices=PaymentMode.choices,
-        blank=True,
-    )
-
     pending_student_band = models.CharField(
         max_length=30,
         blank=True,
@@ -992,6 +1141,8 @@ class StudioSubscription(models.Model):
     payments_connected = models.BooleanField(
         default=False,
     )
+
+    stripe_test_connected_account_id = models.CharField(max_length=255, blank=True)
 
     stripe_connected_account_id = models.CharField(
         max_length=255,
@@ -1069,11 +1220,6 @@ class StudioSignupIntent(models.Model):
         choices=StudioSubscription.PlanTier.choices,
     )
 
-    payment_mode = models.CharField(
-        max_length=30,
-        choices=StudioSubscription.PaymentMode.choices,
-    )
-
     drawing_board_enabled = models.BooleanField(
         default=False,
     )
@@ -1086,6 +1232,26 @@ class StudioSignupIntent(models.Model):
     monthly_price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
+    )
+
+    terms_version = models.CharField(
+        max_length=20,
+        default="2026-10-02",
+    )
+
+    terms_accepted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    purchase_confirmation_sent_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    welcome_email_sent_at = models.DateTimeField(
+        null=True,
+        blank=True,
     )
 
     stripe_checkout_session_id = models.CharField(
@@ -1179,3 +1345,132 @@ class SubscriptionNotice(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class FamilyAutoPayProfile(models.Model):
+    """A separate Stripe customer/payment method per family and Stripe mode."""
+    account = models.ForeignKey(FamilyAccount, on_delete=models.CASCADE, related_name="autopay_profiles")
+    mode = models.CharField(max_length=4, choices=[("test", "Test"), ("live", "Live")])
+    connected_account_id = models.CharField(max_length=255)
+    stripe_customer_id = models.CharField(max_length=255, blank=True)
+    stripe_payment_method_id = models.CharField(max_length=255, blank=True)
+    payment_method_type = models.CharField(max_length=30, blank=True)
+    card_brand = models.CharField(max_length=30, blank=True)
+    card_last4 = models.CharField(max_length=4, blank=True)
+    enabled_at = models.DateTimeField(null=True, blank=True)
+    consent_user = models.ForeignKey("accounts.User", null=True, blank=True, on_delete=models.SET_NULL)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["account", "mode"], name="unique_family_autopay_mode")]
+
+    @property
+    def is_enabled(self):
+        return bool(self.enabled_at and self.stripe_payment_method_id)
+
+
+class FamilyAutoPayAttempt(models.Model):
+    """One attempt ledger per generated tuition charge, to prevent double billing."""
+    charge = models.OneToOneField(Charge, on_delete=models.PROTECT, related_name="autopay_attempt")
+    profile = models.ForeignKey(FamilyAutoPayProfile, on_delete=models.PROTECT, related_name="attempts")
+    stripe_payment_intent_id = models.CharField(max_length=255, blank=True)
+    status = models.CharField(max_length=30, default="pending")
+    error_message = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class BillingNoticeDelivery(models.Model):
+    """Deduplicate overdue milestones per charge; preserve sending outcomes."""
+    class State(models.TextChoices):
+        PENDING = "pending", "Pending"
+        SENT = "sent", "Sent"
+        FAILED = "failed", "Failed"
+    charge = models.ForeignKey(Charge, on_delete=models.PROTECT, related_name="billing_notices")
+    event = models.CharField(max_length=40)
+    status = models.CharField(max_length=12, choices=State.choices, default=State.PENDING)
+    error = models.TextField(blank=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["charge", "event"], name="billing_notice_per_charge_event")]
+
+
+class FamilyBillingHold(models.Model):
+    """Review flag. This model alone does NOT change attendance or enrollment."""
+    class Status(models.TextChoices):
+        REVIEW = "review", "Needs review"
+        ACTIVE = "active", "Approved review flag (not enforced)"
+        RELEASED = "released", "Released"
+    account = models.OneToOneField(FamilyAccount, on_delete=models.CASCADE, related_name="billing_hold")
+    status = models.CharField(max_length=12, choices=Status.choices, default=Status.REVIEW)
+    reason = models.TextField(blank=True)
+    reviewed_by = models.ForeignKey("accounts.User", null=True, blank=True, on_delete=models.SET_NULL)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class FamilyWithdrawalRequest(models.Model):
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending studio review"
+        APPROVED = "approved", "Approved"
+        REJECTED = "rejected", "Rejected"
+    account = models.ForeignKey(FamilyAccount, on_delete=models.CASCADE, related_name="withdrawal_requests")
+    enrollment = models.ForeignKey(Enrollment, on_delete=models.PROTECT, related_name="withdrawal_requests")
+    reason = models.TextField(blank=True)
+    status = models.CharField(max_length=12, choices=Status.choices, default=Status.PENDING)
+    requested_by = models.ForeignKey("accounts.User", on_delete=models.PROTECT, related_name="requested_withdrawals")
+    reviewed_by = models.ForeignKey("accounts.User", on_delete=models.SET_NULL, null=True, blank=True, related_name="reviewed_withdrawals")
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ["-created_at"]
+
+
+class FamilyBillingAction(models.Model):
+    """Immutable administrator decision log. Never deletes financial history."""
+    account = models.ForeignKey(FamilyAccount, on_delete=models.PROTECT, related_name="billing_actions")
+    charge = models.ForeignKey(Charge, on_delete=models.PROTECT, null=True, blank=True, related_name="review_actions")
+    performed_by = models.ForeignKey("accounts.User", on_delete=models.SET_NULL, null=True, blank=True)
+    action = models.CharField(max_length=40)
+    reason = models.TextField()
+    details = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+
+class ImportedFamilyTuitionReview(models.Model):
+    """Explicit administrator adjustment for an imported family's season cutover."""
+    studio = models.ForeignKey(Studio, on_delete=models.CASCADE)
+    family = models.ForeignKey(Family, on_delete=models.CASCADE)
+    season = models.ForeignKey(Season, on_delete=models.CASCADE)
+    amount_override = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["studio", "family", "season"], name="unique_imported_family_tuition_review")]
+
+
+class BillingEmailDelivery(models.Model):
+    """An event/recipient outbox; retries never create another event email."""
+    account = models.ForeignKey(FamilyAccount, on_delete=models.CASCADE, related_name="email_deliveries")
+    event_key = models.CharField(max_length=200)
+    event_type = models.CharField(max_length=40)
+    recipient = models.EmailField()
+    subject = models.CharField(max_length=255)
+    body = models.TextField()
+    status = models.CharField(max_length=16, default="pending", choices=[
+        ("pending", "Pending"), ("sending", "Sending"),
+        ("sent", "Sent"), ("failed", "Failed")])
+    provider_message_id = models.CharField(max_length=255, blank=True)
+    error = models.TextField(blank=True)
+    attempts = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["account", "event_key", "recipient"], name="unique_billing_email_delivery")]
+        ordering = ["-created_at"]

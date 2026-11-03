@@ -146,3 +146,18 @@ class Student(models.Model):
                     )
                 }
             )
+
+class StaffStudentNote(models.Model):
+    """Private studio staff notes, optionally scoped to one enrolled class."""
+    studio = models.ForeignKey('studios.Studio', on_delete=models.CASCADE)
+    student = models.ForeignKey('students.Student', on_delete=models.CASCADE, related_name='staff_notes')
+    class_instance = models.ForeignKey('classes.Class', on_delete=models.CASCADE, null=True, blank=True)
+    text = models.TextField(blank=True, default='')
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['student', 'class_instance'], condition=models.Q(class_instance__isnull=False), name='unique_student_class_staff_note'),
+            models.UniqueConstraint(fields=['student'], condition=models.Q(class_instance__isnull=True), name='unique_student_general_staff_note'),
+        ]

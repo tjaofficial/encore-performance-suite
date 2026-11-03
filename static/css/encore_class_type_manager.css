@@ -1,0 +1,37 @@
+/* Class Types management: compact, scannable layout */
+.class-type-manager-heading { margin-bottom: 18px; }
+.class-type-panel { overflow: hidden; border: 1px solid #cbd5e6; border-radius: 15px; background: #fff; box-shadow: 0 9px 28px rgba(26,43,88,.05); }
+.class-type-filters { display: flex; align-items: end; flex-wrap: wrap; gap: 10px; padding: 16px 17px; border-bottom: 1px solid #dce3f0; }
+.class-type-search-label,.class-type-filter-label { align-self: center; color: #344562; font-size: .78rem; font-weight: 750; }
+.class-type-search-wrap { flex: 1 1 230px; }
+.class-type-filters input,.class-type-filters select { width: 100%; min-height: 39px; border: 1px solid #c9d5eb; border-radius: 9px; padding: 8px 12px; font: inherit; color: #14203d; background: #fff; }
+.class-type-filters select { width: auto; min-width: 160px; }
+.class-type-filter-button,.class-type-reset { min-height: 39px; display: inline-flex; align-items: center; justify-content: center; padding: 0 14px; border: 1px solid #a9c1ff; border-radius: 9px; background: #f5f8ff; color: #1555d6; font-size: .8rem; font-weight: 800; text-decoration: none; cursor: pointer; }
+.class-type-bulk-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; min-height: 54px; padding: 9px 17px; background: #f6f8fe; border-bottom: 1px solid #dce3f0; }
+#classTypeSelectionLabel { color: #516181; font-size: .78rem; font-weight: 650; }
+.class-type-bulk-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.class-type-bulk-actions button { padding: 8px 11px; border-radius: 8px; border: 1px solid #a6bbf1; background: #fff; color: #1651c4; font-size: .76rem; font-weight: 800; cursor: pointer; }
+.class-type-bulk-actions button[value=deactivate] { color: #855c21; border-color: #dfc99f; }
+.class-type-bulk-actions button:disabled { opacity: .42; cursor: not-allowed; }
+.class-type-table-scroll { width: 100%; overflow-x: auto; }
+.class-type-table { width: 100%; border-collapse: collapse; text-align: left; }
+.class-type-table thead { background: #f0f4fc; color: #405374; font-size: .72rem; text-transform: uppercase; letter-spacing: .055em; }
+.class-type-table th { padding: 12px 14px; font-weight: 850; }
+.class-type-table td { padding: 11px 14px; vertical-align: middle; border-top: 1px solid #e1e7f1; }
+.class-type-table tbody tr:hover { background: #f7f9ff; }
+.class-type-check-cell { width: 48px; text-align: center; }
+.class-type-check-cell input { height: 16px; width: 16px; accent-color: #2464e8; cursor: pointer; }
+.class-type-name { color: #17213c; font-size: .9rem; font-weight: 800; }
+.class-type-description { margin-top: 3px; color: #65748c; font-size: .72rem; }
+.class-type-status { display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; border-radius: 999px; font-size: .71rem; font-weight: 800; white-space: nowrap; }
+.class-type-status.is-active { color: #166547; background: #e9f8f0; }
+.class-type-status.is-inactive { color: #785c35; background: #f7f1e5; }
+.class-type-status-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.class-type-actions-cell { width: 170px; }
+.class-type-row-actions { display: flex; align-items: center; justify-content: flex-end; gap: 7px; }
+.class-type-edit,.class-type-remove { display: inline-flex; min-height: 32px; align-items: center; justify-content: center; padding: 0 11px; border-radius: 8px; font: inherit; font-size: .75rem; font-weight: 800; text-decoration: none; cursor: pointer; }
+.class-type-edit { color: #1759e4; border: 1px solid #afc4ff; background: #f7faff; }
+.class-type-remove { color: #a33c42; border: 1px solid #e9c9cc; background: #fff9f9; }
+.class-type-empty { text-align: center; padding: 35px !important; color: #62738c; }
+.class-type-hidden-remove { display: none; }
+@media(max-width:720px) { .class-type-filters { align-items: stretch; } .class-type-search-label,.class-type-filter-label { width: 100%; } .class-type-filters select { flex: 1; } .class-type-table { min-width: 580px; } .class-type-manager-heading { align-items: flex-start; } }

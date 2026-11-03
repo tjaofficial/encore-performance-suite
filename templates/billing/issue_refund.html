@@ -1,0 +1,37 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+{% block title %}Issue Refund | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_billing.css' %}"><link rel="stylesheet" href="{% static 'css/encore_refund.css' %}">{% endblock %}
+{% block topbar_title %}Administrator Refund{% endblock %}
+{% block content %}
+<div class="refund-shell">
+<a href="{% url 'billing:account_detail' studio.slug account.pk %}" class="back-link">← Back to family billing</a>
+<p class="eyebrow">Special-case adjustments</p><h1>Issue a Tuition Refund</h1>
+<p>Family: <strong>{{ account.family }}</strong>. Refunds return funds to the original Stripe payment method. This tool only permits paid tuition charges from the current month.</p>
+<div class="refund-warning">A successful refund replaces the paid allocation with a refund credit on the same charge, so the family is not billed again for the refunded tuition. Enrollment remains unchanged. Stripe processing may take time.</div>
+<form method="post" id="refund-form" class="refund-form">{% csrf_token %}
+  {{ form.non_field_errors }}
+  {% for field in form %}<div class="refund-field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}{{ field.errors }}</div>{% endfor %}
+  <input type="hidden" name="confirm_refund" id="confirm-refund" value="">
+  <button type="button" id="review-refund" class="button primary">Review Refund</button>
+</form>
+</div>
+<dialog id="refund-confirm-dialog" class="refund-dialog"><div class="refund-dialog-inner">
+<h2>Confirm Refund</h2><p>You're about to request a refund from the studio's Stripe account. This cannot be undone from Encore.</p>
+<dl><dt>Family</dt><dd>{{ account.family }}</dd><dt>Tuition payment</dt><dd id="refund-summary-charge"></dd><dt>Amount</dt><dd id="refund-summary-amount"></dd><dt>Reason</dt><dd id="refund-summary-reason"></dd><dt>Notes</dt><dd id="refund-summary-notes"></dd></dl>
+<div class="refund-dialog-actions"><button type="button" id="refund-cancel" class="button secondary">Go Back</button><button type="button" id="refund-submit" class="button primary">Confirm & Issue Refund</button></div></div></dialog>
+<script>
+(function(){const form=document.getElementById('refund-form'),dialog=document.getElementById('refund-confirm-dialog');
+const pick=(name)=>form.elements[name];document.getElementById('review-refund').addEventListener('click',()=>{
+ if(!form.reportValidity())return;
+ const choice=pick('allocation').selectedOptions[0];if(!choice || !pick('amount').value || Number(pick('amount').value)<=0)return;
+ document.getElementById('refund-summary-charge').textContent=choice.textContent;
+ document.getElementById('refund-summary-amount').textContent='$'+Number(pick('amount').value).toFixed(2);
+ document.getElementById('refund-summary-reason').textContent=pick('reason').selectedOptions[0].textContent;
+ document.getElementById('refund-summary-notes').textContent=pick('notes').value;
+ dialog.showModal();});
+ document.getElementById('refund-cancel').addEventListener('click',()=>dialog.close());
+ document.getElementById('refund-submit').addEventListener('click',(e)=>{e.target.disabled=true;pick('confirm_refund').value='yes';form.submit();});
+})();
+</script>
+{% endblock %}

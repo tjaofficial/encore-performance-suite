@@ -1,0 +1,21 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+{% block title %}Measurements & Costumes Settings | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}"><link rel="stylesheet" href="{% static 'css/encore_vendor_conversions.css' %}">{% endblock %}
+{% block topbar_title %}Measurements & Costumes{% endblock %}
+{% block content %}
+<div class="settings-workspace">
+  {% include "includes/settings_nav.html" %}
+  <main class="settings-workspace-content">
+    <section class="settings-heading"><div><p class="eyebrow">Studio Settings</p><h1>Measurements & Costumes</h1><p>Control how Encore displays measurements and when students are due to be measured again.</p></div></section>
+    <form method="post" class="vendor-form-card">{% csrf_token %}
+      <div class="vendor-section-heading"><span>Measurements</span><h2>Measurement Defaults</h2></div>
+      <div class="vendor-form-grid two">
+        <label><span>Measurement Unit</span><select name="measurement_unit" class="encore-input"><option value="in" {% if settings_obj.measurement_unit == 'in' %}selected{% endif %}>Inches</option><option value="cm" {% if settings_obj.measurement_unit == 'cm' %}selected{% endif %}>Centimeters</option></select><small>Measurement fields display this unit. Existing data remains safely stored in Encore's canonical measurement format.</small></label>
+        <label><span>Require Remeasurement After</span><div class="input-with-suffix"><input class="encore-input" type="number" min="1" max="60" name="remeasurement_interval_months" value="{{ settings_obj.remeasurement_interval_months }}"><b>months</b></div><small>Students older than this threshold appear under Needs Remeasurement.</small></label>
+      </div>
+      <div class="vendor-form-actions"><button class="button primary" type="submit">Save Settings</button></div>
+    </form>
+  </main>
+</div>
+{% endblock %}

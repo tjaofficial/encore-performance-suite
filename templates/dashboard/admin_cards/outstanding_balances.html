@@ -1,0 +1,5 @@
+<article class="admin-dashboard-card admin-analytics-card analytics-balance-card card-tone-orange">
+    <div class="card-heading"><h2>Outstanding Balances</h2><span class="analytics-icon analytics-icon-balance" aria-hidden="true">!</span></div>
+    <div class="analytics-metric-block analytics-balance-total"><strong>${{ admin_analytics.outstanding_balances.total|floatformat:2 }}</strong><span>{{ admin_analytics.outstanding_balances.family_count }} famil{{ admin_analytics.outstanding_balances.family_count|pluralize:"y,ies" }} with an open balance</span></div>
+    <div class="balance-exposure"><div class="balance-exposure-heading"><span>Overdue</span><strong>${{ admin_analytics.outstanding_balances.overdue|floatformat:2 }}</strong></div><div class="analytics-progress-track" aria-label="{{ admin_analytics.outstanding_balances.overdue_percent }} percent of outstanding balances are overdue"><span style="width: {{ admin_analytics.outstanding_balances.overdue_percent }}%;"></span></div><small>{{ admin_analytics.outstanding_balances.overdue_percent }}% of open balance</small></div>
+</article>

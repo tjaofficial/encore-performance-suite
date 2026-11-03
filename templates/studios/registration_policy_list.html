@@ -1,0 +1,163 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Registration Policies & Agreements | Encore{% endblock %}
+{% block topbar_title %}Registration Policies & Agreements{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_registration_policies.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="settings-workspace">
+    {% include "includes/settings_nav.html" %}
+
+    <main class="settings-workspace-content">
+        <section class="settings-heading policy-page-heading">
+            <div>
+                <p class="eyebrow">Registration</p>
+                <h1>Policies & Agreements</h1>
+                <p>Create the documents families must review before checkout and decide exactly when each one applies.</p>
+            </div>
+            <a class="button primary" href="{% url 'studios:registration_policy_add' studio.slug %}">+ Create Policy / Agreement</a>
+        </section>
+
+        {% if messages %}
+        <div class="message-stack">
+            {% for message in messages %}<div class="message-banner {{ message.tags }}">{{ message }}</div>{% endfor %}
+        </div>
+        {% endif %}
+
+        <section class="policy-help-card">
+            <div>
+                <strong>How Encore uses these</strong>
+                <p>Studio/account policies appear for new accounts. Every-registration policies always appear. Class-specific policies appear only when one of their assigned classes is selected.</p>
+            </div>
+            <span>Acceptance is recorded before payment</span>
+        </section>
+
+        <section class="policy-family-preview" aria-label="Family-facing registration preview">
+            <div class="policy-family-preview-copy">
+                <p class="eyebrow">Family-facing example</p>
+                <h2>See what families will see before payment</h2>
+                <p>This preview mirrors the Policies & Agreements step in registration. Policy titles open the document for reading; acceptance happens from the checkbox beside each item.</p>
+                <div class="policy-preview-notes">
+                    <span>✓ Required before checkout</span>
+                    <span>↗ Policy opens in a modal</span>
+                    <span>◎ Acceptance is recorded</span>
+                </div>
+            </div>
+
+            <div class="policy-registration-preview">
+                <div class="policy-preview-progress">
+                    <span>Step 6 of 6</span>
+                    <strong>Policies &amp; Agreements</strong>
+                </div>
+                <div class="policy-preview-card">
+                    <div class="policy-preview-heading">
+                        <div>
+                            <span>Before payment</span>
+                            <h3>Review and accept</h3>
+                        </div>
+                        <small>Preview only</small>
+                    </div>
+                    <p class="policy-preview-intro">Review each document below. Selecting its checkbox confirms that you have read and agree to that specific policy or agreement.</p>
+
+                    <div class="policy-preview-list">
+                        {% if policies %}
+                            {% for policy in policies|slice:":3" %}
+                                {% if policy.is_active %}
+                                <label class="policy-preview-item">
+                                    <input type="checkbox" disabled>
+                                    <span>
+                                        <button type="button" class="policy-preview-link" disabled>{{ policy.title }}</button>
+                                        <small>{{ policy.acceptance_text|default:"I have read and agree to this policy or agreement." }}</small>
+                                    </span>
+                                </label>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <label class="policy-preview-item">
+                                <input type="checkbox" disabled>
+                                <span>
+                                    <button type="button" class="policy-preview-link" disabled>Payment Policy</button>
+                                    <small>I have read and agree to the Payment Policy.</small>
+                                </span>
+                            </label>
+                            <label class="policy-preview-item">
+                                <input type="checkbox" disabled>
+                                <span>
+                                    <button type="button" class="policy-preview-link" disabled>Photo &amp; Video Release</button>
+                                    <small>I have read and agree to the Photo &amp; Video Release.</small>
+                                </span>
+                            </label>
+                            <label class="policy-preview-item">
+                                <input type="checkbox" disabled>
+                                <span>
+                                    <button type="button" class="policy-preview-link" disabled>Pickup Agreement</button>
+                                    <small>I have read and agree to the Pickup Agreement.</small>
+                                </span>
+                            </label>
+                        {% endif %}
+                    </div>
+
+                    <button type="button" class="policy-preview-continue" disabled>Continue to Payment</button>
+                    <p class="policy-preview-footnote">The real registration button unlocks only after every required agreement has been accepted.</p>
+                </div>
+            </div>
+        </section>
+
+        {% if policies %}
+        <div class="policy-list">
+            {% for policy in policies %}
+            <article class="policy-list-card {% if not policy.is_active %}is-inactive{% endif %}">
+                <div class="policy-list-main">
+                    <div class="policy-title-row">
+                        <div>
+                            <span class="policy-type-pill">{{ policy.get_document_type_display }}</span>
+                            <h2>{{ policy.title }}</h2>
+                        </div>
+                        <div class="policy-state-pills">
+                            <span class="policy-version">v{{ policy.version }}</span>
+                            {% if policy.is_active %}<span class="policy-status active">Active</span>{% else %}<span class="policy-status">Inactive</span>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="policy-meta-grid">
+                        <div><span>Applies to</span><strong>{{ policy.get_scope_display }}</strong></div>
+                        <div><span>Acceptance</span><strong>{% if policy.requires_signature %}Checkbox + typed signature{% else %}Checkbox{% endif %}</strong></div>
+                        <div><span>Required</span><strong>Yes</strong></div>
+                        <div><span>Effective</span><strong>{% if policy.effective_date %}{{ policy.effective_date|date:"M j, Y" }}{% else %}Immediately{% endif %}</strong></div>
+                    </div>
+
+                    {% if policy.scope == 'specific_classes' %}
+                    <div class="policy-class-tags">
+                        {% for class_instance in policy.classes.all %}
+                        <span>{{ class_instance.class_id }} · {{ class_instance.name }}</span>
+                        {% empty %}<span>No classes assigned</span>{% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="policy-list-actions">
+                    <a class="settings-edit-link" href="{% url 'studios:registration_policy_edit' studio.slug policy.id %}">Edit / New Version</a>
+                    <form method="post" action="{% url 'studios:registration_policy_toggle' studio.slug policy.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="settings-remove-button">{% if policy.is_active %}Deactivate{% else %}Activate{% endif %}</button>
+                    </form>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <section class="policy-empty-state">
+            <div class="policy-empty-icon">✓</div>
+            <h2>No registration policies yet</h2>
+            <p>Create payment policies, waivers, photo releases, handbooks, pickup agreements, competition agreements, or any other document your studio needs.</p>
+            <a class="button primary" href="{% url 'studios:registration_policy_add' studio.slug %}">Create Your First Policy</a>
+        </section>
+        {% endif %}
+    </main>
+</div>
+{% endblock %}

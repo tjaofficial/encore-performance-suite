@@ -1,0 +1,17 @@
+/* Parent portal nav & dashboard refinement */
+.parent-nav {gap:5px;padding:9px 13px 24px;}
+.parent-nav a {min-height:48px;gap:12px;padding:0 13px; font-size:.82rem;transition:background .18s,color .18s,transform .18s,box-shadow .18s;}
+.parent-nav .parent-nav-icon {display:grid;place-items:center;flex:0 0 36px;width:36px;height:36px;border-radius:11px;background:#f0f4ff;color:#4666ae;}
+.parent-nav .parent-nav-icon svg {width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.parent-nav a:hover {background:#eef3ff;transform:translateX(2px);color:#1c3980;}
+.parent-nav a.active {background:linear-gradient(100deg,#e8efff,#f2f6ff);color:#2456c9;box-shadow:inset 3px 0 #366aff;}
+.parent-nav a.active .parent-nav-icon {background:#3569f4;color:white;box-shadow:0 3px 10px #3069f43b;}
+.parent-nav a.active .parent-nav-icon svg {color:white;}
+.parent-schedule-panel {min-height:385px;}
+.parent-dashboard-extras {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:stretch;}
+.parent-dashboard-extras > .parent-panel {min-height:230px;display:flex;flex-direction:column;}
+.parent-dashboard-extras .parent-card-scroll {flex:1;}
+.parent-makeup-pill {display:inline-flex;align-items:center;vertical-align:middle;border-radius:99px;padding:3px 8px;margin-left:5px;background:#ebf2ff;color:#1b62dc;font-size:.63rem;font-weight:850;letter-spacing:.01em;}
+.parent-task-check-automatic {cursor:default;background:#edf4ff;border-color:#acc8ff;}
+.parent-task-check-automatic:hover {box-shadow:none;border-color:#acc8ff;}
+@media(max-width:860px){.parent-dashboard-extras{grid-template-columns:1fr;}.parent-schedule-panel{min-height:330px;}}

@@ -1,7 +1,7 @@
 {% extends "dashboard/base_dashboard.html" %}
 {% load static %}
 
-{% block title %}Tuition Billing Policies | Encore{% endblock %}
+{% block title %}Tuition & Billing | Encore{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/encore_billing.css' %}">
@@ -9,9 +9,10 @@
 <link rel="stylesheet" href="{% static 'css/encore_enrollment_billing.css' %}">
 <link rel="stylesheet" href="{% static 'css/encore_list_views.css' %}">
 <link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_overdue_settings.css' %}">
 {% endblock %}
 
-{% block topbar_title %}Tuition Billing Policies{% endblock %}
+{% block topbar_title %}Tuition & Billing{% endblock %}
 
 {% block content %}
 <div class="settings-workspace">
@@ -21,11 +22,11 @@
     <div>
         <a class="back-link" href="{% url 'studios:onboarding_home' studio.slug %}">← Back to Studio Settings</a>
         <p class="eyebrow">Billing Setup</p>
-        <h1>Tuition Billing Policies</h1>
+        <h1>Tuition & Billing</h1>
 
         <p>
-            Policies control how and when a Class tuition price is billed.
-            Tuition amounts live on Classes.
+            Configure how your studio calculates tuition, then define when and how
+            Encore bills it.
         </p>
     </div>
 
@@ -62,14 +63,56 @@
 </div>
 {% endif %}
 
-<div class="billing-source-note">
-    <strong>No tuition price is entered here.</strong>
+<form method="post" class="tuition-settings-form" id="tuition-settings-form">
+    {% csrf_token %}
+    <input type="hidden" name="save_tuition_settings" value="1">
+    <section class="billing-card tuition-settings-card">
+        <div class="card-heading">
+            <div>
+                <span class="card-kicker">Tuition Settings</span>
+                <h2>How does this studio calculate tuition?</h2>
+            </div>
+            <button class="button primary" type="submit">Save Tuition Settings</button>
+        </div>
+        {% if tuition_settings_form.non_field_errors %}<div class="form-errors">{{ tuition_settings_form.non_field_errors }}</div>{% endif %}
+        <div class="tuition-mode-grid">
+            {% for radio in tuition_settings_form.pricing_mode %}
+                <label class="tuition-choice-card">{{ radio.tag }}<span><strong>{{ radio.choice_label }}</strong><small>{% if radio.data.value == 'per_class' %}Every class can have its own tuition amount and billing policy.{% else %}Calculate normal tuition from the family's total weekly class hours.{% endif %}</small></span></label>
+            {% endfor %}
+        </div>
+        <div id="studio-wide-settings" class="studio-wide-settings">
+            <div class="tuition-subsection">
+                <div class="tuition-subsection-heading"><span>Pricing Method</span><p>Use one hourly rate or a different rate for each additional weekly hour.</p></div>
+                <div class="tuition-method-grid">{% for radio in tuition_settings_form.studio_wide_method %}<label class="tuition-choice-card compact">{{ radio.tag }}<span><strong>{{ radio.choice_label }}</strong></span></label>{% endfor %}</div>
+            </div>
+            <div id="flat-rate-settings" class="tuition-subsection">
+                <div class="form-grid"><div class="field-group">{{ tuition_settings_form.flat_hourly_rate.label_tag }}<div class="money-input"><span>$</span>{{ tuition_settings_form.flat_hourly_rate }}</div><small>Monthly charge for each weekly class hour.</small>{% for error in tuition_settings_form.flat_hourly_rate.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div></div>
+            </div>
+            <div id="tiered-rate-settings" class="tuition-subsection">
+                <div class="tuition-subsection-heading with-action"><div><span>Hourly Rate Tiers</span><p>Partial hours use the proportional rate for the next hour.</p></div><button class="button secondary" type="button" id="add-tuition-tier">+ Add Rate Tier</button></div>
+                {{ tier_formset.management_form }}
+                <div class="tuition-tier-list" id="tuition-tier-list">
+                    {% for tier_form in tier_formset.forms %}
+                        <div class="tuition-tier-row" data-tier-row>{% for hidden in tier_form.hidden_fields %}{{ hidden }}{% endfor %}<div class="field-group"><label>Hour #</label>{{ tier_form.hour_number }}{% for error in tier_form.hour_number.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div><div class="field-group"><label>Rate for that hour</label><div class="money-input"><span>$</span>{{ tier_form.hourly_rate }}</div>{% for error in tier_form.hourly_rate.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div>{% if tier_form.DELETE %}<label class="tier-delete">{{ tier_form.DELETE }} <span>Remove</span></label>{% endif %}</div>
+                    {% endfor %}
+                </div>
+                <template id="empty-tier-template"><div class="tuition-tier-row" data-tier-row>{% for hidden in tier_formset.empty_form.hidden_fields %}{{ hidden }}{% endfor %}<div class="field-group"><label>Hour #</label>{{ tier_formset.empty_form.hour_number }}</div><div class="field-group"><label>Rate for that hour</label><div class="money-input"><span>$</span>{{ tier_formset.empty_form.hourly_rate }}</div></div>{% if tier_formset.empty_form.DELETE %}<label class="tier-delete">{{ tier_formset.empty_form.DELETE }} <span>Remove</span></label>{% endif %}</div></template>
+            </div>
+            <div class="tuition-subsection">
+                <div class="form-grid">
+                    <div class="field-group">{{ tuition_settings_form.additional_hour_rate.label_tag }}<div class="money-input"><span>$</span>{{ tuition_settings_form.additional_hour_rate }}</div><small>Optional. Blank means continue using the final tier rate.</small></div>
+                    <div class="field-group">{{ tuition_settings_form.family_monthly_cap.label_tag }}<div class="money-input"><span>$</span>{{ tuition_settings_form.family_monthly_cap }}</div><small>Optional maximum monthly studio-wide tuition for a family.</small></div>
+                    <div class="field-group">{{ tuition_settings_form.default_tuition_plan.label_tag }}{{ tuition_settings_form.default_tuition_plan }}<small>Controls frequency, registration fee, late fee, and grace period.</small>{% for error in tuition_settings_form.default_tuition_plan.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-    <span>
-        Example: Ballet II can cost $125 in the Class Manager and use the
-        Monthly Tuition policy below. The policy says monthly; the Class says $125.
-    </span>
+</form>
+<div class="billing-overdue-review-link" style="display:flex;justify-content:flex-end;margin:16px 0;">
+<a class="button secondary" href="{% url 'billing:studio_billing_reviews' studio.slug %}">Review overdue accounts &amp; withdrawals →</a>
 </div>
+<section class="billing-policy-section-heading" id="billing-policies-heading"><div><span class="card-kicker">Billing Policies</span><h2>How and when tuition is billed</h2><p>Policies control billing frequency, registration fees, late fees, and grace periods.</p></div></section>
 
 {% if view_mode == "table" %}
 <section class="encore-list-table-card">
@@ -185,4 +228,8 @@
 
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/encore_tuition_settings.js' %}" defer></script>
 {% endblock %}

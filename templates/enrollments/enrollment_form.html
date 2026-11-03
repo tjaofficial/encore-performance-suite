@@ -5,6 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/encore_staff_enrollment.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_form_workspace.css' %}">
 {% endblock %}
 
 {% block topbar_title %}{{ page_title }}{% endblock %}
@@ -38,47 +39,43 @@
         </div>
     {% endif %}
 
-    <section class="form-card">
-        <div class="form-grid">
-            {% for field in form %}
-                <div class="field-group {% if field.name == 'notes' %}full{% endif %}">
-                    {% if field.field.widget.input_type == "checkbox" %}
-                        <label class="checkbox-line">
+    <div class="encore-form-workspace">
+        <main class="encore-form-content">
+        <section class="form-card">
+            <div class="form-grid">
+                {% for field in form %}
+                    <div class="field-group {% if field.name == 'notes' %}full{% endif %}">
+                        {% if field.field.widget.input_type == "checkbox" %}
+                            <label class="checkbox-line">
+                                {{ field }}
+                                <span>{{ field.label }}</span>
+                            </label>
+                        {% else %}
+                            {{ field.label_tag }}
                             {{ field }}
-                            <span>{{ field.label }}</span>
-                        </label>
-                    {% else %}
-                        {{ field.label_tag }}
-                        {{ field }}
-                    {% endif %}
+                        {% endif %}
+    
+                        {% if field.help_text %}
+                            <small>{{ field.help_text }}</small>
+                        {% endif %}
+    
+                        {% for error in field.errors %}
+                            <small class="field-error">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+        </main>
 
-                    {% if field.help_text %}
-                        <small>{{ field.help_text }}</small>
-                    {% endif %}
-
-                    {% for error in field.errors %}
-                        <small class="field-error">{{ error }}</small>
-                    {% endfor %}
-                </div>
-            {% endfor %}
-        </div>
-    </section>
-
-    <div class="form-actions">
-        <a
-            class="button secondary"
-            href="{% url 'enrollments:enrollment_list' studio.slug %}"
-        >
-            Cancel
-        </a>
-
-        <button class="button primary" type="submit">
-            {% if enrollment %}
-                Save Changes
-            {% else %}
-                Create Enrollment
-            {% endif %}
-        </button>
+        {% url 'enrollments:enrollment_list' studio.slug as form_cancel_url %}
+        {% if enrollment %}
+            {% include "includes/form_action_sidebar.html" with action_kicker="Update Enrollment" action_title="Save your changes" action_description="Review the class registration details and save the enrollment updates." submit_label="Save Changes" cancel_url=form_cancel_url tip_title="Check the class first." tip_text="Confirm the student, class, status, and source before saving so rosters and billing stay aligned." %}
+        {% else %}
+            {% include "includes/form_action_sidebar.html" with action_kicker="Create Enrollment" action_title="Ready to enroll this student?" action_description="Confirm the student and class information, then create the enrollment." submit_label="Create Enrollment" cancel_url=form_cancel_url tip_title="Check the class first." tip_text="Confirm the student, class, status, and source before saving so rosters and billing stay aligned." %}
+        {% endif %}
     </div>
+
+
 </form>
 {% endblock %}

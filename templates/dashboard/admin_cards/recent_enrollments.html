@@ -1,1 +1,8 @@
-<article class="admin-dashboard-card"><div class="card-heading"><div><span class="card-kicker">Registration Activity</span><h2>Recent Enrollments</h2></div><a href="/admin/enrollments/enrollment/">View All</a></div>{% if recent_enrollments %}<div class="table-wrap admin-card-scroll"><table class="dashboard-table"><thead><tr><th>Student</th><th>Class</th><th>Status</th><th>Source</th></tr></thead><tbody>{% for enrollment in recent_enrollments %}<tr><td>{{ enrollment.student.first_name }} {{ enrollment.student.last_name }}</td><td>{{ enrollment.class_instance.class_id }} · {{ enrollment.class_instance.name }}</td><td><span class="status-pill">{{ enrollment.get_status_display }}</span></td><td>{{ enrollment.get_source_display }}</td></tr>{% endfor %}</tbody></table></div>{% else %}<div class="empty-state">No enrollment activity yet.</div>{% endif %}</article>
+<article class="admin-dashboard-card admin-standard-card card-tone-indigo recent-enrollments-card">
+    <div class="card-heading"><h2>Recent Enrollments</h2><a href="/admin/enrollments/enrollment/">View All</a></div>
+    {% if recent_enrollments %}
+        <div class="table-wrap admin-card-scroll"><table class="dashboard-table"><thead><tr><th>Student</th><th>Class</th><th>Status</th><th class="optional-table-column">Source</th></tr></thead><tbody>{% for enrollment in recent_enrollments %}<tr><td><strong>{{ enrollment.student.first_name }} {{ enrollment.student.last_name }}</strong></td><td>{{ enrollment.class_instance.class_id }} · {{ enrollment.class_instance.name }}</td><td><span class="status-pill">{{ enrollment.get_status_display }}</span></td><td class="optional-table-column">{{ enrollment.get_source_display }}</td></tr>{% endfor %}</tbody></table></div>
+    {% else %}
+        <div class="empty-state"><span class="empty-state-icon">↗</span><strong>No enrollment activity</strong><span>New registrations will appear here.</span></div>
+    {% endif %}
+</article>

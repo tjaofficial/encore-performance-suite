@@ -2446,3 +2446,833 @@ section.personalized-teacher-dashboard
     .teacher-dance-row { grid-template-columns: 30px minmax(0, 1fr); }
     .teacher-dance-open { display: none; }
 }
+
+
+/* =========================================================
+   Teacher Overview Header — matches Admin dashboard hierarchy
+   ========================================================= */
+
+.teacher-overview-card {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 14px 20px;
+    margin-bottom: 16px;
+    padding: 18px 20px 14px;
+    border: 1px solid
+        color-mix(
+            in srgb,
+            var(--encore-primary) 12%,
+            var(--encore-border)
+        );
+    border-radius: 15px;
+    background:
+        linear-gradient(
+            135deg,
+            color-mix(
+                in srgb,
+                var(--encore-primary) 3%,
+                #fff
+            ),
+            #fff 48%
+        );
+    box-shadow:
+        0 10px 28px rgba(0, 2, 78, 0.06),
+        0 1px 2px rgba(0, 2, 78, 0.03);
+}
+
+.teacher-overview-top {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.teacher-overview-kicker {
+    margin: 0 0 3px;
+    color: var(--encore-primary);
+    font-size: .61rem;
+    font-weight: 900;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.teacher-overview-card h1 {
+    margin: 0;
+    color: var(--encore-primary-deep);
+    font-size: clamp(2rem, 3.4vw, 2.8rem);
+    line-height: .98;
+    letter-spacing: -.05em;
+}
+
+.teacher-overview-subtitle {
+    margin: 5px 0 0;
+    color: var(--encore-muted);
+    font-size: .68rem;
+}
+
+.teacher-customize-button {
+    align-self: start;
+    min-height: 34px;
+    padding: 0 12px;
+    font-size: .62rem;
+}
+
+.teacher-overview-quick-actions {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 7px;
+    padding-top: 11px;
+    border-top: 1px solid var(--encore-border);
+}
+
+.teacher-overview-quick-actions-label {
+    color: var(--encore-primary);
+    font-size: .53rem;
+    font-weight: 900;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.teacher-overview-quick-action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+
+.teacher-overview-quick-action-buttons a {
+    display: flex;
+    flex: 0 0 auto;
+    min-height: 38px;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 13px;
+    border: 1px solid
+        color-mix(
+            in srgb,
+            var(--encore-primary) 45%,
+            var(--encore-border)
+        );
+    border-radius: 9px;
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(
+                in srgb,
+                var(--encore-primary) 9%,
+                #fff
+            ),
+            color-mix(
+                in srgb,
+                var(--encore-primary) 4%,
+                #fff
+            )
+        );
+    box-shadow:
+        0 3px 8px rgba(0, 2, 78, .07);
+    color: var(--encore-primary-deep);
+    font-size: .61rem;
+    font-weight: 900;
+    text-decoration: none;
+    transition:
+        background .15s ease,
+        border-color .15s ease,
+        color .15s ease,
+        transform .15s ease;
+}
+
+.teacher-overview-quick-action-buttons a > span {
+    display: grid;
+    width: 23px;
+    height: 23px;
+    place-items: center;
+    border-radius: 7px;
+    background: var(--encore-primary);
+    color: #fff;
+    font-size: .7rem;
+}
+
+.teacher-overview-quick-action-buttons a:hover {
+    border-color: var(--encore-primary);
+    background: var(--encore-primary);
+    color: #fff;
+    box-shadow:
+        0 6px 14px rgba(22, 99, 255, .18);
+    transform: translateY(-1px);
+}
+
+.teacher-overview-quick-action-buttons a:hover > span {
+    background: #fff;
+    color: var(--encore-primary);
+}
+
+/* Extra Work dashboard card */
+
+.teacher-extra-work-widget {
+    display: flex;
+    flex-direction: column;
+    padding: 14px;
+    overflow: hidden;
+}
+
+.teacher-extra-work-list {
+    display: grid;
+    min-height: 0;
+    flex: 1 1 auto;
+    align-content: start;
+    overflow-y: auto;
+    border-top: 1px solid var(--encore-border);
+}
+
+.teacher-extra-work-row {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr) auto;
+    gap: 9px;
+    align-items: center;
+    min-height: 45px;
+    border-bottom: 1px solid var(--encore-border);
+}
+
+.teacher-dashboard-empty-card {
+    display: grid;
+    gap: 4px;
+    padding: 18px 4px;
+    color: var(--encore-muted);
+    text-align: center;
+}
+
+.teacher-dashboard-empty-card strong {
+    color: var(--encore-primary-deep);
+    font-size: .65rem;
+}
+
+.teacher-dashboard-empty-card span {
+    font-size: .53rem;
+    line-height: 1.45;
+}
+
+@media (max-width: 720px) {
+    .teacher-overview-top {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .teacher-customize-button {
+        align-self: stretch;
+        justify-content: center;
+    }
+}
+
+
+/* =========================================================
+   Canonical Dashboard Task Card
+   Shared visual/interaction contract for Class, Admin, Teacher.
+   ========================================================= */
+
+.dashboard-task-card {
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0 !important;
+    border: 1px solid
+        color-mix(
+            in srgb,
+            var(--encore-primary) 18%,
+            var(--encore-border)
+        );
+    border-radius: 13px;
+    background: #fff;
+    box-shadow:
+        0 10px 26px rgba(0, 2, 78, .07),
+        0 1px 2px rgba(0, 2, 78, .04);
+}
+
+.dashboard-task-heading {
+    display: flex;
+    flex: 0 0 auto;
+    min-height: 43px;
+    box-sizing: border-box;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 13px 14px 10px;
+    border-bottom: 1px solid
+        color-mix(
+            in srgb,
+            var(--encore-primary) 18%,
+            var(--encore-border)
+        );
+}
+
+.dashboard-task-heading > div {
+    display: grid;
+    min-width: 0;
+    gap: 1px;
+}
+
+.dashboard-task-kicker {
+    color: var(--encore-primary);
+    font-size: .56rem;
+    font-weight: 900;
+    letter-spacing: .045em;
+    text-transform: uppercase;
+}
+
+.dashboard-task-heading h2 {
+    margin: 2px 0 0;
+    color: var(--encore-primary-deep);
+    font-size: .86rem;
+    line-height: 1.15;
+    letter-spacing: -.02em;
+}
+
+.dashboard-task-add {
+    display: inline-flex;
+    min-height: 27px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    padding: 0 9px;
+    border: 1px solid
+        color-mix(
+            in srgb,
+            var(--encore-primary) 34%,
+            var(--encore-border)
+        );
+    border-radius: 8px;
+    background:
+        color-mix(
+            in srgb,
+            var(--encore-primary) 7%,
+            #fff
+        );
+    color: var(--encore-primary);
+    font-size: .54rem;
+    font-weight: 900;
+    line-height: 1;
+    text-decoration: none;
+    white-space: nowrap;
+    transition:
+        background .15s ease,
+        border-color .15s ease,
+        color .15s ease;
+}
+
+.dashboard-task-add:hover,
+.dashboard-task-add:focus-visible {
+    border-color: var(--encore-primary);
+    background: var(--encore-primary);
+    color: #fff;
+}
+
+.dashboard-task-list {
+    display: grid;
+    align-content: start;
+    grid-auto-rows: min-content;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0 8px;
+}
+
+.dashboard-task-row {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    align-items: stretch;
+    min-height: 43px;
+    border-bottom: 1px solid
+        color-mix(
+            in srgb,
+            var(--encore-border) 84%,
+            transparent
+        );
+    border-radius: 8px;
+    transition:
+        background .14s ease,
+        box-shadow .14s ease;
+}
+
+.dashboard-task-row:last-child {
+    border-bottom-color: transparent;
+}
+
+.dashboard-task-row:hover,
+.dashboard-task-row:focus-within {
+    background:
+        color-mix(
+            in srgb,
+            var(--encore-primary) 5.5%,
+            #fff
+        );
+}
+
+.dashboard-task-complete {
+    display: grid;
+    margin: 0;
+    place-items: center;
+}
+
+.dashboard-task-check {
+    display: grid;
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    min-height: 18px;
+    place-items: center;
+    padding: 0;
+    border: 1.5px solid
+        color-mix(
+            in srgb,
+            var(--encore-primary) 35%,
+            var(--encore-border)
+        );
+    border-radius: 50%;
+    background: #fff;
+    color: var(--encore-primary);
+    cursor: pointer;
+    transition:
+        background .14s ease,
+        border-color .14s ease,
+        box-shadow .14s ease,
+        transform .14s ease;
+}
+
+.dashboard-task-check:hover,
+.dashboard-task-check:focus-visible {
+    border-color: var(--encore-primary);
+    background: var(--encore-primary-soft);
+    box-shadow:
+        0 0 0 3px
+        color-mix(
+            in srgb,
+            var(--encore-primary) 10%,
+            transparent
+        );
+    outline: 0;
+    transform: scale(1.04);
+}
+
+.dashboard-task-row-link {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: center;
+    padding: 5px 7px 5px 1px;
+    color: inherit;
+    text-decoration: none;
+    outline: 0;
+}
+
+.dashboard-task-row-link:focus-visible {
+    border-radius: 7px;
+    box-shadow:
+        inset 0 0 0 2px
+        color-mix(
+            in srgb,
+            var(--encore-primary) 45%,
+            transparent
+        );
+}
+
+.dashboard-task-copy {
+    display: grid;
+    min-width: 0;
+    gap: 2px;
+}
+
+.dashboard-task-copy strong {
+    overflow: hidden;
+    color: var(--encore-primary-deep);
+    font-size: .64rem;
+    font-weight: 850;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dashboard-task-copy small {
+    overflow: hidden;
+    color: var(--encore-muted);
+    font-size: .51rem;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dashboard-task-row:hover .dashboard-task-copy strong,
+.dashboard-task-row:focus-within .dashboard-task-copy strong {
+    color: var(--encore-primary);
+}
+
+.dashboard-task-end {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 7px;
+}
+
+.dashboard-task-date {
+    color: var(--encore-primary);
+    font-size: .53rem;
+    font-weight: 850;
+    white-space: nowrap;
+}
+
+.dashboard-task-arrow {
+    color: var(--encore-muted);
+    font-size: .95rem;
+    font-weight: 900;
+    line-height: 1;
+    transition:
+        color .14s ease,
+        transform .14s ease;
+}
+
+.dashboard-task-row:hover .dashboard-task-arrow,
+.dashboard-task-row:focus-within .dashboard-task-arrow {
+    color: var(--encore-primary);
+    transform: translateX(1px);
+}
+
+.dashboard-task-empty {
+    padding: 13px 6px;
+    color: var(--encore-muted);
+    font-size: .58rem;
+}
+
+.dashboard-task-footer {
+    display: flex;
+    flex: 0 0 auto;
+    min-height: 37px;
+    align-items: center;
+    justify-content: center;
+    margin-top: auto;
+    border-top: 1px solid
+        color-mix(
+            in srgb,
+            var(--encore-primary) 22%,
+            var(--encore-border)
+        );
+    background:
+        linear-gradient(
+            to bottom,
+            #fff,
+            color-mix(
+                in srgb,
+                var(--encore-primary) 4%,
+                #fff
+            )
+        );
+    color: var(--encore-primary);
+    font-size: .56rem;
+    font-weight: 900;
+    text-decoration: none;
+    transition:
+        background .14s ease,
+        color .14s ease;
+}
+
+.dashboard-task-footer:hover,
+.dashboard-task-footer:focus-visible {
+    background:
+        color-mix(
+            in srgb,
+            var(--encore-primary) 8%,
+            #fff
+        );
+    color: var(--encore-primary-deep);
+}
+
+/* Teacher dashboard contrast and compact responsive cards */
+section.personalized-teacher-dashboard > .teacher-dashboard-slot > .dashboard-widget,
+.teacher-overview-card {
+    border: 1px solid #c7d3e6 !important;
+    box-shadow: 0 5px 20px rgba(20, 44, 92, .07) !important;
+    border-radius: 17px !important;
+    background: #fff;
+}
+section.personalized-teacher-dashboard .widget-heading {border-bottom:1px solid #d5deec !important;}
+section.personalized-teacher-dashboard .widget-icon {
+    display:inline-grid; place-items:center; width:30px; height:30px;
+    border-radius:50%; background:#e7edff; color:#225fe8;
+}
+section.personalized-teacher-dashboard > .teacher-dashboard-slot[data-card-key="today_classes"] {
+    grid-row:span 3 !important;
+}
+/* Half-width cards have enough room for a real class list and detail panel.
+   The two sections scroll separately; the roster never overlays the picker. */
+section.personalized-teacher-dashboard > .teacher-dashboard-slot.width-half > .merged-class-widget {
+    display:flex !important; flex-direction:column !important; overflow:hidden !important;
+    grid-template-rows:none !important;
+}
+section.personalized-teacher-dashboard > .teacher-dashboard-slot.width-half .today-class-column {
+    flex:0 0 auto; min-height:0; max-height:46%; overflow:auto;
+    border-bottom:1px solid #d5deec !important;
+}
+section.personalized-teacher-dashboard > .teacher-dashboard-slot.width-half .current-class-column {
+    flex:1 1 0; min-height:0; overflow:auto;
+}
+section.personalized-teacher-dashboard .today-class-row {min-height:53px;}
+section.personalized-teacher-dashboard .today-class-rows {overscroll-behavior:contain;}
+.teacher-dance-class-schedule {display:block; margin-top:5px; color:#657794; font-size:.69rem; font-weight:650;}
+.teacher-attendance-widget {display:flex; flex-direction:column; padding:0; overflow:hidden;}
+.teacher-attendance-widget .widget-heading {padding:14px 16px; margin:0;}
+.teacher-attendance-widget .widget-title-group h2 {font-size:.9rem; margin:3px 0 0;}
+.teacher-attendance-body {display:flex; align-items:center; gap:16px; padding:17px;}
+.teacher-attendance-meter {width:116px; height:116px; flex:0 0 116px; border-radius:50%; background:conic-gradient(#16a385 var(--progress), #e3ebf0 var(--progress));display:grid;place-items:center;}
+.teacher-attendance-meter-inner {width:91px;height:91px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:3px;}
+.teacher-attendance-meter-inner strong {color:#111d38;font-size:1.65rem;line-height:1;}
+.teacher-attendance-meter-inner small {font-size:.58rem;letter-spacing:.08em;color:#6d7a8e;font-weight:800;}
+.teacher-attendance-summary {display:grid;gap:6px;min-width:0;}
+.teacher-attendance-summary strong {color:#11204a;font-size:.9rem;}
+.teacher-attendance-summary span,.teacher-attendance-summary small {color:#657794;font-size:.69rem;line-height:1.45;}
+.teacher-attendance-recent-title {font-size:.65rem;text-transform:uppercase;color:#536788;letter-spacing:.07em;font-weight:850;padding:9px 16px;border-top:1px solid #d5deec;border-bottom:1px solid #e2e8f2;}
+.teacher-attendance-absences {min-height:0;overflow-y:auto;flex:1;}
+.teacher-attendance-row {display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 16px;padding:7px 0;border-bottom:1px solid #e1e7f0;}
+.teacher-attendance-row > div {min-width:0;display:grid;gap:3px;}
+.teacher-attendance-row strong {font-size:.72rem;color:#162344;}
+.teacher-attendance-row small {font-size:.64rem;color:#687791;}
+.teacher-absence-pill {background:#fcebed;color:#a43d55;padding:4px 7px;font-size:.62rem;font-weight:750;border-radius:18px;}
+.teacher-attendance-empty {padding:15px;color:#6d7a8e;font-size:.74rem;}
+@media(max-width:800px){.teacher-attendance-body{padding:12px}.teacher-attendance-meter{width:94px;height:94px;flex-basis:94px}.teacher-attendance-meter-inner{width:73px;height:73px}}
+
+/* Teacher dashboard correction: side-by-side class picker at every desktop width. */
+section.personalized-teacher-dashboard > .teacher-dashboard-slot[data-card-key="today_classes"] {grid-row:span 2 !important;}
+section.personalized-teacher-dashboard > .teacher-dashboard-slot[data-card-key="today_classes"] > .merged-class-widget,
+section.personalized-teacher-dashboard > .teacher-dashboard-slot.width-half > .merged-class-widget {
+ display:grid !important; grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+ grid-template-rows:minmax(0,1fr) !important; flex-direction:row !important;min-height:0 !important;
+}
+section.personalized-teacher-dashboard > .teacher-dashboard-slot.width-half .today-class-column,
+section.personalized-teacher-dashboard .today-class-column {max-height:none !important; height:100%; min-height:0;overflow:hidden !important;border-right:1px solid #bccbdf !important;border-bottom:0 !important;}
+section.personalized-teacher-dashboard > .teacher-dashboard-slot.width-half .current-class-column,
+section.personalized-teacher-dashboard .current-class-column {height:100%; min-height:0;overflow-y:auto !important;}
+section.personalized-teacher-dashboard .today-class-rows {flex:1; overflow-y:auto;}
+section.personalized-teacher-dashboard .today-class-row {grid-template-columns:3px 52px minmax(0,1fr) auto !important;gap:6px !important;padding:9px 7px !important;}
+section.personalized-teacher-dashboard .today-class-details {display:none !important;}
+section.personalized-teacher-dashboard .today-class-status {display:none !important;}
+section.personalized-teacher-dashboard .open-class-label {font-size:.55rem;}
+.teacher-class-placeholder {height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;text-align:center;padding:20px;color:#62738b;background:radial-gradient(circle at 84% 15%,rgba(55,110,244,.09),transparent 37%);}
+.teacher-class-placeholder-icon {display:grid;place-items:center;width:62px;height:62px;border-radius:50%;background:#e5edff;color:#1b63f6;font-size:29px;animation:teacher-icon-float 3s ease-in-out infinite;}
+.teacher-class-placeholder strong{font-size:1rem;color:#12244a;}
+.teacher-class-placeholder p{font-size:.72rem;max-width:250px;line-height:1.5;margin:0;}
+@keyframes teacher-icon-float{50%{transform:translateY(-6px)}}
+.current-class-panel:not([hidden]){animation:teacher-panel-entry .2s ease-out;}
+@keyframes teacher-panel-entry{from{opacity:.4;transform:translateY(7px)}to{opacity:1;transform:none}}
+section.personalized-teacher-dashboard .current-roster{max-height:165px;}
+section.personalized-teacher-dashboard .roster-row{grid-template-columns:22px minmax(0,1fr) auto !important;min-height:39px;padding:4px 7px;}
+.teacher-roster-student{display:grid;gap:2px;min-width:0}.teacher-roster-student strong{font-size:.65rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.teacher-roster-student small{font-size:.53rem;color:#6c7890}
+.teacher-roster-detail{font-size:.53rem;color:#145ef6;text-decoration:none;border:1px solid #bdd0fb;border-radius:7px;padding:6px;white-space:nowrap;}
+.roster-row .roster-attendance{display:none !important}
+.teacher-roster-empty{display:flex; flex-direction:column;gap:6px;align-items:center;justify-content:center;padding:25px 10px;color:#687a96;background:#f7faff;text-align:center;}
+.teacher-roster-empty strong{color:#1a3056;font-size:.7rem}.teacher-roster-empty span{font-size:.62rem}
+.teacher-attendance-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);min-height:0;flex:1;}
+.teacher-attendance-body{min-width:0;align-self:center}.teacher-attendance-right{display:flex;flex-direction:column;min-width:0;border-left:1px solid #d1dcec;min-height:0;}
+.teacher-attendance-recent-title{border-top:0;}.teacher-attendance-absences{flex:1;overflow:auto;}
+.teacher-extra-work-widget .widget-icon{display:none !important;}
+.teacher-extra-work-list{border-top:0 !important;}
+section.personalized-teacher-dashboard .dashboard-widget{border-color:#b8c8df !important;background:radial-gradient(circle at 98% 1%,rgba(40,102,238,.055),transparent 24%),#fff !important;}
+section.personalized-teacher-dashboard .widget-heading{border-bottom-color:#c5d3e7 !important;}
+section.personalized-teacher-dashboard .teacher-card-action{border:1px solid #b8caff;border-radius:8px;padding:6px 10px;color:#1255d8;background:#fff;text-decoration:none;}
+@media(max-width:700px){section.personalized-teacher-dashboard > .teacher-dashboard-slot[data-card-key="today_classes"] > .merged-class-widget{grid-template-columns:1fr !important;grid-template-rows:minmax(0,1fr) minmax(0,1fr) !important;}section.personalized-teacher-dashboard .today-class-column{border-right:0 !important;border-bottom:1px solid #cbd7e8 !important}.teacher-attendance-layout{grid-template-columns:1fr}.teacher-attendance-right{border-left:0;border-top:1px solid #d1dcec}}
+
+/* Card-specific accents with stronger visual hierarchy. */
+section.personalized-teacher-dashboard > .teacher-dashboard-slot[data-card-key="tasks"] .dashboard-widget {background:radial-gradient(circle at 99% 0%,rgba(100,73,215,.10),transparent 28%),#fff !important}
+section.personalized-teacher-dashboard > .teacher-dashboard-slot[data-card-key="extra_work"] .dashboard-widget {background:radial-gradient(circle at 99% 0%,rgba(32,145,185,.10),transparent 28%),#fff !important}
+section.personalized-teacher-dashboard > .teacher-dashboard-slot[data-card-key="attendance"] .dashboard-widget {background:radial-gradient(circle at 99% 0%,rgba(15,160,128,.10),transparent 28%),#fff !important}
+section.personalized-teacher-dashboard > .teacher-dashboard-slot[data-card-key="dances"] .dashboard-widget {background:radial-gradient(circle at 99% 0%,rgba(127,85,223,.09),transparent 28%),#fff !important}
+section.personalized-teacher-dashboard .teacher-extra-work-widget .widget-heading .widget-icon {display:none !important;}
+section.personalized-teacher-dashboard .teacher-extra-work-widget .teacher-extra-work-list {border-top:none !important;}
+section.personalized-teacher-dashboard .teacher-extra-work-widget .dashboard-task-footer {min-height:37px;margin-top:auto;}
+.teacher-class-placeholder[hidden]{display:none !important}
+@media(min-width:701px) and (max-width:1150px){section.personalized-teacher-dashboard > .teacher-dashboard-slot[data-card-key="today_classes"]{grid-column:span 12 !important}}
+
+
+/* Teacher dashboard polish: match Extra Work to the Tasks card exactly. */
+section.personalized-teacher-dashboard .teacher-extra-work-widget {
+    padding: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden;
+}
+section.personalized-teacher-dashboard .teacher-extra-work-widget > .teacher-extra-work-heading {
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: space-between;
+    flex: 0 0 auto;
+    min-height: 0;
+    margin: 0 !important;
+    padding: 12px 13px !important;
+    border-bottom: 1px solid #c5d3e7 !important;
+}
+section.personalized-teacher-dashboard .teacher-extra-work-widget .widget-title-group {
+    display: grid;
+    gap: 2px;
+}
+section.personalized-teacher-dashboard .teacher-extra-work-widget .widget-kicker {
+    color: var(--encore-primary);
+    font-size: .56rem;
+    font-weight: 900;
+    letter-spacing: .04em;
+}
+section.personalized-teacher-dashboard .teacher-extra-work-widget .widget-title-group h2 {
+    margin: 1px 0 0;
+    color: var(--encore-primary-deep);
+    font-size: .86rem;
+    line-height: 1.15;
+    letter-spacing: -.02em;
+}
+section.personalized-teacher-dashboard .teacher-extra-work-widget .task-card-header-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    min-height: 27px;
+    padding: 0 8px;
+    border: 1px solid color-mix(in srgb, var(--encore-primary) 28%, var(--encore-border));
+    border-radius: 7px;
+    background: color-mix(in srgb, var(--encore-primary) 8%, white);
+    color: var(--encore-primary);
+    font-size: .56rem;
+    font-weight: 900;
+    text-decoration: none;
+}
+section.personalized-teacher-dashboard .teacher-extra-work-widget .task-card-header-action:hover {
+    background: var(--encore-primary);
+    border-color: var(--encore-primary);
+    color: white;
+}
+section.personalized-teacher-dashboard .teacher-extra-work-widget > .teacher-extra-work-list {
+    padding: 0 8px !important;
+    margin: 0 !important;
+    border: 0 !important;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    align-content: start;
+}
+section.personalized-teacher-dashboard .teacher-extra-work-widget .teacher-card-empty {
+    margin: 0;
+    padding: 13px 6px;
+    text-align: left;
+    font-size: .58rem;
+    color: var(--encore-muted);
+}
+section.personalized-teacher-dashboard .teacher-extra-work-widget > .dashboard-task-footer {
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    flex: 0 0 37px;
+    width: 100%;
+    min-height: 37px;
+    padding: 0 8px !important;
+    margin: auto 0 0 !important;
+    border: 0 !important;
+    border-top: 1px solid color-mix(in srgb, var(--encore-primary) 22%, var(--encore-border)) !important;
+    border-radius: 0 !important;
+    background: linear-gradient(to bottom,#fff,color-mix(in srgb,var(--encore-primary) 4%,#fff)) !important;
+    font-size: .56rem;
+    font-weight: 900;
+    color: var(--encore-primary);
+    text-decoration: none;
+}
+section.personalized-teacher-dashboard .teacher-extra-work-widget > .dashboard-task-footer:hover {
+    background: color-mix(in srgb,var(--encore-primary) 8%,white) !important;
+}
+/* Visible clipped corner circles, not transparent hazes. Scoped to the dashboard. */
+section.personalized-teacher-dashboard .teacher-dashboard-slot > .dashboard-widget {
+    position: relative;
+    isolation: isolate;
+    border: 1px solid #aebfd8 !important;
+    box-shadow: 0 5px 20px rgba(20,44,92,.09) !important;
+    background: white !important;
+}
+section.personalized-teacher-dashboard .teacher-dashboard-slot > .dashboard-widget::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    width: 116px;
+    height: 116px;
+    top: -57px;
+    right: -39px;
+    border-radius: 50%;
+    background: #dce7ff;
+    pointer-events: none;
+}
+section.personalized-teacher-dashboard .teacher-dashboard-slot[data-card-key="tasks"] > .dashboard-widget::before { background: #e7ddff; }
+section.personalized-teacher-dashboard .teacher-dashboard-slot[data-card-key="extra_work"] > .dashboard-widget::before { background: #d1f0fa; }
+section.personalized-teacher-dashboard .teacher-dashboard-slot[data-card-key="attendance"] > .dashboard-widget::before { background: #d6f3e7; }
+section.personalized-teacher-dashboard .teacher-dashboard-slot[data-card-key="dances"] > .dashboard-widget::before { background: #e7deff; }
+section.personalized-teacher-dashboard .teacher-dashboard-slot[data-card-key="today_classes"] > .dashboard-widget::before { background: #dde8ff; }
+section.personalized-teacher-dashboard .teacher-dashboard-slot > .dashboard-widget > * { position: relative; }
+
+/* Selected class footer: two equally accessible actions. */
+section.personalized-teacher-dashboard .teacher-class-panel-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 9px;
+    margin-top: auto;
+    padding-top: 10px;
+}
+section.personalized-teacher-dashboard .teacher-class-panel-actions .take-attendance-button,
+section.personalized-teacher-dashboard .teacher-class-panel-actions .teacher-open-class-button {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 42px;
+    margin-top: 0;
+    padding: 8px 10px;
+    border-radius: 10px;
+    font-size: .65rem;
+    font-weight: 850;
+    text-decoration: none;
+    text-align: center;
+    white-space: nowrap;
+}
+section.personalized-teacher-dashboard .teacher-open-class-button {
+    border: 1px solid #a8bff2;
+    background: #f2f6ff;
+    color: #1358d8;
+}
+section.personalized-teacher-dashboard .teacher-open-class-button:hover {
+    background: #e3edff;
+    border-color: #6c96ed;
+}
+@media (max-width: 480px) {
+    section.personalized-teacher-dashboard .teacher-class-panel-actions {gap: 6px;}
+    section.personalized-teacher-dashboard .teacher-class-panel-actions .take-attendance-button,
+    section.personalized-teacher-dashboard .teacher-class-panel-actions .teacher-open-class-button {padding: 7px 5px; font-size: .6rem;}
+}
+
+
+/* Interactive upcoming-event previews (hover, focus and tap). */
+.encore-event-preview { position:relative; display:block; min-width:0; overflow:visible; }
+.encore-event-preview > summary { display:flex; align-items:center; gap:10px; list-style:none; cursor:pointer; border-radius:9px; }
+.encore-event-preview > summary::-webkit-details-marker { display:none; }
+.encore-event-preview > summary:hover, .encore-event-preview > summary:focus-visible { background:#eaf0ff; outline:2px solid transparent; }
+.encore-event-preview .encore-event-details { display:none; position:absolute; z-index:80; top:calc(100% + 5px); left:0; width:min(330px, 85vw); padding:14px; border:1px solid #9cafdf; background:#fff; color:#15254b; border-radius:13px; box-shadow:0 13px 32px rgba(18,33,78,.19); font-size:12px; line-height:1.5; }
+.encore-event-preview:hover .encore-event-details, .encore-event-preview:focus-within .encore-event-details, .encore-event-preview[open] .encore-event-details {display:flex; flex-direction:column; gap:6px;}
+.encore-event-details > strong {font-size:14px;}
+.encore-event-details > span {color:#415778;}
+.encore-event-details p {margin:2px 0;white-space:normal;}
+.encore-event-details a {color:#145afb;font-weight:800;}
+.event-calendar-link {padding:6px 10px;border:1px solid #b2c7fa;border-radius:8px;color:#155fff;font-weight:800;font-size:11px;text-decoration:none;}
+.admin-quick-action-buttons .encore-shortcut-svg,.teacher-overview-quick-action-buttons .encore-shortcut-svg{width:17px;height:17px;display:block;}
+.admin-quick-action-buttons a > span,.teacher-overview-quick-action-buttons a > span{width:26px;height:26px;}
+.teacher-dashboard-slot[data-card-key="upcoming_events"],
+.teacher-dashboard-slot[data-card-key="upcoming_events"] > .dashboard-widget,
+.teacher-dashboard-slot[data-card-key="upcoming_events"] .teacher-event-list {
+    overflow: visible;
+    z-index: 5;
+}
+.teacher-dashboard-slot[data-card-key="upcoming_events"] .teacher-event-row { padding: 0; }
+.teacher-dashboard-slot[data-card-key="upcoming_events"] .teacher-event-row > summary { padding: 9px; }
+
+/* SVG quick-action icons: prevent icon identifiers from wrapping as text. */
+.class-quick-actions a > .encore-shortcut-icon,.teacher-overview-quick-action-buttons a > .encore-shortcut-icon{display:inline-flex;flex:0 0 27px;align-items:center;justify-content:center;width:27px;height:27px;border-radius:8px;background:#195eff;color:#fff;font-size:0;line-height:1;overflow:hidden}
+.class-quick-actions .encore-shortcut-svg,.teacher-overview-quick-action-buttons .encore-shortcut-svg{display:block;width:17px;height:17px;flex:none;stroke:currentColor}

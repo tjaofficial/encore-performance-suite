@@ -1,0 +1,51 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+{% block title %}Imported Billing Activation | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}"><link rel="stylesheet" href="{% static 'css/encore_import_billing_activation.css' %}">{% endblock %}
+{% block topbar_title %}Billing Activation{% endblock %}
+{% block content %}
+<div class="billing-activation-workspace"><main class="settings-workspace-content billing-activation">
+  <a class="back-link" href="{% url 'studios:studio_director_onboarding' studio.slug %}">← Studio Director Onboarding</a>
+  <header><p class="eyebrow">FINAL BILLING ACTIVATION</p><h1>Review Imported Tuition</h1><p>Family pricing is calculated using your studio's tuition setup, class hours, and family cap. Adjust individual family amounts when needed. Activation creates schedules only. It does not generate charges, invoices, or collect payments.</p></header>
+  {% if messages %}{% for message in messages %}<div class="activation-alert">{{ message }}</div>{% endfor %}{% endif %}
+  <section class="activation-summary">
+    <div><strong>{{ counts.total }}</strong><span>Imported active enrollments</span></div>
+    <div><strong>{{ counts.families }}</strong><span>Family/season groups</span></div>
+    <div><strong>{{ counts.schedules_ready }}</strong><span>Schedules ready</span></div>
+    <div><strong>{{ counts.existing }}</strong><span>Already scheduled</span></div>
+    <div><strong>{{ counts.missing }}</strong><span>Groups needing review</span></div>
+  </section>
+  {% if activation_state.status == 'completed' %}<p class="activation-alert">Last activation: {{ activation_state.cutover }} · {{ activation_state.created }} schedules created. Re-running activation will skip existing schedules.</p>{% endif %}
+  <section class="activation-panel"><h2>Billing date and search</h2>
+    <form method="get" class="activation-toolbar">
+      <label>Start billing on <input type="date" name="cutover" min="{{ minimum|date:'Y-m-d' }}" value="{{ cutover|date:'Y-m-d' }}" required></label>
+      <label>Find family, student or class <input type="search" name="q" value="{{ q }}" placeholder="Search billing review"></label>
+      <label>Status <select name="status"><option value="">All</option><option value="eligible" {% if status_filter == 'eligible' %}selected{% endif %}>Ready</option><option value="missing" {% if status_filter == 'missing' %}selected{% endif %}>Needs review</option><option value="existing" {% if status_filter == 'existing' %}selected{% endif %}>Already scheduled</option></select></label>
+      <button class="button secondary" type="submit">Refresh preview</button>
+    </form>
+  </section>
+  <section class="activation-panel"><h2>Family and enrollment billing review</h2>
+    <p>{{ filtered_count }} billing groups match your filters. Studio-wide families receive one family-level schedule per season. Custom-price classes have separate enrollment schedules. Expand each family to inspect every class and prevent surprises.</p>
+    <div class="activation-table-wrap"><table class="activation-table"><thead><tr><th>Family / enrollment</th><th>Classes and hours</th><th>Calculated</th><th>Approved tuition</th><th>Status</th></tr></thead><tbody>
+      {% for item in rows %}<tr><td>
+        {% if item.kind == 'family' %}<strong>{{ item.family.family_name }}</strong><small>{{ item.season }} · {{ item.student_count }} student(s) · {{ item.enrollment_count }} imported enrollment(s)</small>
+        {% else %}<strong>{{ item.enrollment.student }}</strong><small>{{ item.enrollment.class_instance.name }} · individual class tuition</small>{% endif %}
+      </td><td>{% if item.kind == 'family' %}<details class="activation-class-details"><summary>View all {{ item.members|length }} studio-wide classes{% if item.special_classes %} + {{ item.special_classes|length }} special class(es){% endif %}</summary>
+<ul>{% for enrollment in item.members %}<li><strong>{{ enrollment.student }}</strong> · {{ enrollment.class_instance.name }} <small>Included in studio-wide tuition</small></li>{% endfor %}{% for special in item.special_classes %}<li><strong>{{ special.enrollment.student }}</strong> · {{ special.enrollment.class_instance.name }} · ${{ special.amount }} <small>Separately billed special class · {{ special.status }}</small></li>{% endfor %}</ul></details><small>{{ item.weekly_hours|floatformat:2 }} studio-wide hours/week</small>{% else %}{{ item.enrollment.class_instance.name }}{% endif %}</td>
+      <td>${% if item.kind == 'family' %}{{ item.computed }}<small>Studio-wide subtotal</small>{% if item.special_classes %}<small>Special classes: ${{ item.special_total }}</small><strong>Combined: ${{ item.combined_total }}</strong>{% endif %}{% else %}{{ item.amount }}{% endif %}</td>
+      <td>{% if item.kind == 'family' and item.status != 'existing' %}
+        <form method="post" class="activation-edit">{% csrf_token %}<input type="hidden" name="action" value="adjust"><input type="hidden" name="cutover" value="{{ cutover|date:'Y-m-d' }}"><input type="hidden" name="family_id" value="{{ item.family.pk }}"><input type="hidden" name="season_id" value="{{ item.season.pk }}"><input type="hidden" name="q" value="{{ q }}"><label class="sr-only" for="amt-{{ item.key }}">Family tuition amount</label><input id="amt-{{ item.key }}" type="number" min="0.01" step="0.01" name="amount" value="{% if item.override != None %}{{ item.override }}{% endif %}" placeholder="Auto: ${{ item.computed }}" title="Blank means calculated studio-wide amount"><button class="button secondary" type="submit">Save</button></form>
+        <small>{% if item.override != None %}Override: ${{ item.amount }} · clear and save to restore auto{% else %}Using calculated tuition{% endif %}</small>
+        {% else %}${{ item.amount }}{% endif %}</td>
+      <td>{% if item.first_charge_date %}<small>First tuition due: {{ item.first_charge_date|date:"M j, Y" }}</small>{% endif %}<strong class="activation-status {{ item.status }}">{{ item.status }}</strong>{% if item.reason %}<small>{{ item.reason }}</small>{% endif %}</td></tr>
+      {% empty %}<tr><td colspan="5">No matching billing records.</td></tr>{% endfor %}
+    </tbody></table></div>
+    <nav class="activation-pages">{% if page_obj.has_previous %}<a href="?cutover={{ cutover|date:'Y-m-d' }}&amp;q={{ q|urlencode }}&amp;status={{ status_filter }}&amp;page={{ page_obj.previous_page_number }}">← Previous</a>{% endif %}<span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>{% if page_obj.has_next %}<a href="?cutover={{ cutover|date:'Y-m-d' }}&amp;q={{ q|urlencode }}&amp;status={{ status_filter }}&amp;page={{ page_obj.next_page_number }}">Next →</a>{% endif %}</nav>
+  </section>
+  <section class="activation-panel"><h2>Activation safeguards</h2><p><strong>Charges created now: $0.00 · Payments collected now: $0.00.</strong> Monthly schedules begin on the next eligible 1st of the month, strictly after today and within each class season. Existing schedules are not modified. No historical catch-up charges or collection attempts are generated by activation. Weekly and quarterly schedules keep their policy frequency. The daily billing process handles charges when they become due.</p>
+    {% if not transition_complete or not final_complete %}<p><strong>Complete Billing Transition and Final Review before activating.</strong></p>{% endif %}
+    {% if counts.missing %}<p><strong>{{ counts.missing }} billing groups still require review.</strong> These are excluded from activation; correct tuition setup, class meeting hours, or competing schedules before enabling them.</p>{% endif %}
+    <form method="post" class="activation-confirm">{% csrf_token %}<input type="hidden" name="action" value="activate"><input type="hidden" name="cutover" value="{{ cutover|date:'Y-m-d' }}"><label>Type ACTIVATE to confirm <input name="confirm" autocomplete="off" placeholder="ACTIVATE" required></label><button class="button primary" type="submit" {% if not transition_complete or not final_complete or not counts.schedules_ready %}disabled{% endif %}>Activate {{ counts.schedules_ready }} ready schedules</button></form>
+  </section>
+</main></div>
+{% endblock %}

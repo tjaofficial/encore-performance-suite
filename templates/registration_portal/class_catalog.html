@@ -3,256 +3,241 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1"
-    >
-
-    <title>
-        Classes | {{ studio.name }}
-    </title>
-
-    <link
-        rel="stylesheet"
-        href="{% static 'css/encore_public_registration.css' %}"
-    >
-    <link
-        rel="icon"
-        type="image/png"
-        href="{% static 'images/icon.png' %}"
-    >
-
-    <link
-        rel="stylesheet"
-        href="{% static 'css/encore_tenant_branding.css' %}"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Classes | {{ studio.name }}</title>
+    <link rel="stylesheet" href="{% static 'css/encore_public_registration.css' %}">
+    <link rel="icon" type="image/png" href="{% static 'images/icon.png' %}">
+    <link rel="stylesheet" href="{% static 'css/encore_tenant_branding.css' %}">
     {% include "includes/studio_brand_vars.html" %}
 </head>
-
 <body class="{% if embed_mode %}embed-mode {% endif %}widget-style-{{ widget_style|default:'cards' }}">
-    <main class="public-shell">
-        {% if not embed_mode %}
-            <header class="public-header">
+<main class="public-shell">
+    {% if not embed_mode %}
+    <header class="public-header">
+        <div>
+            <span class="public-kicker">{{ studio.name }}</span>
+            <h1>Find Your Classes</h1>
+            <p>Browse classes, add the ones you are interested in, then start one registration for the whole family.</p>
+        </div>
+    </header>
+    {% endif %}
+
+    {% if registration_enabled %}
+    <section class="class-cart-panel" id="class-cart-panel" hidden>
+        <div class="class-cart-heading">
+            <div>
+                <span class="public-kicker">Selected Classes</span>
+                <h2>Your Class List</h2>
+                <p>Nothing is enrolled yet. You will assign these classes to students during registration.</p>
+            </div>
+            <a
+                id="start-registration-button"
+                class="public-button primary large"
+                href="{% url 'registration_portal:registration_wizard_start' studio.slug %}"
+                {% if embed_mode %}target="_top"{% endif %}
+            >Start Registration (<span id="class-cart-count">0</span>)</a>
+        </div>
+        <div class="class-cart-table-wrap">
+            <table class="class-cart-table">
+                <thead>
+                    <tr><th>Class</th><th>Schedule</th><th>Status</th><th></th></tr>
+                </thead>
+                <tbody id="class-cart-body"></tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if not filters.hide_filters %}
+    <form method="get" class="catalog-filters">
+        <div class="wide">
+            <label>Search</label>
+            <input type="search" name="q" value="{{ filters.q }}" placeholder="Ballet, jazz, tap...">
+        </div>
+        <div>
+            <label>Class Type</label>
+            <select name="type">
+                <option value="">All Types</option>
+                {% for class_type in class_types %}
+                <option value="{{ class_type.id }}" {% if filters.type == class_type.id|stringformat:"s" %}selected{% endif %}>{{ class_type.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label>Level</label>
+            <select name="level">
+                <option value="">All Levels</option>
+                {% for level in class_levels %}
+                <option value="{{ level.number }}" {% if filters.level == level.number|stringformat:"s" %}selected{% endif %}>Level {{ level.number }} — {{ level.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label>Age Group</label>
+            <input type="text" name="age_group" value="{{ filters.age_group }}" placeholder="Example: 5-6">
+        </div>
+        <div>
+            <label>Season</label>
+            <select name="season">
+                <option value="">All Seasons</option>
+                {% for season in seasons %}
+                <option value="{{ season.id }}" {% if filters.season == season.id|stringformat:"s" %}selected{% endif %}>{{ season.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label>Availability</label>
+            <select name="availability">
+                <option value="">All</option>
+                <option value="open" {% if filters.availability == "open" %}selected{% endif %}>Open Classes</option>
+            </select>
+        </div>
+        <button class="public-button primary" type="submit">Search</button>
+    </form>
+    {% endif %}
+
+    <section class="public-class-grid">
+        {% for row in class_rows %}
+        <article class="public-class-card" data-class-card="{{ row.class.id }}">
+            <div class="class-card-top">
                 <div>
-                    <span class="public-kicker">
-                        {{ studio.name }}
-                    </span>
-
-                    <h1>
-                        Find Your Class
-                    </h1>
-
+                    <span class="public-kicker">{{ row.class.class_id }}</span>
+                    <h2>{{ row.class.name }}</h2>
+                    <p>{{ row.class.class_type.name }} · {{ row.class.season.name }}</p>
                     <p>
-                        Browse available classes and send a registration
-                        request directly to the studio.
+                        {% if row.class.min_age is not None or row.class.max_age is not None %}
+                            Ages {{ row.class.age_range_label }}
+                        {% endif %}
+                        {% if row.class.level %}{% if row.class.min_age is not None or row.class.max_age is not None %} · {% endif %}Level {{ row.class.level.number }} — {{ row.class.level.name }}{% endif %}
                     </p>
                 </div>
-            </header>
-        {% endif %}
-
-        <form
-            method="get"
-            class="catalog-filters"
-        >
-            <div class="wide">
-                <label>Search</label>
-
-                <input
-                    type="search"
-                    name="q"
-                    value="{{ filters.q }}"
-                    placeholder="Ballet, jazz, tap..."
-                >
+                {% if row.is_full %}<span class="availability full">Waitlist</span>{% else %}<span class="availability open">Open</span>{% endif %}
             </div>
 
-            <div>
-                <label>Class Type</label>
+            {% if row.class.description %}<p class="class-description">{{ row.class.description|truncatechars:150 }}</p>{% endif %}
 
-                <select name="type">
-                    <option value="">
-                        All Types
-                    </option>
-
-                    {% for class_type in class_types %}
-                        <option
-                            value="{{ class_type.id }}"
-                            {% if filters.type == class_type.id|stringformat:"s" %}selected{% endif %}
-                        >
-                            {{ class_type.name }}
-                        </option>
-                    {% endfor %}
-                </select>
+            <div class="class-info-grid">
+                <div><span>Instructor</span><strong>{{ row.class.instructor.full_name }}</strong></div>
+                {% if show_class_capacity %}
+                <div><span>Capacity</span><strong>{{ row.enrolled }}/{{ row.class.capacity }}</strong></div>
+                {% if row.remaining is not None %}<div><span>Open Spots</span><strong>{{ row.remaining }}</strong></div>{% endif %}
+                {% endif %}
+                {% if show_class_pricing and row.class.tuition_amount is not None %}
+                <div><span>Tuition</span><strong>${{ row.class.tuition_amount }}{% if row.class.tuition_plan %} · {{ row.class.tuition_plan.get_frequency_display }}{% endif %}</strong></div>
+                {% endif %}
             </div>
 
-            <div>
-                    <label>Season</label>
+            <div class="meeting-list">
+                {% for meeting in row.class.meeting_times.all %}
+                    {% if meeting.is_active %}<span>{{ meeting.get_day_of_week_display }} · {{ meeting.start_time|time:"g:i A" }}</span>{% endif %}
+                {% endfor %}
+            </div>
 
-                    <select name="season">
-                        <option value="">
-                            All Seasons
-                        </option>
+            <div class="class-card-actions">
+                <a class="public-button secondary" href="{% url 'registration_portal:public_class_detail' studio.slug row.class.id %}{% if embed_mode %}?embed=1{% endif %}">Details</a>
+                {% if registration_enabled %}
+                <button
+                    type="button"
+                    class="public-button primary class-cart-add"
+                    data-class-id="{{ row.class.id }}"
+                    data-class-code="{{ row.class.class_id|escapejs }}"
+                    data-class-name="{{ row.class.name|escapejs }}"
+                    data-class-status="{% if row.is_full %}Waitlist{% else %}Open{% endif %}"
+                    data-class-schedule="{% for meeting in row.class.meeting_times.all %}{% if meeting.is_active %}{{ meeting.get_day_of_week_display|escapejs }} {{ meeting.start_time|time:'g:i A'|escapejs }}{% if not forloop.last %}, {% endif %}{% endif %}{% endfor %}"
+                >Add to Classes</button>
+                {% endif %}
+            </div>
+        </article>
+        {% empty %}
+        <div class="public-empty">No classes matched your search.</div>
+        {% endfor %}
+    </section>
 
-                        {% for season in seasons %}
-                            <option
-                                value="{{ season.id }}"
-                                {% if filters.season == season.id|stringformat:"s" %}selected{% endif %}
-                            >
-                                {{ season.name }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
+    {% if embed_mode %}<footer class="embed-footer">Powered by Encore Performance Suite</footer>{% endif %}
+</main>
 
-                <div>
-                    <label>Availability</label>
+{% if registration_enabled %}
+<script>
+(() => {
+    const storageKey = "encoreClassCart:{{ studio.slug|escapejs }}";
+    const panel = document.querySelector("#class-cart-panel");
+    const body = document.querySelector("#class-cart-body");
+    const count = document.querySelector("#class-cart-count");
+    const start = document.querySelector("#start-registration-button");
+    const baseStartUrl = start ? start.getAttribute("href") : "";
 
-                    <select name="availability">
-                        <option value="">
-                            All
-                        </option>
+    function readCart() {
+        try { return JSON.parse(localStorage.getItem(storageKey) || "[]"); }
+        catch (_) { return []; }
+    }
+    function writeCart(cart) {
+        localStorage.setItem(storageKey, JSON.stringify(cart));
+        render(cart);
+    }
+    function render(cart) {
+        if (!panel || !body || !count || !start) return;
+        panel.hidden = cart.length === 0;
+        count.textContent = cart.length;
+        const ids = cart.map(item => item.id).join(",");
+        start.href = baseStartUrl + (baseStartUrl.includes("?") ? "&" : "?") + "classes=" + encodeURIComponent(ids);
+        {% if embed_mode %}start.href += "&embed=0";{% endif %}
+        body.innerHTML = cart.map(item => `
+            <tr>
+                <td><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.code)}</small></td>
+                <td>${escapeHtml(item.schedule || "Schedule available in details")}</td>
+                <td><span class="availability ${item.status === "Waitlist" ? "full" : "open"}">${escapeHtml(item.status)}</span></td>
+                <td><button type="button" class="cart-remove" data-remove-id="${item.id}">Remove</button></td>
+            </tr>
+        `).join("");
+        document.querySelectorAll(".class-cart-add").forEach(button => {
+            const exists = cart.some(item => String(item.id) === String(button.dataset.classId));
+            button.textContent = exists ? "Added ✓" : "Add to Classes";
+            button.classList.toggle("added", exists);
+        });
+    }
+    function escapeHtml(value) {
+        const div = document.createElement("div");
+        div.textContent = value || "";
+        return div.innerHTML;
+    }
 
-                        <option
-                            value="open"
-                            {% if filters.availability == "open" %}selected{% endif %}
-                        >
-                            Open Classes
-                        </option>
-                    </select>
-                </div>
+    document.addEventListener("click", event => {
+        const add = event.target.closest(".class-cart-add");
+        if (add) {
+            const cart = readCart();
+            const id = Number(add.dataset.classId);
+            if (!cart.some(item => item.id === id)) {
+                cart.push({id, code:add.dataset.classCode, name:add.dataset.className, status:add.dataset.classStatus, schedule:add.dataset.classSchedule});
+                writeCart(cart);
+            }
+            return;
+        }
+        const remove = event.target.closest("[data-remove-id]");
+        if (remove) {
+            writeCart(readCart().filter(item => String(item.id) !== String(remove.dataset.removeId)));
+        }
+    });
 
-            <button
-                class="public-button primary"
-                type="submit"
-            >
-                Search
-            </button>
-        </form>
+    render(readCart());
+})();
+</script>
+{% endif %}
 
-        <section class="public-class-grid">
-            {% for row in class_rows %}
-                <article class="public-class-card">
-                    <div class="class-card-top">
-                        <div>
-                            <span class="public-kicker">
-                                {{ row.class.class_id }}
-                            </span>
-
-                            <h2>
-                                {{ row.class.name }}
-                            </h2>
-
-                            <p>
-                                {{ row.class.class_type.name }}
-                                ·
-                                {{ row.class.season.name }}
-                            </p>
-                        </div>
-
-                        {% if row.is_full %}
-                            <span class="availability full">
-                                Full
-                            </span>
-                        {% else %}
-                            <span class="availability open">
-                                Open
-                            </span>
-                        {% endif %}
-                    </div>
-
-                    {% if row.class.description %}
-                        <p class="class-description">
-                            {{ row.class.description|truncatechars:150 }}
-                        </p>
-                    {% endif %}
-
-                    <div class="class-info-grid">
-                        <div>
-                            <span>Instructor</span>
-                            <strong>
-                                {{ row.class.instructor.full_name }}
-                            </strong>
-                        </div>
-
-                        {% if show_class_capacity %}
-                            <div>
-                                <span>Capacity</span>
-                                <strong>
-                                    {{ row.enrolled }}
-                                    /
-                                    {{ row.class.capacity }}
-                                </strong>
-                            </div>
-
-                            {% if row.remaining is not None %}
-                                <div>
-                                    <span>Open Spots</span>
-                                    <strong>
-                                        {{ row.remaining }}
-                                    </strong>
-                                </div>
-                            {% endif %}
-                        {% endif %}
-
-                        {% if show_class_pricing and row.class.tuition_amount is not None %}
-                            <div>
-                                <span>Tuition</span>
-                                <strong>
-                                    ${{ row.class.tuition_amount }}
-                                    {% if row.class.tuition_plan %}
-                                        · {{ row.class.tuition_plan.get_frequency_display }}
-                                    {% endif %}
-                                </strong>
-                            </div>
-                        {% endif %}
-                    </div>
-
-                    <div class="meeting-list">
-                        {% for meeting in row.class.meeting_times.all %}
-                            {% if meeting.is_active %}
-                                <span>
-                                    {{ meeting.get_day_of_week_display }}
-                                    ·
-                                    {{ meeting.start_time|time:"g:i A" }}
-                                </span>
-                            {% endif %}
-                        {% endfor %}
-                    </div>
-
-                    <div class="class-card-actions">
-                        <a
-                            class="public-button secondary"
-                            href="{% url 'registration_portal:public_class_detail' studio.slug row.class.id %}{% if embed_mode %}?embed=1{% endif %}"
-                        >
-                            Details
-                        </a>
-
-                        {% if registration_enabled %}
-                            <a
-                                class="public-button primary"
-                                href="{% url 'registration_portal:registration_wizard_start' studio.slug %}?class={{ row.class.id }}{% if embed_mode %}&embed=1{% endif %}"
-                            >
-                                {% if row.is_full %}
-                                    Join Waitlist
-                                {% else %}
-                                    Register
-                                {% endif %}
-                            </a>
-                        {% endif %}
-                    </div>
-                </article>
-            {% empty %}
-                <div class="public-empty">
-                    No classes matched your search.
-                </div>
-            {% endfor %}
-        </section>
-
-        {% if embed_mode %}
-            <footer class="embed-footer">
-                Powered by Encore Performance Suite
-            </footer>
-        {% endif %}
-    </main>
+{% if embed_mode %}
+<script>
+window.addEventListener("message", function (event) {
+    const data = event.data || {};
+    if (data.type !== "encore:classes:filter") return;
+    const url = new URL(window.location.href);
+    const mapping = {classType:"class_type", ageGroup:"age_group", age:"age", minAge:"min_age", maxAge:"max_age", level:"level", season:"season", availability:"availability"};
+    Object.entries(mapping).forEach(([key, param]) => {
+        const value = data[key];
+        if (value === undefined || value === null || value === "") url.searchParams.delete(param);
+        else url.searchParams.set(param, value);
+    });
+    window.location.replace(url.toString());
+});
+</script>
+{% endif %}
 </body>
 </html>

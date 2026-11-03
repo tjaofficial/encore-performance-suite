@@ -1,0 +1,171 @@
+{% extends "dashboard/parent_portal_base.html" %}
+
+{% block title %}{{ student.first_name }} {{ student.last_name }} | {{ studio.name }}{% endblock %}
+{% block parent_portal_heading %}Dancer Profile{% endblock %}
+
+{% block parent_content %}
+<section class="parent-page-heading">
+    <span class="parent-student-avatar large">
+        {{ student.first_name|slice:":1"|upper }}{{ student.last_name|slice:":1"|upper }}
+    </span>
+
+    <div>
+        <span class="parent-eyebrow">Dancer Profile</span>
+        <h2>{{ student.first_name }} {{ student.last_name }}</h2>
+        <p>Age {{ student.age }} · {{ enrollments|length }} active class{{ enrollments|length|pluralize }}</p>
+    </div>
+
+    <a class="parent-outline-button" href="{% url 'students:family_student_edit' studio.slug student.id %}">
+        Edit Profile
+    </a>
+</section>
+
+<section class="parent-profile-grid">
+    <article class="parent-page-card">
+        <div class="parent-section-heading">
+            <div>
+                <span class="parent-eyebrow">Profile</span>
+                <h3>Student Information</h3>
+            </div>
+        </div>
+
+        <dl class="parent-detail-list">
+            <div><dt>Birthday</dt><dd>{{ student.birthday|date:"F j, Y" }}</dd></div>
+            <div><dt>Age</dt><dd>{{ student.age }}</dd></div>
+            <div><dt>Gender</dt><dd>{{ student.get_gender_display }}</dd></div>
+            <div><dt>Performing</dt><dd>{{ student.performing|yesno:"Yes,No" }}</dd></div>
+        </dl>
+    </article>
+
+    <article class="parent-page-card">
+        <div class="parent-section-heading">
+            <div>
+                <span class="parent-eyebrow">Attendance</span>
+                <h3>Recent Attendance</h3>
+            </div>
+            <strong>{% if attendance_percentage is not None %}{{ attendance_percentage }}%{% else %}—{% endif %}</strong>
+        </div>
+
+        {% for record in recent_attendance %}
+            <div class="parent-compact-row">
+                <div>
+                    <strong>{{ record.session.class_instance.name }}</strong>
+                    <small>{{ record.session.session_date|date:"M j, Y" }}</small>
+                </div>
+                <span class="parent-status-pill status-{{ record.status }}">{{ record.get_status_display }}</span>
+            </div>
+        {% empty %}
+            <div class="parent-empty-state compact">No attendance recorded yet.</div>
+        {% endfor %}
+
+        <a class="parent-card-link" href="{% url 'attendance:family_student_history' studio.slug student.id %}">
+            Full Attendance History →
+        </a>
+    </article>
+
+    <article class="parent-page-card span-2">
+        <div class="parent-section-heading">
+            <div>
+                <span class="parent-eyebrow">Classes</span>
+                <h3>Current Enrollments</h3>
+            </div>
+
+            <a
+                class="parent-primary-button"
+                href="{% url 'registration_portal:register_existing_student' studio.slug student.id %}"
+            >
+                + Register for More Classes
+            </a>
+        </div>
+
+        <div class="parent-page-list">
+            {% for enrollment in enrollments %}
+                <div class="parent-page-row">
+                    <span class="parent-page-row-icon">▣</span>
+                    <span class="parent-page-row-copy">
+                        <strong>{{ enrollment.class_instance.name }}</strong>
+                        <span>
+                            {{ enrollment.class_instance.class_id }}
+                            · {{ enrollment.class_instance.season.name }}
+                            {% if enrollment.class_instance.level %} · {{ enrollment.class_instance.level.name }}{% endif %}
+                        </span>
+                    </span>
+                    <span class="parent-inline-actions">
+                        <a class="parent-inline-link" href="{% url 'resources:resource_list' studio.slug %}?class={{ enrollment.class_instance.id }}">
+                            Resources
+                        </a>
+                        <a class="parent-inline-link" href="{% url 'costumes:my_costumes' studio.slug %}?student={{ student.id }}&class={{ enrollment.class_instance.id }}">
+                            Costumes
+                        </a>
+                    </span>
+                </div>
+            {% empty %}
+                <div class="parent-empty-state">No active classes.</div>
+            {% endfor %}
+        </div>
+    </article>
+
+
+    <article class="parent-page-card span-2">
+        <div class="parent-section-heading">
+            <div>
+                <span class="parent-eyebrow">Measurements</span>
+                <h3>Latest Measurements</h3>
+                {% if latest_measurements and latest_measurements.measured_at %}
+                    <p>Last measured {{ latest_measurements.measured_at|date:"M j, Y" }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if latest_measurements %}
+            <div class="parent-measurement-grid">
+                <div><span>Bust</span><strong>{{ latest_measurements.bust|default:"—" }}</strong></div>
+                <div><span>Waist</span><strong>{{ latest_measurements.waist|default:"—" }}</strong></div>
+                <div><span>Hips</span><strong>{{ latest_measurements.hips|default:"—" }}</strong></div>
+                <div><span>Girth</span><strong>{{ latest_measurements.girth|default:"—" }}</strong></div>
+                <div><span>Inseam</span><strong>{{ latest_measurements.inseam|default:"—" }}</strong></div>
+                <div><span>Outseam</span><strong>{{ latest_measurements.outseam|default:"—" }}</strong></div>
+                <div><span>Height</span><strong>{{ latest_measurements.height|default:"—" }}</strong></div>
+                <div><span>Clothing Size</span><strong>{{ latest_measurements.clothing_size|default:"—" }}</strong></div>
+                <div><span>Shoe Size</span><strong>{{ latest_measurements.shoe_size|default:"—" }}</strong></div>
+            </div>
+
+            {% if latest_measurements.other_size_info or latest_measurements.notes %}
+                <div class="parent-note-grid parent-measurement-notes">
+                    {% if latest_measurements.other_size_info %}
+                        <div>
+                            <strong>Other Size Information</strong>
+                            <p>{{ latest_measurements.other_size_info }}</p>
+                        </div>
+                    {% endif %}
+                    {% if latest_measurements.notes %}
+                        <div>
+                            <strong>Measurement Notes</strong>
+                            <p>{{ latest_measurements.notes }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="parent-empty-state">
+                No completed measurements have been recorded for this dancer yet.
+            </div>
+        {% endif %}
+    </article>
+
+    <article class="parent-page-card span-2">
+        <div class="parent-section-heading">
+            <div>
+                <span class="parent-eyebrow">Health & Notes</span>
+                <h3>Important Information</h3>
+            </div>
+        </div>
+
+        <div class="parent-note-grid">
+            <div><strong>Medical Conditions</strong><p>{{ student.medical_conditions|default:"None listed." }}</p></div>
+            <div><strong>Allergies</strong><p>{{ student.allergies|default:"None listed." }}</p></div>
+            <div><strong>Comments</strong><p>{{ student.comments|default:"No comments." }}</p></div>
+        </div>
+    </article>
+</section>
+{% endblock %}

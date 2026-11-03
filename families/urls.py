@@ -6,6 +6,26 @@ app_name = "families"
 
 urlpatterns = [
     path(
+        "<slug:studio_slug>/portal/",
+        views.parent_family_detail,
+        name="parent_family_detail",
+    ),
+    path(
+        "<slug:studio_slug>/portal/edit/",
+        views.parent_family_edit,
+        name="parent_family_edit",
+    ),
+    path(
+        "<slug:studio_slug>/portal/guardians/add/",
+        views.parent_guardian_add,
+        name="parent_guardian_add",
+    ),
+    path(
+        "<slug:studio_slug>/portal/guardians/invite/",
+        views.parent_guardian_invite,
+        name="parent_guardian_invite",
+    ),
+    path(
         "<slug:studio_slug>/",
         views.family_list,
         name="family_list",

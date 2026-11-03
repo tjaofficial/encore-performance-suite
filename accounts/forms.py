@@ -49,6 +49,14 @@ class EncoreLoginForm(forms.Form):
                     "This account is inactive."
                 )
 
+            if (
+                getattr(self.user_cache, "email_verification_required", False)
+                and not getattr(self.user_cache, "email_verified_at", None)
+            ):
+                raise forms.ValidationError(
+                    "Verify your email before signing in. Check your inbox for the Encore verification message."
+                )
+
         return cleaned_data
 
     def get_user(self):
@@ -59,17 +67,6 @@ class StudioOwnerRegistrationForm(forms.Form):
     PLAN_CHOICES = [
         ("essentials", "Essentials"),
         ("pro", "Pro"),
-    ]
-
-    PAYMENT_MODE_CHOICES = [
-        (
-            "software_only",
-            "Software Only",
-        ),
-        (
-            "software_payments",
-            "Software + Payments",
-        ),
     ]
 
     first_name = forms.CharField(
@@ -120,11 +117,6 @@ class StudioOwnerRegistrationForm(forms.Form):
         initial="pro",
     )
 
-    payment_mode = forms.ChoiceField(
-        choices=PAYMENT_MODE_CHOICES,
-        initial="software_only",
-    )
-
     drawing_board_enabled = forms.BooleanField(
         required=False,
         label="Add Drawing Board for $39/month",
@@ -132,10 +124,7 @@ class StudioOwnerRegistrationForm(forms.Form):
 
     agree_to_terms = forms.BooleanField(
         required=True,
-        label=(
-            "I agree to Encore's subscription terms "
-            "and recurring monthly billing."
-        ),
+        label="I agree to Encore's Terms & Conditions and recurring monthly billing.",
     )
 
     def __init__(self, *args, **kwargs):

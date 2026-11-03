@@ -1,0 +1,71 @@
+{% extends "dashboard/parent_portal_base.html" %}
+
+{% block title %}Announcements | {{ studio.name }}{% endblock %}
+{% block parent_portal_heading %}Studio Announcements{% endblock %}
+
+{% block parent_content %}
+<section class="parent-page-heading">
+    <div class="parent-page-icon parent-card-icon-announcement">◖</div>
+    <div>
+        <span class="parent-eyebrow">Announcements</span>
+        <h2>Updates from {{ studio.name }}</h2>
+        <p>Studio-wide and class updates that apply to your family.</p>
+    </div>
+</section>
+
+<form method="get" class="parent-filter-bar">
+    <label>
+        <span>Search</span>
+        <input type="search" name="q" value="{{ filters.q }}" placeholder="Search announcements...">
+    </label>
+
+    <label>
+        <span>Priority</span>
+        <select name="priority">
+            <option value="">All Priorities</option>
+            {% for value, label in priority_choices %}
+                <option value="{{ value }}" {% if filters.priority == value %}selected{% endif %}>
+                    {{ label }}
+                </option>
+            {% endfor %}
+        </select>
+    </label>
+
+    <button type="submit">Filter</button>
+</form>
+
+<section class="parent-page-list">
+    {% for row in announcement_rows %}
+        {% with announcement=row.announcement %}
+        <a
+            class="parent-page-row parent-announcement-page-row {% if not row.is_read %}is-unread{% endif %}"
+            href="{% url 'communications:announcement_detail' studio.slug announcement.id %}"
+        >
+            <span class="parent-page-row-icon parent-card-icon-announcement">◖</span>
+
+            <span class="parent-page-row-copy">
+                <small>
+                    {{ announcement.get_audience_display }}
+                    · {{ announcement.publish_at|date:"M j, Y" }}
+                </small>
+                <strong>
+                    {% if announcement.is_pinned %}★ {% endif %}
+                    {{ announcement.title }}
+                </strong>
+                <span>{{ announcement.message|truncatechars:180 }}</span>
+            </span>
+
+            <span class="parent-priority-pill priority-{{ announcement.priority }}">
+                {{ announcement.get_priority_display }}
+            </span>
+
+            <span class="parent-row-arrow">→</span>
+        </a>
+        {% endwith %}
+    {% empty %}
+        <div class="parent-empty-state">
+            No announcements are available.
+        </div>
+    {% endfor %}
+</section>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Teaching Availability | {{ studio.name }}</title>
+    <link rel="stylesheet" href="{% static 'css/encore_base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/encore_instructor_onboarding.css' %}">
+</head>
+<body>
+<main class="claim-shell">
+    <section class="claim-card">
+        <div class="claim-heading">
+            <p class="eyebrow">{{ studio.name }} · Instructor Setup</p>
+            <h1>Set Your Weekly Availability</h1>
+            <p>
+                Tell the studio when you are normally available to teach. You can
+                also add blocks marked Not Available for recurring restrictions.
+                One block can apply to several days.
+            </p>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="message-banner {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            {% include "instructors/_availability_editor.html" %}
+
+            <div class="claim-actions">
+                <button class="button primary" type="submit">
+                    Save Availability & Finish
+                </button>
+            </div>
+        </form>
+    </section>
+</main>
+<script src="{% static 'js/encore_instructor_availability.js' %}" defer></script>
+</body>
+</html>

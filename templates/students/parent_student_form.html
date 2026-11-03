@@ -1,0 +1,44 @@
+{% extends "dashboard/parent_portal_base.html" %}
+
+{% block title %}Edit {{ student.first_name }} | {{ studio.name }}{% endblock %}
+{% block parent_portal_heading %}Edit Dancer Profile{% endblock %}
+
+{% block parent_content %}
+<a class="parent-back-link" href="{% url 'students:family_student_detail' studio.slug student.id %}">
+    ← Back to {{ student.first_name }}'s Profile
+</a>
+
+<form method="post" class="parent-form-card">
+    {% csrf_token %}
+
+    <div class="parent-page-heading compact-heading">
+        <div class="parent-page-icon parent-card-icon-account">◎</div>
+        <div>
+            <span class="parent-eyebrow">Student Information</span>
+            <h2>Edit {{ student.first_name }} {{ student.last_name }}</h2>
+            <p>Update the personal and health information your studio uses for this dancer.</p>
+        </div>
+    </div>
+
+    {% if form.non_field_errors %}
+        <div class="parent-form-errors">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="parent-form-grid">
+        {% for field in form %}
+            <label class="{% if field.name == 'medical_conditions' or field.name == 'allergies' or field.name == 'comments' %}span-2{% endif %}">
+                <span>{{ field.label }}</span>
+                {{ field }}
+                {% for error in field.errors %}
+                    <small class="parent-field-error">{{ error }}</small>
+                {% endfor %}
+            </label>
+        {% endfor %}
+    </div>
+
+    <div class="parent-form-actions">
+        <a href="{% url 'students:family_student_detail' studio.slug student.id %}">Cancel</a>
+        <button type="submit">Save Student</button>
+    </div>
+</form>
+{% endblock %}

@@ -13,12 +13,10 @@
 <section class="reports-heading">
     <div>
         <p class="eyebrow">Studio Intelligence</p>
-
         <h1>Reports</h1>
-
         <p>
-            Run operational reports, cross-reference studio data,
-            and surface the things that need attention.
+            Understand performance, spot opportunities, and drill into
+            the studio data behind every decision.
         </p>
     </div>
 
@@ -35,7 +33,6 @@
 <form method="get" class="season-filter">
     <div>
         <label>Reporting Season</label>
-
         <select name="season">
             {% for season in seasons %}
                 <option
@@ -48,9 +45,7 @@
         </select>
     </div>
 
-    <button class="button primary" type="submit">
-        Apply
-    </button>
+    <button class="button primary" type="submit">Apply</button>
 </form>
 
 {% if selected_season %}
@@ -59,7 +54,6 @@
         <span>Viewing</span>
         <strong>{{ selected_season.name }}</strong>
     </div>
-
     <span>
         {{ selected_season.start_date|date:"M j, Y" }}
         →
@@ -68,236 +62,376 @@
 </div>
 {% endif %}
 
-<section class="report-metrics">
-    <article class="report-metric-card">
-        <span>Active Students</span>
-        <strong>{{ active_student_count }}</strong>
-        <small>studio-wide</small>
-    </article>
+<nav class="reports-tabs" aria-label="Report sections" data-report-tabs>
+    <button class="reports-tab is-active" type="button" data-report-tab="overview">Overview</button>
+    <button class="reports-tab" type="button" data-report-tab="financial">Financial</button>
+    <button class="reports-tab" type="button" data-report-tab="enrollment">Enrollment</button>
+    <button class="reports-tab" type="button" data-report-tab="operations">Operations</button>
+    <button class="reports-tab" type="button" data-report-tab="library">Report Library</button>
+</nav>
 
-    <article class="report-metric-card">
-        <span>Season Students</span>
-        <strong>{{ season_student_count }}</strong>
-        <small>unique enrolled students</small>
-    </article>
-
-    <article class="report-metric-card">
-        <span>Active Enrollments</span>
-        <strong>{{ active_enrollment_count }}</strong>
-        <small>selected season</small>
-    </article>
-
-    <article class="report-metric-card">
-        <span>Attendance Rate</span>
-        <strong>
-            {% if attendance_rate is not None %}
-                {{ attendance_rate }}%
-            {% else %}
-                —
-            {% endif %}
-        </strong>
-        <small>selected season</small>
-    </article>
-
-    <article class="report-metric-card">
-        <span>Families</span>
-        <strong>{{ family_count }}</strong>
-        <small>active households</small>
-    </article>
-
-    <article class="report-metric-card">
-        <span>Instructors</span>
-        <strong>{{ instructor_count }}</strong>
-        <small>active staff</small>
-    </article>
-</section>
-
-<section class="report-quick-grid">
-    <article class="report-health-card">
-        <div class="panel-heading">
+<div class="reports-tab-panels">
+    <section class="reports-tab-panel is-active" data-report-panel="overview">
+        <div class="bi-section-heading compact-heading">
             <div>
-                <span class="card-kicker">Studio Health</span>
-                <h2>How the studio is doing</h2>
+                <span class="bi-eyebrow">Business Intelligence</span>
+                <h2>Studio performance at a glance</h2>
+                <p>Key indicators and the signals that deserve your attention first.</p>
             </div>
         </div>
 
-        <div class="report-health-stats">
-            <div>
-                <span>Enrollment</span>
-                <strong>{{ active_enrollment_count }}</strong>
-                <small>active enrollments</small>
-            </div>
-
-            <div>
-                <span>Attendance</span>
-                <strong>
-                    {% if attendance_rate is not None %}
-                        {{ attendance_rate }}%
-                    {% else %}
-                        —
-                    {% endif %}
-                </strong>
-                <small>overall season rate</small>
-            </div>
-
-            <div>
-                <span>Class Pressure</span>
-                <strong>{{ attention_counts.full_classes }}</strong>
-                <small>classes at capacity</small>
-            </div>
-        </div>
-    </article>
-
-    <article class="report-attention-card">
-        <div class="panel-heading">
-            <div>
-                <span class="card-kicker">Needs Attention</span>
-                <h2>Things worth checking</h2>
-            </div>
-        </div>
-
-        <div class="attention-list">
-            <a href="{% url 'reports:report_detail' studio.slug 'student-absences' %}?season={{ selected_season.id }}">
-                <strong>{{ attention_counts.repeated_absences }}</strong>
-                <span>students with repeated absences</span>
+        <div class="bi-kpi-grid">
+            <a class="bi-kpi-card tone-blue" href="{% url 'reports:report_detail' studio.slug 'revenue-trends' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}">
+                <span>Revenue Collected</span>
+                <strong>${{ bi_kpis.collected_total|default:"0"|floatformat:2 }}</strong>
+                <small>successful payments in reporting period</small>
             </a>
-
-            <a href="{% url 'reports:report_detail' studio.slug 'class-capacity' %}?season={{ selected_season.id }}">
-                <strong>{{ attention_counts.waitlisted_classes }}</strong>
-                <span>classes with a waitlist</span>
+            <a class="bi-kpi-card tone-indigo" href="{% url 'reports:report_detail' studio.slug 'charges-summary' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}">
+                <span>Revenue Billed</span>
+                <strong>${{ bi_kpis.billed_total|default:"0"|floatformat:2 }}</strong>
+                <small>charges created in reporting period</small>
             </a>
-
-            <a href="{% url 'reports:report_detail' studio.slug 'class-list' %}?season={{ selected_season.id }}">
-                <strong>{{ attention_counts.missing_tuition }}</strong>
-                <span>classes missing tuition</span>
+            <a class="bi-kpi-card tone-green" href="{% url 'reports:report_detail' studio.slug 'expected-vs-collected' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}">
+                <span>Collection Rate</span>
+                <strong>{{ bi_kpis.collection_rate|default:"0" }}%</strong>
+                <small>collected compared with billed</small>
+            </a>
+            <a class="bi-kpi-card tone-orange" href="{% url 'reports:report_detail' studio.slug 'overdue-list' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}">
+                <span>Outstanding Balance</span>
+                <strong>${{ bi_kpis.outstanding_total|default:"0"|floatformat:2 }}</strong>
+                <small>{{ attention_counts.open_balances|default:"0" }} open balances</small>
+            </a>
+            <a class="bi-kpi-card tone-violet" href="{% url 'reports:report_detail' studio.slug 'enrollment-trends' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}">
+                <span>Active Enrollments</span>
+                <strong>{{ active_enrollment_count|default:"0" }}</strong>
+                <small>{{ bi_kpis.average_enrollments_per_student|default:"0" }} per season student</small>
+            </a>
+            <a class="bi-kpi-card tone-cyan" href="{% url 'reports:report_detail' studio.slug 'class-capacity' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}">
+                <span>Class Utilization</span>
+                <strong>{{ bi_kpis.average_class_utilization|default:"0" }}%</strong>
+                <small>average filled capacity</small>
+            </a>
+            <a class="bi-kpi-card tone-pink" href="{% url 'reports:report_detail' studio.slug 'retention' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}">
+                <span>Retention Rate</span>
+                <strong>{% if bi_kpis.retention_rate is not None %}{{ bi_kpis.retention_rate }}%{% else %}—{% endif %}</strong>
+                <small>{% if bi_kpis.previous_student_count %}{{ bi_kpis.retained_students }} of {{ bi_kpis.previous_student_count }} prior-season students{% else %}prior-season comparison unavailable{% endif %}</small>
+            </a>
+            <a class="bi-kpi-card tone-teal" href="{% url 'reports:report_detail' studio.slug 'student-attendance' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}">
+                <span>Attendance Rate</span>
+                <strong>{% if attendance_rate is not None %}{{ attendance_rate }}%{% else %}—{% endif %}</strong>
+                <small>selected-season attendance</small>
             </a>
         </div>
-    </article>
-</section>
 
-<section class="report-catalog-header">
-    <div>
-        <p class="eyebrow">Report Library</p>
-        <h2>Everything you can report on</h2>
-        <p>
-            {{ report_catalog_count }} report ideas organized by workflow.
-            {{ live_report_count }} are wired to live studio data now;
-            the rest are mapped for the next reporting phases.
-        </p>
-    </div>
-
-    <div class="report-search">
-        <label for="report-search">Find a report</label>
-        <input
-            id="report-search"
-            type="search"
-            placeholder="Search reports..."
-            autocomplete="off"
-            data-report-search
-        >
-    </div>
-</section>
-
-<section class="report-library" data-report-library>
-    {% for category in report_catalog %}
-        <article
-            class="report-category-card"
-            id="report-{{ category.slug }}"
-            data-report-category
-        >
-            <div class="report-category-heading">
-                <div>
-                    <h3>{{ category.title }}</h3>
-                    <p>{{ category.description }}</p>
+        <div class="bi-signal-grid overview-signals">
+            <article class="bi-signal-card">
+                <div class="bi-signal-heading">
+                    <div><span>Demand</span><h3>Classes with growth pressure</h3></div>
+                    <a href="{% url 'reports:report_detail' studio.slug 'class-opportunities' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}">View report</a>
                 </div>
+                <div class="bi-signal-list">
+                    {% for row in near_capacity_rows %}
+                        <div><span><strong>{{ row.class.name }}</strong><small>{{ row.active_count }}/{{ row.class.capacity }} enrolled</small></span><b>{{ row.percent_full }}%</b></div>
+                    {% empty %}
+                        <p class="bi-empty"><strong>0</strong><span>No classes are above 80% capacity right now.</span></p>
+                    {% endfor %}
+                </div>
+            </article>
 
-                <span>{{ category.reports|length }}</span>
+            <article class="bi-signal-card">
+                <div class="bi-signal-heading">
+                    <div><span>Opportunity</span><h3>Classes that may need promotion</h3></div>
+                    <a href="{% url 'reports:report_detail' studio.slug 'class-opportunities' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}">View report</a>
+                </div>
+                <div class="bi-signal-list">
+                    {% for row in low_enrollment_rows %}
+                        <div><span><strong>{{ row.class.name }}</strong><small>{{ row.active_count }}/{{ row.class.capacity }} enrolled</small></span><b>{{ row.percent_full }}%</b></div>
+                    {% empty %}
+                        <p class="bi-empty"><strong>0</strong><span>No classes are at or below 35% capacity.</span></p>
+                    {% endfor %}
+                </div>
+            </article>
+
+            <article class="bi-signal-card">
+                <div class="bi-signal-heading">
+                    <div><span>Needs Attention</span><h3>Action signals</h3></div>
+                    <a href="{% url 'reports:report_detail' studio.slug 'needs-attention' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}">View report</a>
+                </div>
+                <div class="bi-action-list">
+                    <a href="{% url 'reports:report_detail' studio.slug 'student-absences' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}"><strong>{{ attention_counts.repeated_absences|default:"0" }}</strong><span>students with repeated absences</span></a>
+                    <a href="{% url 'reports:report_detail' studio.slug 'class-capacity' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}"><strong>{{ attention_counts.waitlisted_classes|default:"0" }}</strong><span>classes with a waitlist</span></a>
+                    <a href="{% url 'reports:report_detail' studio.slug 'class-list' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}"><strong>{{ attention_counts.missing_tuition|default:"0" }}</strong><span>classes missing tuition</span></a>
+                    <a href="{% url 'reports:report_detail' studio.slug 'overdue-list' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}"><strong>{{ attention_counts.open_balances|default:"0" }}</strong><span>open family balances</span></a>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <section class="reports-tab-panel" data-report-panel="financial" hidden>
+        <div class="reports-section-header">
+            <div><span class="bi-eyebrow">Financial Intelligence</span><h2>Revenue, collections, and balances</h2><p>See what was billed, what was collected, and where money is still outstanding.</p></div>
+            <a class="bi-text-link" href="{% url 'reports:report_detail' studio.slug 'business-insights' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}">Open Business Insights →</a>
+        </div>
+
+        <div class="bi-kpi-grid bi-kpi-grid-four">
+            <a class="bi-kpi-card tone-blue" href="{% url 'reports:report_detail' studio.slug 'revenue-trends' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}"><span>Revenue Collected</span><strong>${{ bi_kpis.collected_total|default:"0"|floatformat:2 }}</strong><small>successful payments</small></a>
+            <a class="bi-kpi-card tone-indigo" href="{% url 'reports:report_detail' studio.slug 'charges-summary' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}"><span>Revenue Billed</span><strong>${{ bi_kpis.billed_total|default:"0"|floatformat:2 }}</strong><small>charges created</small></a>
+            <a class="bi-kpi-card tone-green" href="{% url 'reports:report_detail' studio.slug 'expected-vs-collected' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}"><span>Collection Rate</span><strong>{{ bi_kpis.collection_rate|default:"0" }}%</strong><small>collected compared with billed</small></a>
+            <a class="bi-kpi-card tone-orange" href="{% url 'reports:report_detail' studio.slug 'overdue-list' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}"><span>Outstanding Balance</span><strong>${{ bi_kpis.outstanding_total|default:"0"|floatformat:2 }}</strong><small>{{ attention_counts.open_balances|default:"0" }} open balances</small></a>
+        </div>
+
+        <article class="bi-chart-card reports-feature-chart">
+            <div class="bi-chart-heading">
+                <div><span>Financial Performance</span><h3>Billed vs. collected</h3></div>
+                <div class="bi-chart-legend"><span><i class="legend-dot billed"></i>Billed</span><span><i class="legend-dot collected"></i>Collected</span></div>
             </div>
-
-            <div class="report-link-grid">
-                {% for key, title, description, status in category.reports %}
-                    {% if status == "live" %}
-                        <a
-                            class="report-link-card live"
-                            href="{% url 'reports:report_detail' studio.slug key %}?season={{ selected_season.id }}"
-                            data-report-item
-                        >
-                            <div>
-                                <strong>{{ title }}</strong>
-                                <p>{{ description }}</p>
+            {% if has_revenue_chart_data %}
+                <div class="bi-chart-shell">
+                    <div class="bi-y-axis" aria-hidden="true">
+                        {% for tick in revenue_axis_ticks reversed %}<span>{{ tick.label }}</span>{% endfor %}
+                    </div>
+                    <div class="bi-bar-chart">
+                        {% for point in revenue_chart %}
+                            <div class="bi-bar-month">
+                                <div class="bi-bar-plot">
+                                    <div class="bi-bar billed" style="height: {{ point.billed_height }}%;" tabindex="0" data-chart-tooltip="{{ point.label }} billed: ${{ point.billed|floatformat:2 }}"></div>
+                                    <div class="bi-bar collected" style="height: {{ point.collected_height }}%;" tabindex="0" data-chart-tooltip="{{ point.label }} collected: ${{ point.collected|floatformat:2 }}"></div>
+                                </div>
+                                <span>{{ point.label }}</span>
                             </div>
-
-                            <span class="report-status live">
-                                Available
-                            </span>
-                        </a>
-                    {% elif status == "dashboard" %}
-                        <a
-                            class="report-link-card live"
-                            href="#top"
-                            data-report-item
-                        >
-                            <div>
-                                <strong>{{ title }}</strong>
-                                <p>{{ description }}</p>
-                            </div>
-
-                            <span class="report-status live">
-                                Live
-                            </span>
-                        </a>
-                    {% else %}
-                        <a
-                            class="report-link-card planned"
-                            href="{% url 'reports:report_detail' studio.slug key %}?season={{ selected_season.id }}"
-                            data-report-item
-                        >
-                            <div>
-                                <strong>{{ title }}</strong>
-                                <p>{{ description }}</p>
-                            </div>
-
-                            <span class="report-status planned">
-                                Planned
-                            </span>
-                        </a>
-                    {% endif %}
-                {% endfor %}
-            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                <div class="reports-chart-empty"><strong>$0.00</strong><span>No billing or payment activity in this reporting period.</span></div>
+            {% endif %}
         </article>
-    {% endfor %}
-</section>
+
+        <div class="reports-shortcut-grid">
+            <a href="{% url 'reports:report_detail' studio.slug 'charges-summary' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}"><strong>Charges Summary</strong><span>Review charges and remaining balances.</span></a>
+            <a href="{% url 'reports:report_detail' studio.slug 'payments-list' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}"><strong>Payments List</strong><span>See successful, pending, and failed payments.</span></a>
+            <a href="{% url 'reports:report_detail' studio.slug 'family-balances' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}"><strong>Family Balances</strong><span>Compare charges, payments, credits, and balances.</span></a>
+            <a href="{% url 'reports:report_detail' studio.slug 'revenue-by-class' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}"><strong>Revenue by Class</strong><span>Find classes generating the most revenue.</span></a>
+        </div>
+    </section>
+
+    <section class="reports-tab-panel" data-report-panel="enrollment" hidden>
+        <div class="reports-section-header">
+            <div><span class="bi-eyebrow">Enrollment Intelligence</span><h2>Growth, retention, and demand</h2><p>Understand how students are entering, staying, dropping, and filling classes.</p></div>
+        </div>
+
+        <div class="bi-kpi-grid bi-kpi-grid-four">
+            <a class="bi-kpi-card tone-violet" href="{% url 'reports:report_detail' studio.slug 'enrollment-trends' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}"><span>Active Enrollments</span><strong>{{ active_enrollment_count|default:"0" }}</strong><small>{{ bi_kpis.average_enrollments_per_student|default:"0" }} per season student</small></a>
+            <a class="bi-kpi-card tone-blue" href="{% url 'reports:report_detail' studio.slug 'student-list' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}"><span>Season Students</span><strong>{{ season_student_count|default:"0" }}</strong><small>unique enrolled students</small></a>
+            <a class="bi-kpi-card tone-pink" href="{% url 'reports:report_detail' studio.slug 'retention' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}"><span>Retention Rate</span><strong>{% if bi_kpis.retention_rate is not None %}{{ bi_kpis.retention_rate }}%{% else %}—{% endif %}</strong><small>season-over-season retention</small></a>
+            <a class="bi-kpi-card tone-cyan" href="{% url 'reports:report_detail' studio.slug 'class-capacity' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}"><span>Class Utilization</span><strong>{{ bi_kpis.average_class_utilization|default:"0" }}%</strong><small>average filled capacity</small></a>
+        </div>
+
+        <article class="bi-chart-card reports-feature-chart">
+            <div class="bi-chart-heading">
+                <div><span>Enrollment Performance</span><h3>New enrollments vs. drops</h3></div>
+                <div class="bi-chart-legend"><span><i class="legend-dot enrolled"></i>New</span><span><i class="legend-dot dropped"></i>Dropped</span></div>
+            </div>
+            {% if has_enrollment_chart_data %}
+                <div class="bi-chart-shell">
+                    <div class="bi-y-axis" aria-hidden="true">
+                        {% for tick in enrollment_axis_ticks reversed %}<span>{{ tick.label }}</span>{% endfor %}
+                    </div>
+                    <div class="bi-bar-chart">
+                        {% for point in enrollment_chart %}
+                            <div class="bi-bar-month">
+                                <div class="bi-bar-plot">
+                                    <div class="bi-bar enrolled" style="height: {{ point.new_height }}%;" tabindex="0" data-chart-tooltip="{{ point.label }}: {{ point.new }} new enrollment{{ point.new|pluralize }}"></div>
+                                    <div class="bi-bar dropped" style="height: {{ point.dropped_height }}%;" tabindex="0" data-chart-tooltip="{{ point.label }}: {{ point.dropped }} drop{{ point.dropped|pluralize }}"></div>
+                                </div>
+                                <span>{{ point.label }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                <div class="reports-chart-empty"><strong>0</strong><span>No enrollment movement in this reporting period.</span></div>
+            {% endif %}
+        </article>
+
+        <div class="bi-signal-grid reports-two-column-signals">
+            <article class="bi-signal-card">
+                <div class="bi-signal-heading"><div><span>Demand</span><h3>Growth pressure</h3></div><a href="{% url 'reports:report_detail' studio.slug 'class-opportunities' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}">View report</a></div>
+                <div class="bi-signal-list">{% for row in near_capacity_rows %}<div><span><strong>{{ row.class.name }}</strong><small>{{ row.active_count }}/{{ row.class.capacity }} enrolled</small></span><b>{{ row.percent_full }}%</b></div>{% empty %}<p class="bi-empty"><strong>0</strong><span>No classes above 80% capacity.</span></p>{% endfor %}</div>
+            </article>
+            <article class="bi-signal-card">
+                <div class="bi-signal-heading"><div><span>Opportunity</span><h3>Promotion opportunities</h3></div><a href="{% url 'reports:report_detail' studio.slug 'class-opportunities' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}">View report</a></div>
+                <div class="bi-signal-list">{% for row in low_enrollment_rows %}<div><span><strong>{{ row.class.name }}</strong><small>{{ row.active_count }}/{{ row.class.capacity }} enrolled</small></span><b>{{ row.percent_full }}%</b></div>{% empty %}<p class="bi-empty"><strong>0</strong><span>No classes at or below 35% capacity.</span></p>{% endfor %}</div>
+            </article>
+        </div>
+    </section>
+
+    <section class="reports-tab-panel" data-report-panel="operations" hidden>
+        <div class="reports-section-header">
+            <div><span class="bi-eyebrow">Operations</span><h2>Attendance, staffing, and studio health</h2><p>Focus on the operational signals that affect the day-to-day running of the studio.</p></div>
+        </div>
+
+        <div class="bi-kpi-grid bi-kpi-grid-four">
+            <a class="bi-kpi-card tone-teal" href="{% url 'reports:report_detail' studio.slug 'student-attendance' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}"><span>Attendance Rate</span><strong>{% if attendance_rate is not None %}{{ attendance_rate }}%{% else %}—{% endif %}</strong><small>selected-season attendance</small></a>
+            <a class="bi-kpi-card tone-cyan" href="{% url 'reports:report_detail' studio.slug 'class-capacity' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}"><span>Class Utilization</span><strong>{{ bi_kpis.average_class_utilization|default:"0" }}%</strong><small>average filled capacity</small></a>
+            <a class="bi-kpi-card tone-blue" href="{% url 'reports:report_detail' studio.slug 'instructor-list' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}"><span>Active Instructors</span><strong>{{ instructor_count|default:"0" }}</strong><small>active faculty members</small></a>
+            <a class="bi-kpi-card tone-violet" href="{% url 'reports:report_detail' studio.slug 'family-list' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}"><span>Active Families</span><strong>{{ family_count|default:"0" }}</strong><small>active households</small></a>
+        </div>
+
+        <div class="reports-operations-grid">
+            <article class="bi-signal-card">
+                <div class="bi-signal-heading"><div><span>Needs Attention</span><h3>Operational signals</h3></div><a href="{% url 'reports:report_detail' studio.slug 'needs-attention' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}">View report</a></div>
+                <div class="bi-action-list">
+                    <a href="{% url 'reports:report_detail' studio.slug 'student-absences' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}"><strong>{{ attention_counts.repeated_absences|default:"0" }}</strong><span>students with repeated absences</span></a>
+                    <a href="{% url 'reports:report_detail' studio.slug 'class-capacity' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}"><strong>{{ attention_counts.waitlisted_classes|default:"0" }}</strong><span>classes with a waitlist</span></a>
+                    <a href="{% url 'reports:report_detail' studio.slug 'class-list' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}"><strong>{{ attention_counts.missing_tuition|default:"0" }}</strong><span>classes missing tuition</span></a>
+                    <a href="{% url 'reports:report_detail' studio.slug 'overdue-list' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}"><strong>{{ attention_counts.open_balances|default:"0" }}</strong><span>open family balances</span></a>
+                </div>
+            </article>
+
+            <div class="reports-shortcut-grid compact-shortcuts">
+                <a href="{% url 'reports:report_detail' studio.slug 'attendance-by-instructor' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}"><strong>Attendance by Instructor</strong><span>Compare attendance performance by teacher.</span></a>
+                <a href="{% url 'reports:report_detail' studio.slug 'instructor-work-schedules' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}"><strong>Instructor Work Schedules</strong><span>Review teaching workload and schedules.</span></a>
+                <a href="{% url 'reports:report_detail' studio.slug 'consecutive-absences' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}"><strong>Consecutive Absences</strong><span>Find students with repeated attendance issues.</span></a>
+                <a href="{% url 'reports:report_detail' studio.slug 'evaluation-completion' %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}"><strong>Evaluation Completion</strong><span>See which evaluations still need attention.</span></a>
+            </div>
+        </div>
+    </section>
+
+    <section class="reports-tab-panel" data-report-panel="library" hidden>
+        <section class="report-catalog-header in-tab">
+            <div>
+                <p class="eyebrow">Report Library</p>
+                <h2>Everything you can report on</h2>
+                <p>{{ report_catalog_count }} reports organized by workflow. {{ live_report_count }} are connected to live studio data now.</p>
+            </div>
+            <div class="report-search">
+                <label for="report-search">Find a report</label>
+                <input id="report-search" type="search" placeholder="Search reports..." autocomplete="off" data-report-search>
+            </div>
+        </section>
+
+        <section class="report-library" data-report-library>
+            {% for category in report_catalog %}
+                <article class="report-category-card" id="report-{{ category.slug }}" data-report-category>
+                    <div class="report-category-heading">
+                        <div><h3>{{ category.title }}</h3><p>{{ category.description }}</p></div>
+                        <span>{{ category.reports|length }}</span>
+                    </div>
+                    <div class="report-link-grid">
+                        {% for key, title, description, status in category.reports %}
+                            {% if status == "live" %}
+                                <a class="report-link-card live" href="{% url 'reports:report_detail' studio.slug key %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}" data-report-item><div><strong>{{ title }}</strong><p>{{ description }}</p></div><span class="report-status live">Available</span></a>
+                            {% elif status == "dashboard" %}
+                                <button class="report-link-card live report-link-button" type="button" data-open-report-tab="overview" data-report-item><div><strong>{{ title }}</strong><p>{{ description }}</p></div><span class="report-status live">Live</span></button>
+                            {% else %}
+                                <a class="report-link-card planned" href="{% url 'reports:report_detail' studio.slug key %}?season={% if selected_season %}{{ selected_season.id }}{% endif %}" data-report-item><div><strong>{{ title }}</strong><p>{{ description }}</p></div><span class="report-status planned">Planned</span></a>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </article>
+            {% endfor %}
+        </section>
+    </section>
+</div>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+    const tabs = Array.from(document.querySelectorAll("[data-report-tab]"));
+    const panels = Array.from(document.querySelectorAll("[data-report-panel]"));
     const input = document.querySelector("[data-report-search]");
     const categories = document.querySelectorAll("[data-report-category]");
 
-    if (!input) {
-        return;
-    }
+    const activateTab = (name, updateHash = true) => {
+        const target = panels.find((panel) => panel.dataset.reportPanel === name);
+        if (!target) return;
 
-    input.addEventListener("input", () => {
-        const term = input.value.trim().toLowerCase();
+        tabs.forEach((tab) => {
+            const active = tab.dataset.reportTab === name;
+            tab.classList.toggle("is-active", active);
+            tab.setAttribute("aria-selected", active ? "true" : "false");
+        });
 
-        categories.forEach((category) => {
-            const items = category.querySelectorAll("[data-report-item]");
-            let visibleCount = 0;
+        panels.forEach((panel) => {
+            const active = panel === target;
+            panel.hidden = !active;
+            panel.classList.toggle("is-active", active);
+        });
 
-            items.forEach((item) => {
-                const matches = !term
-                    || item.textContent.toLowerCase().includes(term);
+        if (updateHash) {
+            history.replaceState(null, "", `#${name}`);
+        }
+    };
 
-                item.hidden = !matches;
+    tabs.forEach((tab) => {
+        tab.addEventListener("click", () => activateTab(tab.dataset.reportTab));
+    });
 
-                if (matches) {
-                    visibleCount += 1;
-                }
-            });
-
-            category.hidden = visibleCount === 0;
+    document.querySelectorAll("[data-open-report-tab]").forEach((button) => {
+        button.addEventListener("click", () => {
+            activateTab(button.dataset.openReportTab);
+            window.scrollTo({ top: 0, behavior: "smooth" });
         });
     });
+
+    const initial = window.location.hash.replace("#", "");
+    if (initial && panels.some((panel) => panel.dataset.reportPanel === initial)) {
+        activateTab(initial, false);
+    }
+
+    if (input) {
+        input.addEventListener("input", () => {
+            const term = input.value.trim().toLowerCase();
+            categories.forEach((category) => {
+                const items = category.querySelectorAll("[data-report-item]");
+                let visibleCount = 0;
+                items.forEach((item) => {
+                    const matches = !term || item.textContent.toLowerCase().includes(term);
+                    item.hidden = !matches;
+                    if (matches) visibleCount += 1;
+                });
+                category.hidden = visibleCount === 0;
+            });
+        });
+    }
+});
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const bars = document.querySelectorAll("[data-chart-tooltip]");
+    if (!bars.length) return;
+
+    const tooltip = document.createElement("div");
+    tooltip.className = "bi-floating-tooltip";
+    tooltip.hidden = true;
+    document.body.appendChild(tooltip);
+
+    const positionTooltip = (bar) => {
+        const rect = bar.getBoundingClientRect();
+        tooltip.textContent = bar.dataset.chartTooltip || "";
+        tooltip.hidden = false;
+
+        const tipRect = tooltip.getBoundingClientRect();
+        let left = rect.left + (rect.width / 2) - (tipRect.width / 2);
+        left = Math.max(8, Math.min(left, window.innerWidth - tipRect.width - 8));
+
+        let top = rect.top - tipRect.height - 10;
+        if (top < 8) top = rect.bottom + 10;
+
+        tooltip.style.left = `${left}px`;
+        tooltip.style.top = `${top}px`;
+    };
+
+    bars.forEach((bar) => {
+        bar.addEventListener("mouseenter", () => positionTooltip(bar));
+        bar.addEventListener("focus", () => positionTooltip(bar));
+        bar.addEventListener("mouseleave", () => { tooltip.hidden = true; });
+        bar.addEventListener("blur", () => { tooltip.hidden = true; });
+    });
+
+    window.addEventListener("scroll", () => { tooltip.hidden = true; }, true);
+    window.addEventListener("resize", () => { tooltip.hidden = true; });
 });
 </script>
 {% endblock %}

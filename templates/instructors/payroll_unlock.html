@@ -1,0 +1,51 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Payroll Verification | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_payroll.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Payroll Management{% endblock %}
+
+{% block content %}
+<div class="payroll-unlock-shell">
+    <section class="payroll-unlock-card">
+        <div class="payroll-security-icon">⌁</div>
+
+        <p class="eyebrow">Protected Compensation Data</p>
+        <h1>Verify your password</h1>
+
+        <p class="payroll-unlock-copy">
+            Payroll contains private compensation information.
+            Re-enter your Encore password before continuing.
+        </p>
+
+        <form method="post" class="payroll-unlock-form">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+
+            <div class="payroll-field">
+                {{ form.password.label_tag }}
+                {{ form.password }}
+
+                {% for error in form.password.errors %}
+                    <span class="field-error">{{ error }}</span>
+                {% endfor %}
+            </div>
+
+            <button class="button primary" type="submit">
+                Unlock Payroll
+            </button>
+        </form>
+
+        <a
+            class="payroll-unlock-back"
+            href="{% url 'dashboard:admin_dashboard' studio.slug %}"
+        >
+            ← Back to Dashboard
+        </a>
+    </section>
+</div>
+{% endblock %}

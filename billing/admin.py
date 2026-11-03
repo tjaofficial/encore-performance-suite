@@ -221,3 +221,32 @@ class CreditAllocationAdmin(admin.ModelAdmin):
         "amount",
         "created_at",
     )
+
+
+from .models import BillingEmailDelivery
+
+@admin.register(BillingEmailDelivery)
+class BillingEmailDeliveryAdmin(admin.ModelAdmin):
+    list_display=('recipient','account','event_type','status','attempts','created_at','sent_at')
+    list_filter=('status','event_type','account__studio')
+    search_fields=('recipient','event_key','account__family__family_name','provider_message_id')
+    readonly_fields=('account','event_key','event_type','recipient','subject','body','status',
+                     'provider_message_id','error','attempts','created_at','sent_at')
+    def has_add_permission(self,request): return False
+    def has_delete_permission(self,request,obj=None): return False
+
+from .models import PaymentRefund
+
+@admin.register(PaymentRefund)
+class PaymentRefundAdmin(admin.ModelAdmin):
+    list_display = ("id", "payment", "charge", "amount", "status", "ledger_applied", "requested_by", "created_at")
+    list_filter = ("status", "payment__account__studio", "ledger_applied")
+    search_fields = ("stripe_refund_id", "payment__external_reference", "payment__account__family__family_name")
+    readonly_fields = ("payment", "charge", "amount", "status", "reason", "notes", "requested_by",
+                       "stripe_refund_id", "stripe_account_id", "idempotency_key", "last_error", "ledger_applied", "created_at", "updated_at")
+    def has_add_permission(self, request):
+        return False
+    def has_change_permission(self, request, obj=None):
+        return False
+    def has_delete_permission(self, request, obj=None):
+        return False

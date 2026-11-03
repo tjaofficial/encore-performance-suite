@@ -5,7 +5,7 @@
             <h2>Videos</h2>
         </div>
 
-        <a href="{% url 'resources:resource_list' studio.slug %}">
+        <a href="{% url 'resources:video_manager' studio.slug %}?class={{ class_instance.pk }}&amp;next={{ request.get_full_path|urlencode }}">
             View All
         </a>
     </div>

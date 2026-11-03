@@ -82,7 +82,58 @@ class ClassType(models.Model):
         return self.name
 
 
+class ClassLevel(models.Model):
+    studio = models.ForeignKey(
+        Studio,
+        on_delete=models.CASCADE,
+        related_name="class_levels",
+    )
+
+    number = models.PositiveSmallIntegerField()
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    aliases = models.JSONField(default=list, blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["number", "name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["studio", "number"],
+                name="unique_class_level_number_per_studio",
+            ),
+            models.UniqueConstraint(
+                fields=["studio", "name"],
+                name="unique_class_level_name_per_studio",
+            ),
+        ]
+
+    def clean(self):
+        super().clean()
+        cleaned = []
+        seen = set()
+        for value in self.aliases or []:
+            alias = str(value or "").strip()
+            key = alias.lower()
+            if alias and key not in seen:
+                cleaned.append(alias)
+                seen.add(key)
+        self.aliases = cleaned
+
+    def __str__(self):
+        return f"Level {self.number} — {self.name}"
+
+
 class Class(models.Model):
+    class RegistrationMode(models.TextChoices):
+        ONLINE = "online", "Online registration"
+        APPROVAL = "approval", "In-person approval required"
+
+    registration_mode = models.CharField(
+        max_length=20, choices=RegistrationMode.choices,
+        default=RegistrationMode.ONLINE,
+        help_text="Require a studio-issued approval code before online registration.",
+    )
     class GenderRestriction(models.TextChoices):
         ANY = "any", "Any"
         FEMALE = "female", "Female"
@@ -105,6 +156,14 @@ class Class(models.Model):
         ClassType,
         on_delete=models.PROTECT,
         related_name="classes",
+    )
+
+    level = models.ForeignKey(
+        ClassLevel,
+        on_delete=models.PROTECT,
+        related_name="classes",
+        null=True,
+        blank=True,
     )
 
     class_id = models.CharField(
@@ -153,14 +212,28 @@ class Class(models.Model):
         default=20,
     )
 
-    min_age = models.PositiveIntegerField(
+    min_age = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
         null=True,
         blank=True,
     )
 
-    max_age = models.PositiveIntegerField(
+    max_age = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
         null=True,
         blank=True,
+    )
+
+    is_performance_class = models.BooleanField(
+        null=True,
+        blank=True,
+        default=None,
+        help_text=(
+            "Performance class, non-performance class, or unknown. "
+            "Unknown is useful while imported data is being reviewed."
+        ),
     )
 
     gender_restriction = models.CharField(
@@ -216,6 +289,24 @@ class Class(models.Model):
         default=True,
     )
 
+    registration_opens = models.DateField(
+        null=True,
+        blank=True,
+        help_text=(
+            "Optional class-specific registration opening date. "
+            "Leave blank to rely on the studio/season registration setup."
+        ),
+    )
+
+    registration_closes = models.DateField(
+        null=True,
+        blank=True,
+        help_text=(
+            "Optional class-specific registration closing date. "
+            "Leave blank to rely on the studio/season registration setup."
+        ),
+    )
+
     notes = models.TextField(
         blank=True,
     )
@@ -237,6 +328,50 @@ class Class(models.Model):
                 name="unique_class_id_per_studio",
             )
         ]
+
+    @staticmethod
+    def _age_display(value):
+        if value is None:
+            return ""
+
+        value = Decimal(str(value))
+        if value == Decimal("1.50"):
+            return "18 months"
+
+        if value == value.to_integral():
+            return str(int(value))
+
+        normalized = format(value.normalize(), "f")
+        return normalized.rstrip("0").rstrip(".")
+
+    @property
+    def age_range_label(self):
+        minimum = self._age_display(self.min_age)
+        maximum = self._age_display(self.max_age)
+
+        if minimum and maximum:
+            return f"{minimum}–{maximum}"
+        if minimum:
+            return f"{minimum}+"
+        if maximum:
+            return f"Up to {maximum}"
+        return "Any age"
+
+    def standardized_name(self):
+        type_name = (
+            self.class_type.name.strip()
+            if self.class_type_id
+            else ""
+        )
+        level_name = (
+            self.level.name.strip()
+            if self.level_id
+            else ""
+        )
+
+        if type_name and level_name:
+            return f"{type_name} - {level_name}"
+        return type_name or self.name
 
     @property
     def current_enrollment_count(self):
@@ -269,6 +404,14 @@ class Class(models.Model):
         ):
             raise ValidationError(
                 {"class_type": "Class type must belong to the same studio."}
+            )
+
+        if (
+            self.level_id
+            and self.level.studio_id != self.studio_id
+        ):
+            raise ValidationError(
+                {"level": "Class level must belong to the same studio."}
             )
 
         if (
@@ -322,6 +465,20 @@ class Class(models.Model):
         ):
             raise ValidationError(
                 {"max_age": "Maximum age cannot be less than minimum age."}
+            )
+
+        if (
+            self.registration_opens
+            and self.registration_closes
+            and self.registration_closes < self.registration_opens
+        ):
+            raise ValidationError(
+                {
+                    "registration_closes": (
+                        "Registration closing date cannot be before "
+                        "the opening date."
+                    )
+                }
             )
 
         if (

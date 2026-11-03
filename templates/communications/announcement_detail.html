@@ -1,5 +1,5 @@
 {% extends "dashboard/base_dashboard.html" %}
-{% load static %}
+{% load static announcement_format %}
 
 {% block title %}
 {{ announcement.title }} | Encore
@@ -71,7 +71,7 @@
     </div>
 
     <div class="announcement-body">
-        {{ announcement.message|linebreaksbr }}
+        {{ announcement.message|announcement_body }}
     </div>
 
     {% if announcement.audience == "class" %}

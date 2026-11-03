@@ -1,11 +1,12 @@
 from django.urls import path
 
 from . import views
-from .notification_views import notification_center
+from .notification_views import notification_center, workspace_notification_open
 
 app_name = "communications"
 
 urlpatterns = [
+    path("email-events/", views.outbound_email_events, name="outbound_email_events"),
     path(
         "<slug:studio_slug>/",
         views.announcement_list,
@@ -18,10 +19,18 @@ urlpatterns = [
     ),
 
     path(
+        "<slug:studio_slug>/notifications/<int:notification_id>/open/",
+        workspace_notification_open,
+        name="workspace_notification_open",
+    ),
+
+    path(
         "<slug:studio_slug>/email/",
         views.email_manager,
         name="email_manager",
     ),
+    path("<slug:studio_slug>/email/activity/", views.email_activity, name="email_activity"),
+    path("<slug:studio_slug>/email/activity/<int:email_id>/", views.email_activity_detail, name="email_activity_detail"),
     path(
         "<slug:studio_slug>/email/compose/",
         views.email_compose,

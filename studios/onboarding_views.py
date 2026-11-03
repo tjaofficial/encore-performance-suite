@@ -2,6 +2,9 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.utils.html import escape
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 import json
@@ -23,8 +26,10 @@ from accounts.teacher_dashboard_layouts import (
     teacher_dashboard_editor_cards,
     teacher_quick_action_choices,
 )
-from classes.models import Class, ClassType, Season
+from classes.models import Class, ClassLevel, ClassType, Season
 from instructors.models import Instructor
+from instructors.activation_services import InstructorActivationError, send_instructor_activation
+from communications.email_service import EncoreEmailError, send_email
 from studios.models import (
     Studio,
     StudioLocation,
@@ -33,6 +38,7 @@ from studios.models import (
 )
 
 from .forms import (
+    ClassLevelForm,
     ClassTypeForm,
     SeasonForm,
     StaffInviteForm,
@@ -40,6 +46,7 @@ from .forms import (
     StudioLocationForm,
     StudioProfileForm,
     PublicWidgetSettingsForm,
+    OnboardingMeetingRequestForm,
 )
 
 
@@ -88,6 +95,44 @@ def _personal_settings_workspace(request, studio):
         return role
 
     return None
+
+
+
+
+def _tour_membership(request, studio):
+    if not request.user.is_authenticated:
+        return None
+
+    return (
+        request.user.studio_memberships
+        .filter(
+            studio=studio,
+            role=StudioMembership.Role.ADMINISTRATOR,
+            is_active=True,
+        )
+        .first()
+    )
+
+
+def _tour_context(request, studio):
+    membership = _tour_membership(request, studio)
+    if membership is None:
+        return {
+            "encore_tour_active": False,
+            "encore_tour_status": "",
+            "encore_tour_step": 0,
+        }
+
+    active = membership.onboarding_tour_status in {
+        StudioMembership.TourStatus.NOT_STARTED,
+        StudioMembership.TourStatus.IN_PROGRESS,
+    }
+
+    return {
+        "encore_tour_active": active,
+        "encore_tour_status": membership.onboarding_tour_status,
+        "encore_tour_step": membership.onboarding_tour_step,
+    }
 
 
 def _settings_for_studio(
@@ -198,6 +243,7 @@ def onboarding_home(request, studio_slug):
                 and teacher_preference.layout
             ),
             "settings_section": "home",
+            **_tour_context(request, studio),
         },
     )
 
@@ -698,6 +744,23 @@ def studio_branding(
     )
 
 
+def _public_absolute_uri(request, path):
+    """Build public/widget URLs correctly through production proxies and local Docker."""
+    configured = str(getattr(settings, "ENCORE_PUBLIC_BASE_URL", "") or "").strip().rstrip("/")
+    if configured:
+        return f"{configured}{path}"
+
+    url = request.build_absolute_uri(path)
+    if getattr(settings, "DEBUG", False):
+        from urllib.parse import urlsplit, urlunsplit
+
+        parsed = urlsplit(url)
+        if parsed.hostname in {"127.0.0.1", "localhost"} and parsed.port is None:
+            host = parsed.hostname + ":8000"
+            url = urlunsplit((parsed.scheme or "http", host, parsed.path, parsed.query, parsed.fragment))
+    return url
+
+
 @login_required
 def widget_settings(
     request,
@@ -752,37 +815,43 @@ def widget_settings(
         "form": form,
         "settings_section": "widgets",
         "settings_obj": settings_obj,
-        "calendar_public_url": request.build_absolute_uri(
+        "calendar_public_url": _public_absolute_uri(
+            request,
             reverse(
                 "registration_portal:public_calendar",
                 kwargs={"studio_slug": studio.slug},
             )
         ),
-        "calendar_embed_url": request.build_absolute_uri(
+        "calendar_embed_url": _public_absolute_uri(
+            request,
             reverse(
                 "registration_portal:embedded_calendar",
                 kwargs={"studio_slug": studio.slug},
             )
         ),
-        "classes_public_url": request.build_absolute_uri(
+        "classes_public_url": _public_absolute_uri(
+            request,
             reverse(
                 "registration_portal:public_class_catalog",
                 kwargs={"studio_slug": studio.slug},
             )
         ),
-        "classes_embed_url": request.build_absolute_uri(
+        "classes_embed_url": _public_absolute_uri(
+            request,
             reverse(
                 "registration_portal:embedded_class_catalog",
                 kwargs={"studio_slug": studio.slug},
             )
         ),
-        "registration_public_url": request.build_absolute_uri(
+        "registration_public_url": _public_absolute_uri(
+            request,
             reverse(
                 "registration_portal:public_registration_home",
                 kwargs={"studio_slug": studio.slug},
             )
         ),
-        "registration_embed_url": request.build_absolute_uri(
+        "registration_embed_url": _public_absolute_uri(
+            request,
             reverse(
                 "registration_portal:embedded_registration_home",
                 kwargs={"studio_slug": studio.slug},
@@ -998,39 +1067,56 @@ def season_add(
 
 
 @login_required
-def class_type_list(
-    request,
-    studio_slug,
-):
-    studio = get_object_or_404(
-        Studio,
-        slug=studio_slug,
-        is_active=True,
-    )
+def class_type_list(request, studio_slug):
+    studio = get_object_or_404(Studio, slug=studio_slug, is_active=True)
+    if not _admin_workspace(request, studio):
+        return render(request, "dashboard/access_denied.html", {"studio": studio}, status=403)
 
-    if not _admin_workspace(
-        request,
-        studio,
-    ):
-        return render(
-            request,
-            "dashboard/access_denied.html",
-            {"studio": studio},
-            status=403,
-        )
+    query = (request.GET.get("q") or "").strip()[:120]
+    status = (request.GET.get("status") or "active").lower()
+    if status not in {"active", "inactive", "all"}:
+        status = "active"
 
-    return render(
-        request,
-        "studios/class_type_list.html",
-        {
-            "studio": studio,
-            "role": "administrator",
-            "class_types": ClassType.objects.filter(
-                studio=studio,
-            ).order_by("name"),
-            "settings_section": "class_types",
-        },
-    )
+    if request.method == "POST":
+        selected = request.POST.getlist("selected_types")
+        action = request.POST.get("bulk_action")
+        selected_ids = {int(value) for value in selected if value.isdecimal() and len(value) <= 18}
+        if action not in {"activate", "deactivate"}:
+            messages.error(request, "Choose a valid bulk action.")
+        elif not selected_ids:
+            messages.error(request, "Select at least one class type.")
+        else:
+            target_active = action == "activate"
+            changed = ClassType.objects.filter(
+                studio=studio, id__in=selected_ids
+            ).exclude(is_active=target_active).update(is_active=target_active)
+            messages.success(request, f"Updated {changed} class type(s) to {'Active' if target_active else 'Inactive'}.")
+        params = []
+        from urllib.parse import urlencode
+        if query:
+            params.append(("q", query))
+        params.append(("status", status))
+        url = reverse("studios:class_type_list", kwargs={"studio_slug": studio.slug})
+        return redirect(f"{url}?{urlencode(params)}")
+
+    types = ClassType.objects.filter(studio=studio)
+    active_count = types.filter(is_active=True).count()
+    inactive_count = types.filter(is_active=False).count()
+    if query:
+        types = types.filter(name__icontains=query)
+    if status != "all":
+        types = types.filter(is_active=(status == "active"))
+
+    return render(request, "studios/class_type_list.html", {
+        "studio": studio,
+        "role": "administrator",
+        "class_types": types.order_by("name", "pk"),
+        "settings_section": "class_types",
+        "filter_query": query,
+        "filter_status": status,
+        "active_count": active_count,
+        "inactive_count": inactive_count,
+    })
 
 
 @login_required
@@ -1099,6 +1185,91 @@ def class_type_add(
 
 
 @login_required
+def class_level_list(request, studio_slug):
+    studio = get_object_or_404(Studio, slug=studio_slug, is_active=True)
+    if not _admin_workspace(request, studio):
+        return render(request, "dashboard/access_denied.html", {"studio": studio}, status=403)
+
+    return render(
+        request,
+        "studios/class_level_list.html",
+        {
+            "studio": studio,
+            "role": "administrator",
+            "class_levels": ClassLevel.objects.filter(studio=studio).order_by("number", "name"),
+            "settings_section": "class_levels",
+        },
+    )
+
+
+@login_required
+def class_level_add(request, studio_slug):
+    studio = get_object_or_404(Studio, slug=studio_slug, is_active=True)
+    if not _admin_workspace(request, studio):
+        return render(request, "dashboard/access_denied.html", {"studio": studio}, status=403)
+
+    form = ClassLevelForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        obj = form.save(commit=False)
+        obj.studio = studio
+        obj.full_clean()
+        obj.save()
+        messages.success(request, f"Level {obj.number} — {obj.name} added.")
+        return redirect("studios:class_level_list", studio_slug=studio.slug)
+
+    return render(request, "studios/settings_form.html", {
+        "studio": studio, "role": "administrator", "form": form,
+        "page_title": "Add Class Level",
+        "page_intro": "Define a reusable experience level and the shorthand Encore should recognize during onboarding.",
+        "settings_section": "class_levels",
+        "cancel_url_name": "studios:class_level_list",
+    })
+
+
+@login_required
+def class_level_edit(request, studio_slug, level_id):
+    studio = get_object_or_404(Studio, slug=studio_slug, is_active=True)
+    if not _admin_workspace(request, studio):
+        return render(request, "dashboard/access_denied.html", {"studio": studio}, status=403)
+
+    obj = get_object_or_404(ClassLevel, pk=level_id, studio=studio)
+    form = ClassLevelForm(request.POST or None, instance=obj)
+    if request.method == "POST" and form.is_valid():
+        obj = form.save(commit=False)
+        obj.studio = studio
+        obj.full_clean()
+        obj.save()
+        messages.success(request, "Class level updated.")
+        return redirect("studios:class_level_list", studio_slug=studio.slug)
+
+    return render(request, "studios/settings_form.html", {
+        "studio": studio, "role": "administrator", "form": form,
+        "page_title": "Edit Class Level",
+        "page_intro": "Update the display name and shorthand used for this experience level.",
+        "settings_section": "class_levels",
+        "cancel_url_name": "studios:class_level_list",
+    })
+
+
+@login_required
+def class_level_delete(request, studio_slug, level_id):
+    studio = get_object_or_404(Studio, slug=studio_slug, is_active=True)
+    if not _admin_workspace(request, studio):
+        return render(request, "dashboard/access_denied.html", {"studio": studio}, status=403)
+
+    obj = get_object_or_404(ClassLevel, pk=level_id, studio=studio)
+    if request.method != "POST":
+        return redirect("studios:class_level_list", studio_slug=studio.slug)
+    if Class.objects.filter(studio=studio, level=obj).exists():
+        messages.error(request, "This level is assigned to classes. Reassign those classes first, or mark the level inactive.")
+    else:
+        label = str(obj)
+        obj.delete()
+        messages.success(request, f"{label} was removed.")
+    return redirect("studios:class_level_list", studio_slug=studio.slug)
+
+
+@login_required
 def staff_invite(
     request,
     studio_slug,
@@ -1109,10 +1280,7 @@ def staff_invite(
         is_active=True,
     )
 
-    if not _admin_workspace(
-        request,
-        studio,
-    ):
+    if not _admin_workspace(request, studio):
         return render(
             request,
             "dashboard/access_denied.html",
@@ -1120,153 +1288,126 @@ def staff_invite(
             status=403,
         )
 
-    form = StaffInviteForm(
-        request.POST or None
-    )
+    form = StaffInviteForm(request.POST or None)
 
-    if (
-        request.method == "POST"
-        and form.is_valid()
-    ):
-        email = form.cleaned_data[
-            "email"
-        ]
+    if request.method == "POST" and form.is_valid():
+        email = form.cleaned_data["email"]
+        role = form.cleaned_data["role"]
+        first_name = form.cleaned_data["first_name"]
+        last_name = form.cleaned_data["last_name"]
 
-        role = form.cleaned_data[
-            "role"
-        ]
+        if role == "teacher":
+            instructor = (
+                Instructor.objects
+                .filter(studio=studio, email__iexact=email)
+                .first()
+            )
 
-        user = User.objects.filter(
-            email__iexact=email,
-        ).first()
+            if instructor is None:
+                instructor = Instructor.objects.create(
+                    studio=studio,
+                    first_name=first_name,
+                    last_name=last_name,
+                    email=email,
+                    is_active=True,
+                )
+            else:
+                instructor.first_name = first_name
+                instructor.last_name = last_name
+                instructor.email = email
+                instructor.is_active = True
+                instructor.save(
+                    update_fields=[
+                        "first_name",
+                        "last_name",
+                        "email",
+                        "is_active",
+                        "updated_at",
+                    ]
+                )
 
+            if instructor.claimed_at and instructor.user_id:
+                messages.info(
+                    request,
+                    f"{first_name} {last_name} already has an active Encore teacher account.",
+                )
+                return redirect(
+                    "studios:onboarding_home",
+                    studio_slug=studio.slug,
+                )
+
+            try:
+                send_instructor_activation(
+                    request=request,
+                    instructor=instructor,
+                )
+            except InstructorActivationError as exc:
+                messages.warning(
+                    request,
+                    f"{first_name} {last_name} was added, but the activation email could not be sent: {exc}",
+                )
+            else:
+                messages.success(
+                    request,
+                    f"{first_name} {last_name} was added as a teacher and sent a secure account activation email.",
+                )
+
+            return redirect(
+                "studios:onboarding_home",
+                studio_slug=studio.slug,
+            )
+
+        # Administrators keep the existing immediate-access flow. Teachers use
+        # the secure claim flow above and create/connect their own login.
+        user = User.objects.filter(email__iexact=email).first()
         created_password = None
 
         if user is None:
-            created_password = (
-                User.objects
-                .make_random_password(
-                    length=16,
-                )
-            )
-
+            created_password = User.objects.make_random_password(length=16)
             user = User.objects.create_user(
                 username=email,
                 email=email,
                 password=created_password,
-                first_name=form.cleaned_data[
-                    "first_name"
-                ],
-                last_name=form.cleaned_data[
-                    "last_name"
-                ],
+                first_name=first_name,
+                last_name=last_name,
             )
 
-        membership, _created = (
-            StudioMembership.objects
-            .get_or_create(
-                user=user,
-                studio=studio,
-                role=role,
-                defaults={
-                    "is_active": True,
-                },
-            )
+        membership, _created = StudioMembership.objects.get_or_create(
+            user=user,
+            studio=studio,
+            role=role,
+            defaults={"is_active": True},
         )
-
         if not membership.is_active:
             membership.is_active = True
-            membership.save(
-                update_fields=[
-                    "is_active",
-                ]
-            )
-
-        if role == "teacher":
-            instructor_fields = _field_names(
-                Instructor
-            )
-
-            payload = {
-                "studio": studio,
-                "user": user,
-            }
-
-            for field_name, value in {
-                "first_name": form.cleaned_data[
-                    "first_name"
-                ],
-                "last_name": form.cleaned_data[
-                    "last_name"
-                ],
-                "email": email,
-                "is_active": True,
-            }.items():
-                if field_name in instructor_fields:
-                    payload[
-                        field_name
-                    ] = value
-
-            Instructor.objects.get_or_create(
-                studio=studio,
-                user=user,
-                defaults=payload,
-            )
+            membership.save(update_fields=["is_active"])
 
         body_lines = [
-            (
-                f"You have been added to "
-                f"{studio.name} in Encore."
-            ),
+            f"You have been added to {studio.name} in Encore.",
             "",
             "Sign in at:",
-            request.build_absolute_uri(
-                "/accounts/login/"
-            ),
+            request.build_absolute_uri("/accounts/login/"),
         ]
-
         if created_password:
             body_lines += [
                 "",
-                (
-                    "Temporary password: "
-                    f"{created_password}"
-                ),
+                f"Temporary password: {created_password}",
                 "",
-                (
-                    "Please change your password "
-                    "after signing in."
-                ),
+                "Please change your password after signing in.",
             ]
 
         send_mail(
-            subject=(
-                f"Encore access for "
-                f"{studio.name}"
-            ),
-            message="\n".join(
-                body_lines
-            ),
-            from_email=getattr(
-                settings,
-                "DEFAULT_FROM_EMAIL",
-                None,
-            ),
-            recipient_list=[
-                email,
-            ],
+            subject=f"Encore access for {studio.name}",
+            message="\n".join(body_lines),
+            from_email=getattr(settings, "DEFAULT_FROM_EMAIL", None),
+            recipient_list=[email],
             fail_silently=True,
         )
 
         messages.success(
             request,
-            (
-                f"{form.cleaned_data['first_name']} "
-                f"{form.cleaned_data['last_name']} "
-                f"was added as {role}."
-            ),
+            f"{first_name} {last_name} was added as {role}.",
         )
-
         return redirect(
             "studios:onboarding_home",
             studio_slug=studio.slug,
@@ -1281,7 +1422,8 @@ def staff_invite(
             "form": form,
             "page_title": "Invite Staff",
             "page_intro": (
-                "Add an Administrator or Teacher to this studio."
+                "Add an Administrator or Teacher to this studio. "
+                "Teachers receive a secure activation link and create their own login."
             ),
             "settings_section": "staff",
         },
@@ -1398,3 +1540,171 @@ def class_type_delete(request, studio_slug, class_type_id):
         messages.success(request, f"{name} was removed.")
 
     return redirect("studios:class_type_list", studio_slug=studio.slug)
+
+
+@login_required
+@require_POST
+def onboarding_tour_update(request, studio_slug):
+    studio = get_object_or_404(
+        Studio,
+        slug=studio_slug,
+        is_active=True,
+    )
+    membership = _tour_membership(request, studio)
+    if membership is None:
+        return JsonResponse({"ok": False, "error": "Access denied."}, status=403)
+
+    try:
+        payload = json.loads(request.body.decode("utf-8") or "{}")
+    except (TypeError, ValueError, json.JSONDecodeError, UnicodeDecodeError):
+        payload = {}
+
+    action = str(payload.get("action") or "progress").strip().lower()
+
+    try:
+        step = int(payload.get("step", membership.onboarding_tour_step))
+    except (TypeError, ValueError):
+        step = membership.onboarding_tour_step
+
+    step = max(0, min(step, 50))
+
+    if action == "skip":
+        membership.onboarding_tour_status = StudioMembership.TourStatus.SKIPPED
+    elif action == "complete":
+        membership.onboarding_tour_status = StudioMembership.TourStatus.COMPLETED
+    else:
+        membership.onboarding_tour_status = StudioMembership.TourStatus.IN_PROGRESS
+        membership.onboarding_tour_step = step
+
+    membership.save(
+        update_fields=[
+            "onboarding_tour_status",
+            "onboarding_tour_step",
+        ]
+    )
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "status": membership.onboarding_tour_status,
+            "step": membership.onboarding_tour_step,
+        }
+    )
+
+
+@login_required
+def onboarding_meeting_request(request, studio_slug):
+    studio = get_object_or_404(
+        Studio,
+        slug=studio_slug,
+        is_active=True,
+    )
+
+    if not _admin_workspace(request, studio):
+        return render(
+            request,
+            "dashboard/access_denied.html",
+            {"studio": studio},
+            status=403,
+        )
+
+    initial = {
+        "name": request.user.get_full_name() or request.user.username,
+        "email": request.user.email,
+        "phone": studio.phone,
+        "timezone": studio.timezone or settings.TIME_ZONE,
+    }
+    form = OnboardingMeetingRequestForm(
+        request.POST or None,
+        initial=initial if request.method != "POST" else None,
+    )
+    submitted = False
+
+    if request.method == "POST" and form.is_valid():
+        data = form.cleaned_data
+        migration_labels = [
+            dict(form.MIGRATION_CHOICES).get(value, value)
+            for value in data.get("migration_help", [])
+        ]
+        platform_label = dict(form.CURRENT_PLATFORM_CHOICES).get(
+            data["current_platform"],
+            data["current_platform"],
+        )
+        student_label = dict(form.STUDENT_COUNT_CHOICES).get(
+            data["student_count"],
+            data["student_count"],
+        )
+
+        subject = f"Encore onboarding meeting request — {studio.name}"
+        text_body = "\n".join(
+            [
+                "New Encore onboarding meeting request",
+                "",
+                f"Studio: {studio.name}",
+                f"Studio ID: {studio.pk}",
+                f"Name: {data['name']}",
+                f"Email: {data['email']}",
+                f"Phone: {data.get('phone') or 'Not provided'}",
+                f"Current software: {platform_label}",
+                f"Approx. student count: {student_label}",
+                f"Preferred date: {data['preferred_date'].isoformat()}",
+                f"Preferred time: {data['preferred_time'].strftime('%I:%M %p')}",
+                f"Time zone: {data['timezone']}",
+                "Help requested: " + (", ".join(migration_labels) or "Not specified"),
+                "",
+                "Notes:",
+                data.get("notes") or "None",
+            ]
+        )
+        html_body = f"""
+            <div style="font-family:Arial,sans-serif;line-height:1.55;color:#10153f;">
+                <h2>New Encore onboarding meeting request</h2>
+                <p><strong>Studio:</strong> {escape(studio.name)}</p>
+                <p><strong>Studio ID:</strong> {studio.pk}</p>
+                <p><strong>Name:</strong> {escape(data['name'])}</p>
+                <p><strong>Email:</strong> {escape(data['email'])}</p>
+                <p><strong>Phone:</strong> {escape(data.get('phone') or 'Not provided')}</p>
+                <p><strong>Current software:</strong> {escape(platform_label)}</p>
+                <p><strong>Approx. student count:</strong> {escape(student_label)}</p>
+                <p><strong>Preferred date:</strong> {escape(data['preferred_date'].strftime('%B %d, %Y'))}</p>
+                <p><strong>Preferred time:</strong> {escape(data['preferred_time'].strftime('%I:%M %p'))}</p>
+                <p><strong>Time zone:</strong> {escape(data['timezone'])}</p>
+                <p><strong>Help requested:</strong> {escape(', '.join(migration_labels) or 'Not specified')}</p>
+                <p><strong>Notes:</strong><br>{escape(data.get('notes') or 'None').replace(chr(10), '<br>')}</p>
+            </div>
+        """
+
+        try:
+            send_email(
+                to=[settings.ENCORE_ONBOARDING_EMAIL],
+                subject=subject,
+                html_body=html_body,
+                text_body=text_body,
+                reply_to=[data["email"]],
+                tags={
+                    "message_type": "onboarding_request",
+                    "studio_id": studio.pk,
+                },
+            )
+        except EncoreEmailError as exc:
+            messages.error(
+                request,
+                "We could not send your onboarding request right now. Please try again.",
+            )
+            if settings.DEBUG:
+                messages.error(request, str(exc))
+        else:
+            submitted = True
+            form = OnboardingMeetingRequestForm(initial=initial)
+
+    return render(
+        request,
+        "studios/onboarding_meeting_request.html",
+        {
+            "studio": studio,
+            "role": "administrator",
+            "settings_section": "data_transfer",
+            "form": form,
+            "submitted": submitted,
+        },
+    )

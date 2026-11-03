@@ -1,0 +1,91 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Use Existing Music | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_resources.css' %}">{% endblock %}
+{% block topbar_title %}Use Existing Music{% endblock %}
+
+{% block content %}
+<section class="resource-heading">
+    <div>
+        <a class="back-link" href="{% url 'resources:resource_list' studio.slug %}{% if target_class %}?class={{ target_class.id }}{% endif %}">
+            ← Back to Music & Class Resources
+        </a>
+        <p class="eyebrow">Music Library</p>
+        <h1>Use Existing Music</h1>
+        <p>Attach music already uploaded for this season to another class without uploading the audio file again.</p>
+    </div>
+</section>
+
+{% if messages %}
+<div class="message-stack">
+    {% for message in messages %}<div class="message-banner">{{ message }}</div>{% endfor %}
+</div>
+{% endif %}
+
+<section class="reuse-music-destination">
+    <div>
+        <span>Step 1</span>
+        <strong>Choose the destination class</strong>
+        <p>Encore will show music already in use during that class's season.</p>
+    </div>
+
+    <form method="get" class="reuse-class-picker">
+        <select name="class" class="encore-input" required>
+            <option value="">Choose a class</option>
+            {% for class_option in manageable_classes %}
+                <option value="{{ class_option.id }}" {% if target_class and target_class.id == class_option.id %}selected{% endif %}>
+                    {{ class_option.name }} · {{ class_option.class_id }} · {{ class_option.season.name }}
+                </option>
+            {% endfor %}
+        </select>
+        <button class="button secondary" type="submit">Show Music</button>
+    </form>
+</section>
+
+{% if target_class %}
+<section class="reuse-music-panel">
+    <div class="reuse-music-panel-heading">
+        <div>
+            <span>Step 2</span>
+            <h2>Music from {{ target_class.season.name }}</h2>
+            <p>Destination: <strong>{{ target_class.name }}</strong> · {{ target_class.class_id }}</p>
+        </div>
+    </div>
+
+    <form method="post" class="reuse-music-form">
+        {% csrf_token %}
+        <input type="hidden" name="class" value="{{ target_class.id }}">
+
+        <div class="reuse-music-grid">
+            {% for music in reusable_music %}
+                <label class="reuse-music-card">
+                    <input type="radio" name="source_resource" value="{{ music.id }}" required>
+                    <span class="reuse-music-radio"></span>
+                    <div class="reuse-music-card-copy">
+                        <span class="resource-type">Music</span>
+                        <strong>{{ music.title }}</strong>
+                        {% if music.artist %}<small>{{ music.artist }}</small>{% endif %}
+                        <p>Used by {{ music.class_instance.name }} · {{ music.class_instance.class_id }}</p>
+                        {% if music.duration_seconds %}<small>{{ music.duration_seconds }} seconds</small>{% endif %}
+                    </div>
+                    <span class="reuse-music-source">{% if music.file %}Uploaded file{% else %}External link{% endif %}</span>
+                </label>
+            {% empty %}
+                <div class="empty-state reuse-music-empty">No other music is available in this season yet.</div>
+            {% endfor %}
+        </div>
+
+        {% if reusable_music %}
+            <div class="reuse-music-actions">
+                <div>
+                    <strong>No duplicate upload</strong>
+                    <span>Encore creates a class-specific music attachment that points to the existing file or external link.</span>
+                </div>
+                <button class="button primary" type="submit">Add Selected Music to Class</button>
+            </div>
+        {% endif %}
+    </form>
+</section>
+{% endif %}
+{% endblock %}

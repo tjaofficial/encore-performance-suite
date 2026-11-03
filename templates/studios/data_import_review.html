@@ -1,0 +1,131 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Review Import | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}">{% endblock %}
+{% block topbar_title %}Review Import{% endblock %}
+
+{% block content %}
+<div class="settings-workspace">
+    {% include "includes/settings_nav.html" %}
+    <main class="settings-workspace-content">
+        <section class="settings-heading">
+            <div>
+                <a class="back-link" href="{% url 'studios:data_import_map' studio.slug %}">← Back to Column Mapping</a>
+                <p class="eyebrow">Import · Step 3 of 4</p>
+                <h1>Review &amp; Validate</h1>
+                <p>{{ state.filename }} · {{ counts.total }} data row{{ counts.total|pluralize }} · {{ import_type.label }}</p>
+            </div>
+        </section>
+
+        {% if messages %}
+            <div class="message-stack">
+                {% for message in messages %}<div class="message-banner {{ message.tags }}">{{ message }}</div>{% endfor %}
+            </div>
+        {% endif %}
+
+        <section class="import-review-summary">
+            <a class="import-review-stat {% if status_filter == 'all' %}active{% endif %}" href="?status=all">
+                <span>Total</span><strong>{{ counts.total }}</strong><small>All rows</small>
+            </a>
+            <a class="import-review-stat create {% if status_filter == 'create' %}active{% endif %}" href="?status=create">
+                <span>Create</span><strong>{{ counts.create }}</strong><small>New records</small>
+            </a>
+            <a class="import-review-stat update {% if status_filter == 'update' %}active{% endif %}" href="?status=update">
+                <span>Update</span><strong>{{ counts.update }}</strong><small>Existing matches</small>
+            </a>
+            <a class="import-review-stat skip {% if status_filter == 'skip' %}active{% endif %}" href="?status=skip">
+                <span>Skip</span><strong>{{ counts.skip }}</strong><small>No change / duplicate</small>
+            </a>
+            <a class="import-review-stat error {% if status_filter == 'error' %}active{% endif %}" href="?status=error">
+                <span>Errors</span><strong>{{ counts.error }}</strong><small>Needs attention</small>
+            </a>
+        </section>
+
+        <section class="settings-section-block import-review-guidance">
+            <div class="settings-section-heading">
+                <div>
+                    <span>Safety Review</span>
+                    <h2>Nothing has been written to Encore</h2>
+                    <p>Encore normalized the mapped values, checked references, looked for existing matches, and flagged duplicate CSV rows.</p>
+                </div>
+            </div>
+            <div class="import-review-rules">
+                <span>Blank CSV cells do not overwrite existing values.</span>
+                <span>Existing records are matched using type-specific identity rules.</span>
+                <span>Rows with validation errors will be excluded from the import and included in a downloadable not-imported CSV.</span>
+            </div>
+        </section>
+
+        <section class="settings-panel import-review-table-panel">
+            <div class="import-review-table-wrap">
+                <table class="import-review-table">
+                    <thead>
+                        <tr>
+                            <th>CSV Row</th>
+                            <th>Record</th>
+                            <th>Result</th>
+                            <th>Reason</th>
+                            <th>Normalized Values</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in results %}
+                            <tr class="import-result-row result-{{ row.status }}">
+                                <td class="row-number">{{ row.row_number }}</td>
+                                <td>
+                                    <strong>{{ row.label }}</strong>
+                                    {% if row.warnings %}
+                                        {% for warning in row.warnings %}<small class="row-warning">{{ warning }}</small>{% endfor %}
+                                    {% endif %}
+                                </td>
+                                <td><span class="import-status-badge {{ row.status }}">{{ row.status|title }}</span></td>
+                                <td>
+                                    <span>{{ row.reason }}</span>
+                                    {% if row.errors|length > 1 %}
+                                        <details class="import-row-details">
+                                            <summary>{{ row.errors|length }} validation details</summary>
+                                            <ul>{% for error in row.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                                        </details>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <details class="import-row-details normalized-details">
+                                        <summary>View mapped values</summary>
+                                        <dl>
+                                            {% for field, value in row.normalized.items %}
+                                                <div><dt>{{ field|title }}</dt><dd>{% if value == True %}Yes{% elif value == False %}No{% elif value == None %}—{% else %}{{ value }}{% endif %}</dd></div>
+                                            {% empty %}
+                                                <div><dd>No valid mapped values.</dd></div>
+                                            {% endfor %}
+                                        </dl>
+                                    </details>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="5" class="import-review-empty">No rows match this filter.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <div class="form-actions import-review-actions">
+            <a class="button secondary" href="{% url 'studios:data_import_map' studio.slug %}">Adjust Mapping</a>
+            <form method="post" action="{% url 'studios:data_import_commit' studio.slug %}">
+                {% csrf_token %}
+                <button
+                    class="button primary"
+                    type="submit"
+                    onclick="return confirm('Import the valid rows into Encore now? Existing matches marked Update may be changed.');"
+                >
+                    Import Valid Records
+                    {% if counts.error or counts.skip %}
+                        · {{ counts.error|add:counts.skip }} Not Imported
+                    {% endif %}
+                </button>
+            </form>
+        </div>
+    </main>
+</div>
+{% endblock %}

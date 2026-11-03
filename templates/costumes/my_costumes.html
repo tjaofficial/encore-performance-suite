@@ -24,7 +24,8 @@
 </section>
 
 <section class="family-costume-grid">
-    {% for assignment in assignments %}
+    {% for row in assignment_rows %}
+        {% with assignment=row.assignment %}
         <article class="family-costume-card">
             <div class="costume-card-image">
                 {% with front=assignment.costume.front_image %}
@@ -61,11 +62,8 @@
                 {% endif %}
 
                 <div class="family-costume-meta">
-                    {% if assignment.costume_size %}
-                        <span>
-                            Costume Size:
-                            <b>{{ assignment.costume_size }}</b>
-                        </span>
+                    {% if row.display_size %}
+                        <span>Costume Size: <b>{{ row.display_size }}</b>{% if not assignment.costume_size and row.recommended_size %}<small> Recommended</small>{% endif %}</span>
                     {% endif %}
 
                     {% if assignment.shoe_size %}
@@ -81,6 +79,13 @@
                     </span>
                 </div>
 
+                {% if assignment.costume.vendor %}
+                    <div class="family-costume-vendor">
+                        <span>Vendor</span><strong>{{ assignment.costume.vendor.name }}</strong>
+                        {% if assignment.costume.vendor.website %}<a href="{{ assignment.costume.vendor.website }}" target="_blank" rel="noopener">Visit Store ↗</a>{% endif %}
+                    </div>
+                {% endif %}
+
                 <div class="costume-purchase-links">
                     {% for link in assignment.costume.purchase_links.all %}
                         <a
@@ -94,6 +99,7 @@
                 </div>
             </div>
         </article>
+        {% endwith %}
     {% empty %}
         <div class="wardrobe-empty-state">
             No costume assignments are available yet.

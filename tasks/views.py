@@ -1,4 +1,6 @@
 from django.contrib import messages
+from dashboard.parent_portal import parent_portal_context
+from django.http import HttpResponseForbidden
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
 from django.http import JsonResponse
@@ -39,6 +41,10 @@ from .services import (
     task_assignment_for_user,
     visible_tasks_for_user,
 )
+
+
+def is_makeup_tracker(task):
+    return (task.description or "").startswith("[Encore make-up tracker:")
 
 
 def _access_denied(
@@ -163,6 +169,17 @@ def task_list(
             role,
         )
 
+    family_portal = None
+    if role == StudioMembership.Role.FAMILY:
+        family_portal = parent_portal_context(request, studio, section="tasks")
+        selected_student = family_portal.get("selected_student")
+        if not selected_student:
+            tasks = tasks.none()
+        else:
+            # Only this family's selected dancer. A supplied student ID can never
+            # select an unrelated child because parent_portal_context validates it.
+            tasks = tasks.filter(student=selected_student, is_student_facing=True)
+
     rows = []
 
     for task in tasks.distinct():
@@ -192,8 +209,10 @@ def task_list(
                 "task": task,
                 "assignment": assignment,
                 "can_complete": (
-                    assignment is not None
+                    assignment is not None and not is_makeup_tracker(task)
                 ),
+                "system_managed": is_makeup_tracker(task),
+                "display_description": task.description.split("\n", 1)[-1] if is_makeup_tracker(task) else task.description,
                 "assignment_count": (
                     task.assignments.count()
                 ),
@@ -207,17 +226,99 @@ def task_list(
             }
         )
 
-    return render(
-        request,
-        "tasks/task_list.html",
-        {
+    context = {
             "studio": studio,
             "role": role,
             "task_rows": rows,
             "show_completed": show_completed,
             "active_tab": tab,
-        },
+        }
+    if role == StudioMembership.Role.FAMILY:
+        context.update(family_portal)
+    return render(request, "tasks/family_task_list.html" if role == StudioMembership.Role.FAMILY else "tasks/task_list.html", context)
+
+
+@login_required
+def task_detail(
+    request,
+    studio_slug,
+    task_id,
+):
+    studio = get_object_or_404(
+        Studio,
+        slug=studio_slug,
+        is_active=True,
     )
+
+    role = selected_workspace_role(
+        request,
+        studio,
+    )
+
+    if role is None:
+        return _access_denied(
+            request,
+            studio,
+        )
+
+    visible = visible_tasks_for_user(
+        request.user,
+        studio,
+        role,
+    )
+
+    task = get_object_or_404(
+        visible,
+        pk=task_id,
+    )
+
+    if role == StudioMembership.Role.FAMILY:
+        family_portal = parent_portal_context(request, studio, section="tasks")
+        selected_student = family_portal.get("selected_student")
+        if not selected_student or task.student_id != selected_student.pk:
+            return _access_denied(request, studio)
+
+    assignment = task_assignment_for_user(
+        task,
+        request.user,
+        role,
+    )
+
+    can_manage = (
+        role == StudioMembership.Role.ADMINISTRATOR
+        or task.created_by_id == request.user.id
+    )
+
+    assignments = (
+        task.assignments
+        .select_related(
+            "user",
+            "student",
+        )
+        .order_by(
+            "recipient_type",
+            "id",
+        )
+    )
+
+    context = {
+            "studio": studio,
+            "role": role,
+            "task": task,
+            "assignment": assignment,
+            "can_complete": assignment is not None and not is_makeup_tracker(task),
+            "system_managed": is_makeup_tracker(task),
+            "display_description": task.description.split("\n", 1)[-1] if is_makeup_tracker(task) else task.description,
+            "can_manage": can_manage and not is_makeup_tracker(task),
+            "assignments": assignments,
+            "assignment_count": assignments.count(),
+            "completed_count": assignments.filter(
+                completed_at__isnull=False,
+            ).count(),
+        }
+    if role == StudioMembership.Role.FAMILY:
+        context.update(family_portal)
+    return render(request, "tasks/family_task_detail.html" if role == StudioMembership.Role.FAMILY else "tasks/task_detail.html", context)
 
 
 @login_required
@@ -236,10 +337,7 @@ def task_create(
         studio,
     )
 
-    if role not in {
-        StudioMembership.Role.ADMINISTRATOR,
-        StudioMembership.Role.TEACHER,
-    }:
+    if role != StudioMembership.Role.ADMINISTRATOR:
         return _access_denied(
             request,
             studio,
@@ -377,6 +475,8 @@ def task_edit(
         studio=studio,
     )
 
+    if is_makeup_tracker(task):
+        return HttpResponseForbidden("This task is managed by Encore attendance.")
     if not (
         role
         == StudioMembership.Role.ADMINISTRATOR
@@ -419,6 +519,7 @@ def task_edit(
                     "selected_students"
                 )
             ),
+            is_update=True,
         )
 
         messages.success(
@@ -469,6 +570,8 @@ def task_delete(
         studio=studio,
     )
 
+    if is_makeup_tracker(task):
+        return HttpResponseForbidden("This task is managed by Encore attendance.")
     if not (
         role
         == StudioMembership.Role.ADMINISTRATOR
@@ -512,10 +615,7 @@ def task_quick_add(
         studio,
     )
 
-    if role not in {
-        StudioMembership.Role.ADMINISTRATOR,
-        StudioMembership.Role.TEACHER,
-    }:
+    if role != StudioMembership.Role.ADMINISTRATOR:
         return _access_denied(
             request,
             studio,
@@ -585,6 +685,8 @@ def task_toggle_complete(
         pk=task_id,
     )
 
+    if is_makeup_tracker(task):
+        return HttpResponseForbidden("This task is completed automatically by Encore attendance.")
     if request.method == "POST":
         complete_or_reopen_for_user(
             task,
@@ -689,10 +791,7 @@ def class_roster_options(
         studio,
     )
 
-    if role not in {
-        StudioMembership.Role.ADMINISTRATOR,
-        StudioMembership.Role.TEACHER,
-    }:
+    if role != StudioMembership.Role.ADMINISTRATOR:
         return JsonResponse(
             {"results": []},
             status=403,
@@ -932,6 +1031,12 @@ def template_detail(
         studio,
     )
 
+    if role != StudioMembership.Role.ADMINISTRATOR:
+        return _access_denied(
+            request,
+            studio,
+        )
+
     template = get_object_or_404(
         _visible_templates(
             request.user,
@@ -950,8 +1055,6 @@ def template_detail(
     can_manage = (
         role
         == StudioMembership.Role.ADMINISTRATOR
-        or template.created_by_id
-        == request.user.id
     )
 
     return render(
@@ -990,10 +1093,7 @@ def template_edit(
         studio=studio,
     )
 
-    if not (
-        role == StudioMembership.Role.ADMINISTRATOR
-        or template.created_by_id == request.user.id
-    ):
+    if role != StudioMembership.Role.ADMINISTRATOR:
         return _access_denied(
             request,
             studio,

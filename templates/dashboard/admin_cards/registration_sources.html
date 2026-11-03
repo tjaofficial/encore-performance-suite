@@ -1,0 +1,13 @@
+<article class="admin-dashboard-card admin-analytics-card analytics-source-card card-tone-purple">
+    <div class="card-heading"><h2>Registration Sources</h2></div>
+    {% if admin_analytics.registration_sources.rows %}
+        <div class="registration-source-list admin-card-scroll">
+            {% for item in admin_analytics.registration_sources.rows %}
+                <div class="registration-source-row"><div class="registration-source-heading"><span>{{ item.label }}</span><strong>{{ item.total }}</strong></div><div class="registration-source-track"><span style="width: {{ item.percent }}%;"></span></div></div>
+            {% endfor %}
+        </div>
+        <div class="analytics-caption">Last {{ admin_analytics.registration_sources.days }} days</div>
+    {% else %}
+        <div class="empty-state"><span class="empty-state-icon">↗</span><strong>No source data yet</strong><span>Registration-source activity from the last 90 days will appear here.</span></div>
+    {% endif %}
+</article>

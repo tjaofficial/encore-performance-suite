@@ -152,8 +152,8 @@
 .price-table-head,
 .price-table-row {
     display: grid;
-    min-width: 720px;
-    grid-template-columns: 150px repeat(4, minmax(120px, 1fr));
+    min-width: 520px;
+    grid-template-columns: 160px repeat(2, minmax(140px, 1fr));
     gap: 8px;
     align-items: center;
     padding: 9px 10px;

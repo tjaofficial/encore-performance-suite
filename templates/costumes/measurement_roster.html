@@ -48,6 +48,11 @@
         >
     </label>
 
+    <form method="get" class="measurement-vendor-selector">
+        <label><span>Vendor Conversion</span><select name="vendor" onchange="this.form.submit()"><option value="">No vendor selected</option>{% for vendor in vendors %}<option value="{{ vendor.id }}" {% if selected_vendor and selected_vendor.id == vendor.id %}selected{% endif %}>{{ vendor.name }}</option>{% endfor %}</select></label>
+        {% if selected_vendor %}<small>All active {{ selected_vendor.name }} size charts are compared below.</small>{% endif %}
+    </form>
+
     <div class="measurement-filters" data-measurement-filters>
         <button type="button" class="active" data-filter="all">
             All
@@ -89,6 +94,9 @@
             data-save-url="{% url 'costumes:measurement_autosave' studio.slug class_instance.id row.student.id %}"
             data-complete-url="{% url 'costumes:measurement_complete' studio.slug class_instance.id row.student.id %}"
             data-new-url="{% url 'costumes:measurement_start_new' studio.slug class_instance.id row.student.id %}"
+            data-cancel-url="{% url 'costumes:measurement_cancel' studio.slug class_instance.id row.student.id %}"
+            data-vendor-id="{% if selected_vendor %}{{ selected_vendor.id }}{% endif %}"
+            data-measurement-unit-label="{{ measurement_unit_label }}"
         >
             <button
                 class="measurement-card-summary"
@@ -136,168 +144,47 @@
             </button>
 
             <div class="measurement-card-body" data-measurement-body hidden>
-                <div
-                    class="measurement-completed-summary"
-                    data-current-summary
-                    {% if row.state == "not_started" or row.state == "in_progress" %}hidden{% endif %}
-                >
-                    {% if row.current %}
-                        <div class="measurement-current-grid">
-                            <span><b>Bust</b>{{ row.current.bust|default:"—" }}</span>
-                            <span><b>Waist</b>{{ row.current.waist|default:"—" }}</span>
-                            <span><b>Hips</b>{{ row.current.hips|default:"—" }}</span>
-                            <span><b>Girth</b>{{ row.current.girth|default:"—" }}</span>
-                            <span><b>Inseam</b>{{ row.current.inseam|default:"—" }}</span>
-                            <span><b>Outseam</b>{{ row.current.outseam|default:"—" }}</span>
-                            <span><b>Height</b>{{ row.current.height|default:"—" }}</span>
-                            <span><b>Clothing</b>{{ row.current.clothing_size|default:"—" }}</span>
-                            <span><b>Shoe</b>{{ row.current.shoe_size|default:"—" }}</span>
-                        </div>
-
-                        <button
-                            type="button"
-                            class="button secondary"
-                            data-start-new-measurements
-                        >
-                            Start New Measurements
-                        </button>
-                    {% endif %}
+                <div class="measurement-completed-summary" data-current-summary {% if row.draft %}hidden{% endif %}>
+                    <div class="measurement-current-grid">
+                        <span><b>Chest ({{ measurement_unit_label }})</b><span data-current-value="bust">{{ row.current_values.bust|default:"—" }}</span></span>
+                        <span><b>Waist ({{ measurement_unit_label }})</b><span data-current-value="waist">{{ row.current_values.waist|default:"—" }}</span></span>
+                        <span><b>Hips ({{ measurement_unit_label }})</b><span data-current-value="hips">{{ row.current_values.hips|default:"—" }}</span></span>
+                        <span><b>Girth ({{ measurement_unit_label }})</b><span data-current-value="girth">{{ row.current_values.girth|default:"—" }}</span></span>
+                        <span><b>Inseam ({{ measurement_unit_label }})</b><span data-current-value="inseam">{{ row.current_values.inseam|default:"—" }}</span></span>
+                        <span><b>Outseam ({{ measurement_unit_label }})</b><span data-current-value="outseam">{{ row.current_values.outseam|default:"—" }}</span></span>
+                        <span><b>Height ({{ measurement_unit_label }})</b><span data-current-value="height">{{ row.current_values.height|default:"—" }}</span></span>
+                        <span><b>Clothing</b><span data-current-value="clothing_size">{{ row.current_values.clothing_size|default:"—" }}</span></span>
+                        <span><b>Shoe</b><span data-current-value="shoe_size">{{ row.current_values.shoe_size|default:"—" }}</span></span>
+                    </div>
+                    <button type="button" class="button secondary" data-start-new-measurements>{% if row.current %}Update Measurements{% else %}Start Measurements{% endif %}</button>
                 </div>
 
-                <div
-                    class="measurement-edit-panel"
-                    data-edit-panel
-                    {% if row.state == "complete" or row.state == "needs_remeasurement" %}hidden{% endif %}
-                >
+                {% if selected_vendor %}
+                <div class="measurement-conversion-panel" data-conversion-panel>
+                    <div class="conversion-heading"><span>Vendor Conversion</span><strong>{{ selected_vendor.name }}</strong></div>
+                    <div data-conversion-results>
+                        {% for conversion in row.conversions %}
+                            <div class="conversion-measurement-row" data-conversion-field="{{ conversion.field }}"><strong>{{ conversion.label }}</strong><span>{{ conversion.value }} {{ measurement_unit_label }}</span><div>{% for chart in conversion.charts %}<span class="conversion-chip"><b>{{ chart.chart }}</b> {{ chart.size }}</span>{% empty %}<span class="conversion-none">No matching chart size</span>{% endfor %}</div></div>
+                        {% empty %}<p class="muted-copy">Enter measurements to see vendor chart conversions.</p>{% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="measurement-edit-panel" data-edit-panel {% if not row.draft %}hidden{% endif %}>
                     <div class="measurement-input-grid">
-                        <label>
-                            <span>Bust</span>
-                            <input
-                                type="number"
-                                step="0.01"
-                                inputmode="decimal"
-                                data-measurement-field="bust"
-                                value="{% if row.draft %}{{ row.draft.bust|default_if_none:'' }}{% endif %}"
-                            >
-                        </label>
-
-                        <label>
-                            <span>Waist</span>
-                            <input
-                                type="number"
-                                step="0.01"
-                                inputmode="decimal"
-                                data-measurement-field="waist"
-                                value="{% if row.draft %}{{ row.draft.waist|default_if_none:'' }}{% endif %}"
-                            >
-                        </label>
-
-                        <label>
-                            <span>Hips</span>
-                            <input
-                                type="number"
-                                step="0.01"
-                                inputmode="decimal"
-                                data-measurement-field="hips"
-                                value="{% if row.draft %}{{ row.draft.hips|default_if_none:'' }}{% endif %}"
-                            >
-                        </label>
-
-                        <label>
-                            <span>Girth</span>
-                            <input
-                                type="number"
-                                step="0.01"
-                                inputmode="decimal"
-                                data-measurement-field="girth"
-                                value="{% if row.draft %}{{ row.draft.girth|default_if_none:'' }}{% endif %}"
-                            >
-                        </label>
-
-                        <label>
-                            <span>Inseam</span>
-                            <input
-                                type="number"
-                                step="0.01"
-                                inputmode="decimal"
-                                data-measurement-field="inseam"
-                                value="{% if row.draft %}{{ row.draft.inseam|default_if_none:'' }}{% endif %}"
-                            >
-                        </label>
-
-                        <label>
-                            <span>Outseam</span>
-                            <input
-                                type="number"
-                                step="0.01"
-                                inputmode="decimal"
-                                data-measurement-field="outseam"
-                                value="{% if row.draft %}{{ row.draft.outseam|default_if_none:'' }}{% endif %}"
-                            >
-                        </label>
-
-                        <label>
-                            <span>Height</span>
-                            <input
-                                type="number"
-                                step="0.01"
-                                inputmode="decimal"
-                                data-measurement-field="height"
-                                value="{% if row.draft %}{{ row.draft.height|default_if_none:'' }}{% endif %}"
-                            >
-                        </label>
-
-                        <label>
-                            <span>Clothing Size</span>
-                            <input
-                                type="text"
-                                data-measurement-field="clothing_size"
-                                value="{% if row.draft %}{{ row.draft.clothing_size }}{% endif %}"
-                            >
-                        </label>
-
-                        <label>
-                            <span>Shoe Size</span>
-                            <input
-                                type="text"
-                                data-measurement-field="shoe_size"
-                                value="{% if row.draft %}{{ row.draft.shoe_size }}{% endif %}"
-                            >
-                        </label>
-
-                        <label class="wide">
-                            <span>Other Size Information</span>
-                            <textarea
-                                rows="2"
-                                data-measurement-field="other_size_info"
-                            >{% if row.draft %}{{ row.draft.other_size_info }}{% endif %}</textarea>
-                        </label>
-
-                        <label class="wide">
-                            <span>Measurement Notes</span>
-                            <textarea
-                                rows="2"
-                                data-measurement-field="notes"
-                            >{% if row.draft %}{{ row.draft.notes }}{% endif %}</textarea>
-                        </label>
+                        <label><span>Chest ({{ measurement_unit_label }})</span><input type="number" step="0.01" inputmode="decimal" data-measurement-field="bust" value="{{ row.edit_values.bust }}"></label>
+                        <label><span>Waist ({{ measurement_unit_label }})</span><input type="number" step="0.01" inputmode="decimal" data-measurement-field="waist" value="{{ row.edit_values.waist }}"></label>
+                        <label><span>Hips ({{ measurement_unit_label }})</span><input type="number" step="0.01" inputmode="decimal" data-measurement-field="hips" value="{{ row.edit_values.hips }}"></label>
+                        <label><span>Girth ({{ measurement_unit_label }})</span><input type="number" step="0.01" inputmode="decimal" data-measurement-field="girth" value="{{ row.edit_values.girth }}"></label>
+                        <label><span>Inseam ({{ measurement_unit_label }})</span><input type="number" step="0.01" inputmode="decimal" data-measurement-field="inseam" value="{{ row.edit_values.inseam }}"></label>
+                        <label><span>Outseam ({{ measurement_unit_label }})</span><input type="number" step="0.01" inputmode="decimal" data-measurement-field="outseam" value="{{ row.edit_values.outseam }}"></label>
+                        <label><span>Height ({{ measurement_unit_label }})</span><input type="number" step="0.01" inputmode="decimal" data-measurement-field="height" value="{{ row.edit_values.height }}"></label>
+                        <label><span>Clothing Size</span><input type="text" data-measurement-field="clothing_size" value="{{ row.edit_values.clothing_size }}"></label>
+                        <label><span>Shoe Size</span><input type="text" data-measurement-field="shoe_size" value="{{ row.edit_values.shoe_size }}"></label>
+                        <label class="wide"><span>Other Size Information</span><textarea rows="2" data-measurement-field="other_size_info">{{ row.edit_values.other_size_info }}</textarea></label>
+                        <label class="wide"><span>Measurement Notes</span><textarea rows="2" data-measurement-field="notes">{{ row.edit_values.notes }}</textarea></label>
                     </div>
-
-                    <div class="measurement-card-actions">
-                        <span
-                            class="measurement-save-state"
-                            data-save-state
-                        >
-                            Changes save automatically
-                        </span>
-
-                        <button
-                            type="button"
-                            class="button primary"
-                            data-complete-measurements
-                        >
-                            Complete Measurements
-                        </button>
-                    </div>
+                    <div class="measurement-card-actions"><span class="measurement-save-state" data-save-state>Changes save automatically</span><div><button type="button" class="button secondary" data-cancel-measurements>Cancel</button> <button type="button" class="button primary" data-complete-measurements>Complete Measurements</button></div></div>
                 </div>
             </div>
         </article>

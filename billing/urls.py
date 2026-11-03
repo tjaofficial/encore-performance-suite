@@ -5,6 +5,19 @@ from . import views
 app_name = "billing"
 
 urlpatterns = [
+    path("<slug:studio_slug>/account/<int:account_id>/refund/", views.issue_refund, name="issue_refund"),
+    path("<slug:studio_slug>/plans/reviews/account/<int:account_id>/", views.studio_overdue_account, name="studio_overdue_account"),
+    path("<slug:studio_slug>/plans/reviews/account/<int:account_id>/action/", views.studio_overdue_account_action, name="studio_overdue_account_action"),
+    path("<slug:studio_slug>/family/withdrawal/", views.family_withdrawal_request, name="family_withdrawal_request"),
+    path("<slug:studio_slug>/plans/reviews/", views.studio_billing_reviews, name="studio_billing_reviews"),
+    path("<slug:studio_slug>/plans/reviews/withdrawal/<int:request_id>/", views.studio_withdrawal_decision, name="studio_withdrawal_decision"),
+    path("<slug:studio_slug>/plans/reviews/hold/<int:account_id>/", views.studio_hold_decision, name="studio_hold_decision"),
+    path('<slug:studio_slug>/subscription/payments/activate/', views.stripe_activation_page, name='stripe_activation_page'),
+    path('<slug:studio_slug>/subscription/payments/activate/session/', views.stripe_activation_session, name='stripe_activation_session'),
+    path('<slug:studio_slug>/subscription/payments/activate/status/', views.stripe_activation_status, name='stripe_activation_status'),
+    path("<slug:studio_slug>/family/autopay/setup/", views.family_autopay_setup, name="family_autopay_setup"),
+    path("<slug:studio_slug>/family/autopay/confirm/", views.family_autopay_confirm, name="family_autopay_confirm"),
+    path("<slug:studio_slug>/family/autopay/disable/", views.family_autopay_disable, name="family_autopay_disable"),
     path(
         "stripe/webhook/",
         views.stripe_webhook,
@@ -64,6 +77,26 @@ urlpatterns = [
         "<slug:studio_slug>/subscription/notices/<int:notice_id>/read/",
         views.mark_subscription_notice_read,
         name="mark_subscription_notice_read",
+    ),
+    path(
+        "<slug:studio_slug>/family/payments/",
+        views.family_payments,
+        name="family_payments",
+    ),
+    path(
+        "<slug:studio_slug>/family/payments/intent/",
+        views.family_payment_intent,
+        name="family_payment_intent",
+    ),
+    path(
+        "<slug:studio_slug>/family/payments/return/",
+        views.family_payment_return,
+        name="family_payment_return",
+    ),
+    path(
+        "<slug:studio_slug>/family/billing/cancel/",
+        views.cancel_family_billing,
+        name="cancel_family_billing",
     ),
     path(
         "<slug:studio_slug>/account/<int:account_id>/",

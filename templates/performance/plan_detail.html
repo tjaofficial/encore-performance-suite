@@ -1,271 +1,41 @@
 {% extends "dashboard/base_dashboard.html" %}
 {% load static %}
-
-{% block title %}
-{{ plan.title|default:plan.class_instance.name }} | Encore
-{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/encore_performance.css' %}">
-{% endblock %}
-
-{% block topbar_title %}Performance Plan{% endblock %}
-
+{% block title %}{{ plan.title|default:plan.class_instance.name }} — Dance Resources{% endblock %}
+{% block topbar_title %}Dance Resources{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_performance.css' %}"><link rel="stylesheet" href="{% static 'css/encore_dance_hub.css' %}">{% endblock %}
 {% block content %}
-<section class="performance-heading">
-    <div>
-        <a
-            class="back-link"
-            href="{% url 'performance:plan_list' studio.slug %}"
-        >
-            ← Back to Performance Tools
-        </a>
-
-        <p class="eyebrow">
-            {{ plan.class_instance.class_id }}
-            ·
-            {{ plan.class_instance.season.name }}
-        </p>
-
-        <h1>
-            {{ plan.title|default:plan.class_instance.name }}
-        </h1>
-
-        <p>
-            {{ plan.class_instance.name }}
-            {% if plan.song_title %}
-                ·
-                {{ plan.song_title }}
-                {% if plan.artist %}
-                    — {{ plan.artist }}
-                {% endif %}
-            {% endif %}
-        </p>
-    </div>
-
-    <div class="performance-heading-actions">
-        <a class="button secondary" href="{% url 'performance:plan_edit' studio.slug plan.id %}">Edit Plan</a>
-        <a class="button primary" href="{% url 'performance:drawing_board_for_plan' studio.slug plan.id %}">Open Drawing Board</a>
-    </div>
-</section>
-
-{% if messages %}
-<div class="message-stack">
-    {% for message in messages %}
-        <div class="message-banner">
-            {{ message }}
-        </div>
-    {% endfor %}
-</div>
-{% endif %}
-
-<section class="performance-overview-grid">
-    <article class="performance-panel">
-        <span class="card-kicker">Routine</span>
-        <h2>Choreography Notes</h2>
-
-        <p class="long-copy">
-            {{ plan.choreography_notes|default:"No choreography notes yet."|linebreaksbr }}
-        </p>
+<div class="dh-page">
+  <header class="dh-hero">
+    <div><a class="dh-back" href="{{ return_to }}" data-dance-back>← Back</a><div class="dh-eyebrow">{{ plan.class_instance.name }} · {{ plan.class_instance.season.name }}</div><h1>{{ plan.title|default:plan.class_instance.name }}</h1><p>Music, rehearsal videos, choreography and wardrobe in one workspace.</p></div>
+    <div class="dh-top-actions"><a class="dh-btn dh-outline" href="{% url 'performance:dance_choreography_viewer' studio.slug plan.id %}">Preview Family Viewer</a><a class="dh-btn dh-outline" href="{% url 'performance:plan_edit' studio.slug plan.id %}">Edit Dance Details</a><a class="dh-btn dh-primary" href="{% url 'performance:drawing_board_for_plan' studio.slug plan.id %}">Open Drawing Board ↗</a></div>
+  </header>
+  {% if messages %}{% for message in messages %}<p class="dh-alert">{{ message }}</p>{% endfor %}{% endif %}
+  <section class="dh-feature-grid">
+    <article class="dh-tile dh-music">
+      <div class="dh-card-heading"><div><span class="dh-label">01 / SOUNDTRACK</span><h2>♫ Music Player</h2></div><a class="dh-mini-link" href="{% url 'resources:resource_create' studio.slug %}?dance={{ plan.id }}&amp;type=music">Submit / Replace ↗</a></div>
+      {% if plan.music_resource and plan.music_resource.file %}
+        <div class="dh-track"><span class="dh-album">♫</span><div><strong>{{ plan.music_resource.title }}</strong><small>{{ plan.music_resource.artist|default:plan.artist|default:'Dance soundtrack' }}</small><span class="dh-pill dh-approved">Official soundtrack</span></div></div>
+        <audio id="dh-audio" preload="metadata" src="{% url 'resources:music_file' studio.slug plan.music_resource.id %}"></audio>
+      {% elif plan.music_resource and plan.music_resource.external_url %}
+        <div class="dh-track"><span class="dh-album">♫</span><div><strong>{{ plan.music_resource.title }}</strong><small>Linked soundtrack</small></div></div><a class="dh-mini-link" href="{{ plan.music_resource.external_url }}" target="_blank" rel="noopener noreferrer">Listen at source ↗</a>
+      {% else %}
+        <div class="dh-track"><span class="dh-album">♫</span><div><strong>No approved soundtrack yet</strong><small>Teachers can play submitted songs below while awaiting review.</small></div></div>
+      {% endif %}
+      {% if plan.music_resource and plan.music_resource.file %}
+      <div class="dh-player" aria-label="Music playback"><button type="button" id="dh-restart" aria-label="Restart song">↺</button><button type="button" id="dh-play" class="dh-play" aria-label="Play song">▶</button><label class="dh-sr" for="dh-seek">Music position</label><input type="range" id="dh-seek" min="0" max="100" value="0" step="0.1"><span id="dh-time" class="dh-timer">0:00 / 0:00</span></div>
+      {% endif %}
+      {% if music_submissions %}<details class="dh-submissions" {% if not plan.music_resource %}open{% endif %}><summary>Submissions and review history ({{ music_submissions|length }})</summary>{% for song in music_submissions %}<div class="dh-submission"><div><b>{{ song.title }}</b><span class="music-review-badge music-review-{{ song.approval_status }}">{{ song.get_approval_status_display }}</span>{% if song.review_comment %}<small>Feedback: {{ song.review_comment }}</small>{% endif %}</div>{% if song.file %}<audio controls preload="none" src="{% url 'resources:music_file' studio.slug song.id %}" aria-label="Submitted song {{ song.title }}"></audio>{% endif %}</div>{% endfor %}</details>{% endif %}
     </article>
-
-    <article class="performance-panel">
-        <span class="card-kicker">Teacher</span>
-        <h2>Internal Notes</h2>
-
-        <p class="long-copy">
-            {{ plan.teacher_notes|default:"No teacher notes yet."|linebreaksbr }}
-        </p>
+    <article class="dh-tile dh-video">
+      <div class="dh-card-heading"><div><span class="dh-label">02 / WATCH & LEARN</span><h2>▶ Rehearsal Videos</h2></div><a class="dh-mini-link" href="{% url 'resources:dance_video_manager' studio.slug plan.id %}">Manage Videos ↗</a></div>
+      {% if dance_videos %}<div id="dance-featured-video" class="dh-video-stage">{% with video=dance_videos.0 %}{% if video.embed_url %}<iframe referrerpolicy="strict-origin-when-cross-origin" src="{{ video.embed_url }}" title="{{ video.title }}" loading="lazy" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>{% else %}<a href="{{ video.external_url }}" target="_blank" rel="noopener noreferrer">Watch {{ video.title }} ↗</a>{% endif %}{% endwith %}</div><div class="dance-hub-video-list">{% for video in dance_videos %}<button type="button" class="dance-hub-video-option {% if forloop.first %}is-selected{% endif %}" data-embed="{{ video.embed_url }}" data-link="{{ video.external_url }}" data-title="{{ video.title }}" aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}">{% if video.thumbnail_url %}<img src="{{ video.thumbnail_url }}" alt="" loading="lazy">{% else %}<span class="dh-thumb-empty">▶</span>{% endif %}<strong>{{ video.title }}</strong></button>{% endfor %}</div>{% else %}<div class="dh-video-stage dh-video-empty"><span>▷</span><p>No rehearsal videos linked yet</p></div>{% endif %}
+      <a class="dh-add-row" href="{% url 'resources:dance_video_manager' studio.slug plan.id %}">+ Add or select class videos →</a>
     </article>
+    <a class="dh-tile dh-board" href="{% url 'performance:drawing_board_for_plan' studio.slug plan.id %}"><div class="dh-board-copy"><span class="dh-label">03 / CHOREOGRAPHY</span><h2>Drawing Board ↗</h2><p>Explore formations, movement transitions and show lighting on the full interactive stage.</p><span class="dh-board-cta">Launch Drawing Board →</span></div><div class="dh-stage-art" aria-hidden="true"><div class="dh-stage-grid"></div><i></i><i></i><i></i><i></i><i></i><i></i><span>STAGE FRONT</span></div><div class="dh-board-meta">{% if featured_board %}{{ board_formation_count }} saved formations · Updated {{ featured_board.updated_at|date:'M j' }}{% else %}Start a new choreography board{% endif %}</div></a>
+    <article class="dh-tile dh-costumes"><div class="dh-card-heading"><div><span class="dh-label">04 / WARDROBE</span><h2>Costumes <span class="dh-counter">{{ costumes|length }}</span></h2></div><a class="dh-mini-link" href="{% url 'costumes:costume_create' studio.slug plan.class_instance.id %}?dance={{ plan.id }}">+ Add Costume</a></div>{% if costumes %}<div class="dh-costume-grid">{% for costume in costumes %}<a class="dh-costume" href="{% url 'costumes:costume_detail' studio.slug plan.class_instance.id costume.id %}"><div class="dh-costume-photo">{% with front=costume.front_image %}{% if front %}<img src="{{ front.image.url }}" alt="{{ costume.name }}">{% else %}<span>✦</span>{% endif %}{% endwith %}</div><strong>{{ costume.name }}</strong><small>View costume details ↗</small></a>{% endfor %}</div>{% else %}<a class="dh-costume-empty" href="{% url 'costumes:costume_create' studio.slug plan.class_instance.id %}?dance={{ plan.id }}"><span>✦</span><strong>No costumes assigned</strong><small>Link a costume to this dance →</small></a>{% endif %}</article>
+  </section>
+  <section class="dh-notes"><div class="dh-section-title"><div><span class="dh-label">QUICK EDIT</span><h2>Dance Notes</h2><p>Click a note and type. Changes save automatically.</p></div><a class="dh-mini-link" href="{% url 'performance:plan_edit' studio.slug plan.id %}">Full notes editor ↗</a></div><div class="dh-note-grid" data-save-url="{% url 'performance:dance_notes_autosave' studio.slug plan.id %}">{% for name, label, hint, content in note_fields %}<div class="dh-note"><label for="dh-note-{{ name }}">{{ label }}</label><p>{{ hint }}</p><textarea id="dh-note-{{ name }}" data-field="{{ name }}" data-original="{{ content }}" placeholder="Write {{ label|lower }} here…">{{ content }}</textarea><small class="dh-note-status" role="status">Ready to edit</small></div>{% endfor %}</div></section>
+  <section class="dh-other"><div class="dh-section-title"><div><span class="dh-label">EXTRAS</span><h2>Other Resources</h2><p>Props, reference documents and other supporting materials.</p></div><a class="dh-mini-link" href="{% url 'resources:resource_create' studio.slug %}?dance={{ plan.id }}&amp;type=other">+ Add Resource</a></div>{% if other_resources %}<div class="dh-other-list">{% for resource in other_resources %}<div class="dh-other-item"><strong>{{ resource.title }}</strong><small>{{ resource.get_resource_type_display }}</small>{% if resource.external_url %}<a href="{{ resource.external_url }}" target="_blank" rel="noopener noreferrer">Open ↗</a>{% elif resource.file %}<span>Attachment saved</span>{% endif %}</div>{% endfor %}</div>{% else %}<p class="dh-none">No other resources attached.</p>{% endif %}</section>
+</div><script src="{% static 'js/encore_dance_hub.js' %}" defer></script>
 
-    <article class="performance-panel">
-        <span class="card-kicker">Show</span>
-        <h2>Performance Notes</h2>
-
-        <p class="long-copy">
-            {{ plan.performance_notes|default:"No performance notes yet."|linebreaksbr }}
-        </p>
-    </article>
-
-    <article class="performance-panel prep-progress-card">
-        <span class="card-kicker">Readiness</span>
-        <h2>Performance Prep</h2>
-
-        <strong class="progress-number">
-            {{ prep_progress_percent }}%
-        </strong>
-
-        <div class="progress-track">
-            <span
-                style="width: {{ prep_progress_percent }}%;"
-            ></span>
-        </div>
-
-        <p>
-            {{ prep_complete_count }}
-            of
-            {{ prep_total_count }}
-            prep items complete
-        </p>
-    </article>
-</section>
-
-<section class="performance-section">
-    <div class="section-heading">
-        <div>
-            <span class="card-kicker">Staging</span>
-            <h2>Formations</h2>
-        </div>
-
-        <a
-            class="button secondary"
-            href="{% url 'performance:formation_add' studio.slug plan.id %}"
-        >
-            + Formation
-        </a>
-    </div>
-
-    <div class="formation-grid">
-        {% for formation in formations %}
-            <a
-                class="formation-card"
-                href="{% url 'performance:drawing_board_for_plan' studio.slug plan.id %}?formation={{ formation.id }}"
-            >
-                <span class="formation-order">
-                    {{ formation.sequence_order }}
-                </span>
-
-                <div>
-                    <strong>{{ formation.name }} · {{ formation.time_display }}</strong>
-
-                    {% if formation.section_label %}
-                        <span>{{ formation.section_label }}</span>
-                    {% endif %}
-
-                    {% if formation.positions %}
-                        <p>
-                            {{ formation.positions|length }}
-                            dancer position{{ formation.positions|length|pluralize }}
-                            saved
-                        </p>
-                    {% elif formation.notes %}
-                        <p>{{ formation.notes }}</p>
-                    {% else %}
-                        <p>Open the drawing board →</p>
-                    {% endif %}
-                </div>
-
-                <span class="performance-arrow">→</span>
-            </a>
-        {% empty %}
-            <div class="empty-state">
-                No formations yet.
-            </div>
-        {% endfor %}
-    </div>
-</section>
-
-<section class="performance-section">
-    <div class="section-heading">
-        <div>
-            <span class="card-kicker">Production</span>
-            <h2>Lighting Cues</h2>
-        </div>
-
-        <a
-            class="button secondary"
-            href="{% url 'performance:lighting_add' studio.slug plan.id %}"
-        >
-            + Lighting Cue
-        </a>
-    </div>
-
-    <div class="cue-list">
-        {% for cue in lighting_cues %}
-            <a
-                class="cue-row"
-                href="{% url 'performance:lighting_edit' studio.slug plan.id cue.id %}"
-            >
-                <span class="cue-number">
-                    {{ cue.cue_number }}
-                </span>
-
-                <div class="cue-main">
-                    <strong>{{ cue.name }}</strong>
-
-                    <span>
-                        {% if cue.timing %}
-                            {{ cue.timing }}
-                        {% endif %}
-
-                        {% if cue.color_notes %}
-                            · {{ cue.color_notes }}
-                        {% endif %}
-                    </span>
-                </div>
-
-                <div class="cue-action">
-                    {{ cue.action|default:"No action notes."|truncatechars:90 }}
-                </div>
-
-                <span class="performance-arrow">→</span>
-            </a>
-        {% empty %}
-            <div class="empty-state">
-                No lighting cues yet.
-            </div>
-        {% endfor %}
-    </div>
-</section>
-
-<section class="performance-section">
-    <div class="section-heading">
-        <div>
-            <span class="card-kicker">Checklist</span>
-            <h2>Recital / Performance Prep</h2>
-        </div>
-
-        <a
-            class="button secondary"
-            href="{% url 'performance:prep_add' studio.slug plan.id %}"
-        >
-            + Prep Item
-        </a>
-    </div>
-
-    <div class="prep-grid">
-        {% for item in prep_items %}
-            <a
-                class="prep-card {% if item.is_complete %}complete{% endif %}"
-                href="{% url 'performance:prep_edit' studio.slug plan.id item.id %}"
-            >
-                <span class="prep-check">
-                    {% if item.is_complete %}
-                        ✓
-                    {% else %}
-                        ○
-                    {% endif %}
-                </span>
-
-                <div>
-                    <span class="resource-type">
-                        {{ item.get_category_display }}
-                    </span>
-
-                    <strong>{{ item.title }}</strong>
-
-                    {% if item.due_date %}
-                        <small>
-                            Due {{ item.due_date|date:"M j, Y" }}
-                        </small>
-                    {% endif %}
-                </div>
-            </a>
-        {% empty %}
-            <div class="empty-state">
-                No preparation items yet.
-            </div>
-        {% endfor %}
-    </div>
-</section>
 {% endblock %}

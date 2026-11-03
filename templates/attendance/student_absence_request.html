@@ -1,0 +1,11 @@
+{% extends "dashboard/base_dashboard.html" %}{% load static %}
+{% block title %}Request Absence | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_attendance_phase2.css' %}">{% endblock %}
+{% block content %}<section class="attendance-family-page"><header class="attendance-family-header"><div><h1>Request an Absence</h1><p>Select your student, their class, and the exact days they'll miss. Only actual class dates are available.</p></div><a class="button secondary" href="{% url 'attendance:makeup_schedule' studio.slug %}">Back to Make-Ups</a></header>
+<form method="post" id="absence-request-form" class="absence-request-form">{% csrf_token %}
+<label>Student<select id="absence-student" required><option value="">Select a student</option>{% for student in students %}<option value="{{ student.id }}">{{ student.first_name }} {{ student.last_name }}</option>{% endfor %}</select></label>
+<label>Enrolled class<select id="absence-class" required><option value="">Select a class</option></select></label>
+<div><h2>Class Dates</h2><p>Choose all days the student will miss.</p><div id="absence-month-label"></div><div class="absence-calendar-controls"><button type="button" id="month-prev">← Previous</button><button type="button" id="month-next">Next →</button></div><div class="absence-calendar-grid" id="absence-calendar"></div><p class="absence-selected-count" id="absence-count">0 sessions selected</p></div>
+<label>Reason for absence<textarea name="reason" rows="4" required placeholder="Let the studio know why your student will be absent..."></textarea></label><input type="hidden" name="selected_sessions" id="absence-selected-json"><button type="submit" class="button primary">Submit Absence Request</button></form></section>
+<script id="absence-options" type="application/json">{{ options_json|safe }}</script>
+<script src="{% static 'js/encore_absence_request.js' %}" defer></script>{% endblock %}

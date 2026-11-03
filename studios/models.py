@@ -30,6 +30,12 @@ class StudioMembership(models.Model):
         FAMILY = "family", "Family / Guardian"
         STUDENT = "student", "Student"
 
+    class TourStatus(models.TextChoices):
+        NOT_STARTED = "not_started", "Not Started"
+        IN_PROGRESS = "in_progress", "In Progress"
+        SKIPPED = "skipped", "Skipped"
+        COMPLETED = "completed", "Completed"
+
     studio = models.ForeignKey(
         Studio,
         on_delete=models.CASCADE,
@@ -48,6 +54,16 @@ class StudioMembership(models.Model):
     )
 
     is_active = models.BooleanField(default=True)
+
+    # Existing memberships default to completed so the welcome tour only
+    # appears automatically for newly-created studio owners. New paid studio
+    # registrations explicitly set this to NOT_STARTED.
+    onboarding_tour_status = models.CharField(
+        max_length=20,
+        choices=TourStatus.choices,
+        default=TourStatus.COMPLETED,
+    )
+    onboarding_tour_step = models.PositiveSmallIntegerField(default=0)
 
     joined_at = models.DateTimeField(auto_now_add=True)
 
@@ -207,6 +223,9 @@ class StudioSettings(models.Model):
         default="#0197FC",
     )
 
+    parent_sidebar_color = models.CharField(max_length=7, default="#FFFFFF")
+    parent_logo_header_color = models.CharField(max_length=7, default="#E9EFFF")
+
     public_registration_enabled = models.BooleanField(
         default=True,
     )
@@ -219,6 +238,21 @@ class StudioSettings(models.Model):
         default=True,
     )
 
+    class MeasurementUnit(models.TextChoices):
+        INCHES = "in", "Inches"
+        CENTIMETERS = "cm", "Centimeters"
+
+    measurement_unit = models.CharField(
+        max_length=4,
+        choices=MeasurementUnit.choices,
+        default=MeasurementUnit.INCHES,
+    )
+
+    remeasurement_interval_months = models.PositiveIntegerField(
+        default=6,
+        help_text="How many months a completed measurement stays current.",
+    )
+
     public_widget_settings = models.JSONField(
         default=dict,
         blank=True,
@@ -226,3 +260,140 @@ class StudioSettings(models.Model):
 
     def __str__(self):
         return f"{self.studio.name} Settings"
+
+
+class DataImportJob(models.Model):
+    class Status(models.TextChoices):
+        PROCESSING = "processing", "Processing"
+        COMPLETED = "completed", "Completed"
+        COMPLETED_WITH_ISSUES = "completed_with_issues", "Completed with issues"
+        FAILED = "failed", "Failed"
+        REVERTED = "reverted", "Reverted"
+
+    studio = models.ForeignKey(
+        Studio,
+        on_delete=models.CASCADE,
+        related_name="data_import_jobs",
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="encore_data_import_jobs",
+        null=True,
+        blank=True,
+    )
+    import_type = models.CharField(max_length=50)
+    original_filename = models.CharField(max_length=255)
+    status = models.CharField(
+        max_length=30,
+        choices=Status.choices,
+        default=Status.PROCESSING,
+    )
+    total_rows = models.PositiveIntegerField(default=0)
+    created_count = models.PositiveIntegerField(default=0)
+    updated_count = models.PositiveIntegerField(default=0)
+    skipped_count = models.PositiveIntegerField(default=0)
+    error_count = models.PositiveIntegerField(default=0)
+    failed_count = models.PositiveIntegerField(default=0)
+    rejected_file = models.FileField(
+        upload_to="import_reports/%Y/%m/",
+        blank=True,
+    )
+    failure_message = models.TextField(blank=True)
+    reverted_at = models.DateTimeField(null=True, blank=True)
+    reverted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="encore_reverted_data_import_jobs",
+        null=True,
+        blank=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    @property
+    def not_imported_count(self):
+        return self.skipped_count + self.error_count + self.failed_count
+
+    def __str__(self):
+        return f"{self.studio.name} - {self.original_filename} ({self.get_status_display()})"
+
+
+class DataImportRowResult(models.Model):
+    class Status(models.TextChoices):
+        CREATED = "created", "Created"
+        UPDATED = "updated", "Updated"
+        SKIPPED = "skipped", "Skipped"
+        ERROR = "error", "Validation Error"
+        FAILED = "failed", "Failed During Import"
+        REVERTED = "reverted", "Reverted"
+        REVERT_BLOCKED = "revert_blocked", "Revert Blocked"
+
+    job = models.ForeignKey(
+        DataImportJob,
+        on_delete=models.CASCADE,
+        related_name="row_results",
+    )
+    row_number = models.PositiveIntegerField()
+    status = models.CharField(max_length=20, choices=Status.choices)
+    label = models.CharField(max_length=255, blank=True)
+    reason = models.TextField(blank=True)
+    source_data = models.JSONField(default=dict, blank=True)
+    normalized_data = models.JSONField(default=dict, blank=True)
+    object_type = models.CharField(max_length=100, blank=True)
+    object_id = models.CharField(max_length=100, blank=True)
+    was_created = models.BooleanField(default=False)
+    before_data = models.JSONField(default=dict, blank=True)
+    after_data = models.JSONField(default=dict, blank=True)
+    revert_message = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["row_number", "id"]
+
+    def __str__(self):
+        return f"{self.job_id} row {self.row_number} - {self.get_status_display()}"
+
+
+class VendorOnboardingRun(models.Model):
+    class Status(models.TextChoices):
+        IN_PROGRESS = "in_progress", "In Progress"
+        COMPLETED = "completed", "Completed"
+
+    studio = models.ForeignKey(
+        Studio,
+        on_delete=models.CASCADE,
+        related_name="vendor_onboarding_runs",
+    )
+    vendor = models.CharField(max_length=50)
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.IN_PROGRESS,
+    )
+    step_state = models.JSONField(default=dict, blank=True)
+    started_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="encore_vendor_onboarding_runs",
+        null=True,
+        blank=True,
+    )
+    started_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["studio", "vendor"],
+                name="unique_vendor_onboarding_per_studio",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.studio.name} - {self.vendor} onboarding"

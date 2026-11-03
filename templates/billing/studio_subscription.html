@@ -64,7 +64,7 @@
             <article>
                 <span>Monthly Software</span>
                 <strong>${{ subscription.current_monthly_price }}</strong>
-                <small>{{ subscription.get_payment_mode_display }}</small>
+                <small>{{ subscription.get_plan_tier_display }} software</small>
             </article>
 
             <article>
@@ -153,18 +153,14 @@
                 <div class="price-table-head">
                     <span>Student Records</span>
                     <span>Essentials</span>
-                    <span>Essentials + Payments</span>
                     <span>Pro</span>
-                    <span>Pro + Payments</span>
                 </div>
 
                 {% for row in pricing_rows %}
                     <div class="price-table-row {% if row.key == subscription.student_band %}current{% endif %}">
                         <span>{{ row.label }}</span>
-                        <span>${{ row.essentials_software }}</span>
-                        <span>${{ row.essentials_payments }}</span>
-                        <span>${{ row.pro_software }}</span>
-                        <span>${{ row.pro_payments }}</span>
+                        <span>${{ row.essentials }}</span>
+                        <span>${{ row.pro }}</span>
                     </div>
                 {% endfor %}
             </div>
@@ -178,85 +174,20 @@
         </section>
 
         <section class="subscription-card">
-            <div class="subscription-card-heading">
-                <div>
-                    <p class="eyebrow">Family Payments</p>
-                    <h2>Stripe Payments</h2>
-                </div>
-
-                {% if subscription.payments_connected %}
-                    <strong>Connected</strong>
-                {% endif %}
-            </div>
-
-            {% if subscription.payment_mode == "software_payments" %}
-                {% if subscription.payments_connected %}
-                    <p class="subscription-help">
-                        {{ studio.name }} can accept secure online registration
-                        payments through its connected Stripe account.
-                    </p>
-
-                    <div class="subscription-summary-grid stripe-connect-status-grid">
-                        <article>
-                            <span>Account Setup</span>
-                            <strong>
-                                {% if subscription.stripe_connect_details_submitted %}
-                                    Complete
-                                {% else %}
-                                    Needs Attention
-                                {% endif %}
-                            </strong>
-                        </article>
-
-                        <article>
-                            <span>Card Payments</span>
-                            <strong>
-                                {% if subscription.stripe_connect_charges_enabled %}
-                                    Enabled
-                                {% else %}
-                                    Pending
-                                {% endif %}
-                            </strong>
-                        </article>
-
-                        <article>
-                            <span>Payouts</span>
-                            <strong>
-                                {% if subscription.stripe_connect_payouts_enabled %}
-                                    Enabled
-                                {% else %}
-                                    Pending
-                                {% endif %}
-                            </strong>
-                        </article>
-                    </div>
-
-                    <a
-                        class="button secondary"
-                        href="{% url 'billing:stripe_connect_start' studio.slug %}"
-                    >
-                        Update Stripe Account
-                    </a>
-                {% else %}
-                    <p class="subscription-help">
-                        Connect the studio's Stripe account before the registration
-                        widget can collect tuition and registration fees.
-                    </p>
-
-                    <a
-                        class="button primary"
-                        href="{% url 'billing:stripe_connect_start' studio.slug %}"
-                    >
-                        Connect Stripe Payments
-                    </a>
-                {% endif %}
-            {% else %}
-                <p class="subscription-help">
-                    Online family payments are available with Encore
-                    Software + Payments. Change the payment mode before
-                    connecting a studio payment account.
-                </p>
-            {% endif %}
+          <div class="subscription-card-heading">
+            <div><p class="eyebrow">Family Payments · {{ connect_status.mode|title }} Mode</p><h2>Stripe Payments</h2></div>
+            {% if connect_status.ready %}<strong>Ready to Accept Payments</strong>{% else %}<strong>Setup Needed</strong>{% endif %}
+          </div>
+          {% if connect_status.message %}<p class="subscription-help">{{ connect_status.message }}</p>{% endif %}
+          <div class="subscription-summary-grid stripe-connect-status-grid">
+            <article><span>Account Setup</span><strong>{% if connect_status.account_setup %}Complete{% else %}Pending{% endif %}</strong></article>
+            <article><span>Card Payments</span><strong>{% if connect_status.charges_enabled %}Enabled{% else %}Pending{% endif %}</strong></article>
+            <article><span>Payouts</span><strong>{% if connect_status.payouts_enabled %}Enabled{% else %}Verify in Stripe{% endif %}</strong></article>
+          </div>
+          <p class="subscription-help">This status reflects the {{ connect_status.mode }} connected account only; live and test accounts are separate.</p>
+          <a class="button {% if connect_status.ready %}secondary{% else %}primary{% endif %}" href="{% url 'billing:stripe_activation_page' studio.slug %}">
+            {% if connect_status.ready %}Manage Payment Verification{% else %}Finish Payment Setup{% endif %}
+          </a>
         </section>
 
         <section class="subscription-card danger">

@@ -8,6 +8,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from .forms import EncoreLoginForm, StudioOwnerRegistrationForm
+from families.models import Guardian
+from dashboard.parent_portal import parent_portal_context
 
 
 ROLE_LABELS = {
@@ -254,6 +256,20 @@ def profile_view(request):
         )
 
     studio = current_membership.studio
+    guardian = None
+
+    if role == "family":
+        guardian = (
+            Guardian.objects
+            .filter(
+                family__studio=studio,
+                user=user,
+                is_active=True,
+            )
+            .select_related("family")
+            .order_by("-is_primary", "pk")
+            .first()
+        )
 
     if request.method == "POST":
         user.first_name = request.POST.get(
@@ -273,6 +289,22 @@ def profile_view(request):
             ]
         )
 
+        if guardian is not None:
+            guardian.first_name = user.first_name
+            guardian.last_name = user.last_name
+            guardian.phone = request.POST.get(
+                "phone",
+                guardian.phone,
+            ).strip()
+            guardian.save(
+                update_fields=[
+                    "first_name",
+                    "last_name",
+                    "phone",
+                    "updated_at",
+                ]
+            )
+
         messages.success(
             request,
             "Profile updated.",
@@ -286,15 +318,31 @@ def profile_view(request):
         _active_memberships(user)
     )
 
+    context = {
+        "memberships": memberships,
+        "studio": studio,
+        "role": role,
+    }
+
+    template_name = "accounts/profile.html"
+
+    if role == "family" and guardian is not None:
+        context.update(
+            parent_portal_context(
+                request,
+                studio,
+                section="account",
+            )
+        )
+        context["profile_guardian"] = guardian
+        template_name = "accounts/parent_profile.html"
+
     return render(
         request,
-        "accounts/profile.html",
-        {
-            "memberships": memberships,
-            "studio": studio,
-            "role": role,
-        },
+        template_name,
+        context,
     )
+
 
 def logout_view(request):
     logout(request)
@@ -371,23 +419,29 @@ def register_studio(request):
     )
 
 
+def _masked_email(value):
+    value = (value or "").strip()
+    if "@" not in value:
+        return value
+    local, domain = value.split("@", 1)
+    if len(local) <= 2:
+        masked = local[:1] + "•"
+    else:
+        masked = local[:1] + ("•" * min(6, len(local) - 2)) + local[-1:]
+    return f"{masked}@{domain}"
+
+
 def registration_success(request):
-    from billing.models import (
-        StudioSignupIntent,
-    )
-    from billing.subscription_services import (
-        finalize_paid_signup,
+    from billing.models import StudioSignupIntent
+    from billing.subscription_services import finalize_paid_signup
+    from accounts.registration_services import (
+        ensure_signup_communications,
+        signup_receipt_context,
     )
 
-    session_id = request.GET.get(
-        "session_id",
-        "",
-    ).strip()
-
+    session_id = request.GET.get("session_id", "").strip()
     if not session_id:
-        return redirect(
-            "accounts:register"
-        )
+        return redirect("accounts:register")
 
     intent = get_object_or_404(
         StudioSignupIntent,
@@ -395,56 +449,131 @@ def registration_success(request):
     )
 
     try:
-        studio = finalize_paid_signup(
-            intent
-        )
+        studio = finalize_paid_signup(intent)
+        intent.refresh_from_db()
+        ensure_signup_communications(intent)
+        receipt = signup_receipt_context(intent)
     except Exception as exc:
         return render(
             request,
             "accounts/registration_pending.html",
             {
-                "error": (
-                    str(exc)
-                    if settings.DEBUG
-                    else ""
-                ),
+                "error": str(exc) if settings.DEBUG else "",
             },
         )
 
-    User = get_user_model()
+    user = get_user_model().objects.get(email=intent.owner_email)
 
-    user = User.objects.get(
-        email=intent.owner_email,
-    )
-
-    login(
+    return render(
         request,
-        user,
+        "accounts/registration_complete.html",
+        {
+            "studio": studio,
+            "intent": intent,
+            "masked_email": _masked_email(intent.owner_email),
+            "receipt": receipt,
+            "session_id": session_id,
+            "verification_sent": bool(user.email_verification_sent_at),
+        },
     )
+
+
+def resend_registration_verification(request):
+    from billing.models import StudioSignupIntent
+    from accounts.registration_services import send_verification_email
+
+    if request.method != "POST":
+        return redirect("accounts:register")
+
+    session_id = request.POST.get("session_id", "").strip()
+    intent = get_object_or_404(
+        StudioSignupIntent,
+        stripe_checkout_session_id=session_id,
+        status=StudioSignupIntent.Status.PAID,
+    )
+
+    try:
+        sent = send_verification_email(intent, force=True)
+    except ValueError as exc:
+        messages.info(request, str(exc))
+    except Exception:
+        messages.error(
+            request,
+            "Encore could not resend the verification email right now. Please try again in a moment.",
+        )
+    else:
+        if sent:
+            messages.success(
+                request,
+                "A new verification link was sent to your email.",
+            )
+
+    return redirect(
+        f"{reverse('accounts:registration_success')}?session_id={session_id}"
+    )
+
+
+def verify_registration_email(request, token):
+    from django.utils import timezone
+    from accounts.registration_services import verification_is_expired
+    from billing.models import StudioSignupIntent
+
+    User = get_user_model()
+    user = (
+        User.objects
+        .filter(
+            email_verification_token=token,
+            email_verification_required=True,
+        )
+        .first()
+    )
+
+    if user is None:
+        messages.info(
+            request,
+            "That verification link is no longer active. If you already verified your email, sign in below.",
+        )
+        return redirect("accounts:login")
 
     membership = (
         user.studio_memberships
-        .get(
-            studio=studio,
-            role="administrator",
-            is_active=True,
-        )
+        .select_related("studio")
+        .filter(role="administrator", is_active=True)
+        .first()
     )
 
-    _set_workspace_session(
-        request,
-        membership,
+    if verification_is_expired(user):
+        intent = None
+        if membership is not None:
+            intent = StudioSignupIntent.objects.filter(
+                studio=membership.studio,
+                owner_email=user.email,
+            ).first()
+        return render(
+            request,
+            "accounts/registration_verify_expired.html",
+            {
+                "studio": membership.studio if membership else None,
+                "masked_email": _masked_email(user.email),
+                "session_id": intent.stripe_checkout_session_id if intent else "",
+            },
+            status=400,
+        )
+
+    user.email_verified_at = timezone.now()
+    user.email_verification_required = False
+    user.email_verification_token = None
+    user.save(
+        update_fields=[
+            "email_verified_at",
+            "email_verification_required",
+            "email_verification_token",
+        ]
     )
 
     messages.success(
         request,
-        (
-            "Welcome to Encore! Your subscription is active. "
-            "Let's set up your studio."
-        ),
+        "Email verified. Your Encore workspace is ready — sign in to begin your guided setup.",
     )
+    return redirect("accounts:login")
 
-    return redirect(
-        "studios:onboarding_home",
-        studio_slug=studio.slug,
-    )

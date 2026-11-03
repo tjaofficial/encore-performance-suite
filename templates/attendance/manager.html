@@ -1,0 +1,322 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Attendance Manager | Encore Performance Suite{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_attendance.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_attendance_phase2.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Attendance Manager{% endblock %}
+
+{% block content %}
+<section class="attendance-page-shell">
+    <section class="attendance-heading attendance-heading-compact">
+        <div>
+            <p class="eyebrow">Attendance</p>
+            <h1>Attendance Manager</h1>
+            <p>Review attendance submissions, absence records and make-up sessions.</p>
+        </div>
+        {% if role == "administrator" %}
+            <div class="attendance-heading-actions"><a class="button primary" href="?tab=makeups">Assign Make-Up</a><a class="button secondary" href="{% url 'attendance:settings' studio.slug %}">Attendance Settings</a><a class="button secondary" href="{% url 'dashboard:admin_dashboard' studio.slug %}">Dashboard</a></div>
+        {% else %}
+            <a class="button secondary" href="{% url 'dashboard:teacher_dashboard' studio.slug %}">Back to Dashboard</a>
+        {% endif %}
+    </section>
+
+    {% if messages %}
+        <div class="message-stack">
+            {% for message in messages %}
+                <div class="message-banner">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <section class="attendance-stat-list">
+        <article>
+            <span>Finalized Sheets</span>
+            <strong>{{ finalized_count }}</strong>
+            <small>Submitted attendance sessions</small>
+        </article>
+        <article>
+            <span>In Progress</span>
+            <strong>{{ in_progress_count }}</strong>
+            <small>Attendance sheets still open</small>
+        </article>
+        <article>
+            <span>Total Absences</span>
+            <strong>{{ absence_count }}</strong>
+            <small>Recorded across visible classes</small>
+        </article>
+        <article>
+            <span>Makeups Owed</span>
+            <strong>{{ makeup_count }}</strong>
+            <small>Outstanding makeup requirements</small>
+        </article>
+    </section>
+
+
+
+    <section class="attendance-panel">
+        <div class="attendance-panel-header attendance-panel-header-tabs">
+            <div>
+                <span class="eyebrow">Records</span>
+                <h2>Attendance Tables</h2>
+                <p>Search submissions or review absence records.</p>
+            </div>
+            <nav class="attendance-tabs" aria-label="Attendance table tabs">
+                <a href="?tab=submissions" class="{% if active_tab == 'submissions' %}active{% endif %}">Submissions</a>
+                <a href="?tab=absences" class="{% if active_tab == 'absences' %}active{% endif %}">Absences</a>
+                {% if is_admin %}<a href="?tab=requests" class="{% if active_tab == 'requests' %}active{% endif %}">Requests</a>{% endif %}
+                <a href="?tab=makeups" class="{% if active_tab == 'makeups' %}active{% endif %}">Make-Ups</a>
+            </nav>
+        </div>
+
+        {% if active_tab == 'submissions' %}
+            <form class="attendance-filter-list" method="get">
+                <input type="hidden" name="tab" value="submissions">
+                <label class="filter-search">
+                    <span>Search</span>
+                    <input type="search" name="search" value="{{ submission_filters.search }}" placeholder="Class, class ID, or season">
+                </label>
+                <label>
+                    <span>Season</span>
+                    <select name="season">
+                        <option value="">All seasons</option>
+                        {% for season in available_seasons %}
+                            <option value="{{ season.id }}" {% if submission_filters.season == season.id|stringformat:'s' %}selected{% endif %}>{{ season.name }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label>
+                    <span>Class</span>
+                    <select name="class">
+                        <option value="">All classes</option>
+                        {% for cls in eligible_classes %}
+                            <option value="{{ cls.id }}" {% if submission_filters.class == cls.id|stringformat:'s' %}selected{% endif %}>{{ cls.name }} · {{ cls.class_id }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label>
+                    <span>Status</span>
+                    <select name="status">
+                        <option value="">All statuses</option>
+                        <option value="finalized" {% if submission_filters.status == 'finalized' %}selected{% endif %}>Finalized</option>
+                        <option value="in_progress" {% if submission_filters.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                    </select>
+                </label>
+                <div class="filter-buttons">
+                    <button class="button primary" type="submit">Apply</button>
+                    <a class="button secondary" href="?tab=submissions">Reset</a>
+                </div>
+            </form>
+
+            <div class="attendance-table-shell">
+                <table class="attendance-list-table">
+                    <thead>
+                        <tr>
+                            <th>Class</th>
+                            <th>Season</th>
+                            <th>Date</th>
+                            <th>Instructor</th>
+                            <th>Status</th>
+                            <th>View</th>
+                            <th>Sheet</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for session in sessions %}
+                            <tr
+                                class="clickable-table-row"
+                                data-row-href="{% url 'attendance:submission_detail' studio.slug session.class_instance_id %}?month={{ session.session_date|date:'Y-m' }}"
+                            >
+                                <td>
+                                    <strong>{{ session.class_instance.name }}</strong>
+                                    <small>{{ session.class_instance.class_id }}</small>
+                                </td>
+                                <td>{{ session.class_instance.season.name }}</td>
+                                <td>{{ session.session_date|date:"M j, Y" }}</td>
+                                <td>{{ session.class_instance.instructor }}</td>
+                                <td>
+                                    <span class="status-text {% if session.is_finalized %}is-finalized{% else %}is-progress{% endif %}">
+                                        {% if session.is_finalized %}Finalized{% else %}In Progress{% endif %}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a class="table-link" href="{% url 'attendance:submission_detail' studio.slug session.class_instance_id %}?month={{ session.session_date|date:'Y-m' }}">View</a>
+                                </td>
+                                <td>
+                                    {% if session.session_date == today %}
+                                        <a class="table-link muted" href="{% url 'attendance:take_attendance' studio.slug session.class_instance_id %}?date={{ session.session_date|date:'Y-m-d' }}{% if session.start_time %}&start={{ session.start_time|time:'H:i:s' }}{% endif %}">Open Sheet</a>
+                                    {% else %}
+                                        <span class="table-dash">—</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="7"><div class="empty-state table-empty-state">No attendance submissions match these filters.</div></td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% elif active_tab == 'absences' %}
+            <form class="attendance-filter-list" method="get">
+                <input type="hidden" name="tab" value="absences">
+                <label class="filter-search">
+                    <span>Student</span>
+                    <input type="search" name="student" value="{{ absence_filters.student }}" placeholder="Search student name">
+                </label>
+                <label>
+                    <span>Month</span>
+                    <input type="month" name="absence_month" value="{{ absence_filters.month }}">
+                </label>
+                <label>
+                    <span>Season</span>
+                    <select name="absence_season">
+                        <option value="">All seasons</option>
+                        {% for season in available_seasons %}
+                            <option value="{{ season.id }}" {% if absence_filters.season == season.id|stringformat:'s' %}selected{% endif %}>{{ season.name }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label>
+                    <span>Class</span>
+                    <select name="absence_class">
+                        <option value="">All classes</option>
+                        {% for cls in eligible_classes %}
+                            <option value="{{ cls.id }}" {% if absence_filters.class == cls.id|stringformat:'s' %}selected{% endif %}>{{ cls.name }} · {{ cls.class_id }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <div class="filter-buttons">
+                    <button class="button primary" type="submit">Apply</button>
+                    <a class="button secondary" href="?tab=absences">Reset</a>
+                </div>
+            </form>
+
+            <p class="filter-result-note">Showing absence results for {{ absence_filters.month_label }}.</p>
+
+            <div class="attendance-table-shell">
+                <table class="attendance-list-table compact-table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Class</th>
+                            <th>Total Absences</th>
+                            <th>Makeups Owed</th>
+                            <th>View</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in absence_rows %}
+                            <tr
+                                class="clickable-table-row"
+                                data-row-href="{% url 'attendance:student_absence_detail' studio.slug row.student.id %}?month={{ absence_filters.month }}&class={{ row.class_instance.id }}"
+                            >
+                                <td>
+                                    <strong>{{ row.student.first_name }} {{ row.student.last_name }}</strong>
+                                    <small>Age {{ row.student.age|default:'—' }}</small>
+                                </td>
+                                <td>
+                                    <strong>{{ row.class_instance.name }}</strong>
+                                    <small>{{ row.class_instance.class_id }}</small>
+                                </td>
+                                <td>{{ row.total_absences }}</td>
+                                <td>{{ row.makeups_owed }}</td>
+                                <td><a class="table-link" href="{% url 'attendance:student_absence_detail' studio.slug row.student.id %}?month={{ absence_filters.month }}&class={{ row.class_instance.id }}">View</a></td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="5"><div class="empty-state table-empty-state">No absences match these filters.</div></td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </section>
+
+    {% if is_admin and active_tab == "requests" %}
+    <section class="attendance-panel">
+        <div class="attendance-panel-header"><div><h2>Absence Requests</h2><p>Review requested class dates before approving. You can optionally require make-ups.</p></div></div>
+        {% for item in pending_absence_requests %}
+        <article class="absence-review-row">
+            <div><strong>Request #{{ item.pk }} · {{ item.created_at|date:"M j, Y" }}</strong>
+                <p>{{ item.reason }}</p>
+                {% for requested in item.sessions.all %}<div class="absence-review-session">{{ requested.student.first_name }} {{ requested.student.last_name }} · {{ requested.class_instance.name }} · {{ requested.session_date|date:"M j, Y" }}</div>{% endfor %}
+            </div>
+            <form method="post" action="{% url 'attendance:review_absence_request' studio.slug item.pk %}" class="absence-review-form">
+                {% csrf_token %}
+                <label>Optional response<textarea name="comment" rows="2" placeholder="Add a comment for the family"></textarea></label>
+                <label class="review-checkbox"><input type="checkbox" name="require_makeups"> Require make-up days for these absences</label>
+                <div class="review-actions"><button class="button primary" name="decision" value="approved">Approve</button><button class="button secondary" name="decision" value="denied">Deny</button></div>
+            </form>
+        </article>
+        {% empty %}<div class="empty-state" style="padding:28px;">No pending absence requests.</div>{% endfor %}
+    </section>
+    {% endif %}
+
+    {% if active_tab == "makeups" %}
+
+    <section class="attendance-panel">
+        <div class="attendance-panel-header">
+            <div>
+                <span class="eyebrow">Makeups</span>
+                <h2>Outstanding Makeup Requirements</h2>
+                <p>Schedule outstanding makeup classes without leaving Attendance Manager.</p>
+            </div>
+        </div>
+        <div class="attendance-table-shell">
+            <table class="attendance-list-table compact-table">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Missed Class</th>
+                        <th>Missed Date</th>
+                        <th>Schedule Makeup</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for requirement in outstanding_makeups %}
+                        <tr>
+                            <td>
+                                <strong>{{ requirement.student.first_name }} {{ requirement.student.last_name }}</strong>
+                                <small>Age {{ requirement.student.age|default:'—' }}</small>
+                            </td>
+                            <td>
+                                <strong>{{ requirement.source_class.name }}</strong>
+                                <small>{{ requirement.source_class.class_id }}</small>
+                            </td>
+                            <td>{% if requirement.source_attendance_record_id %}{{ requirement.source_attendance_record.session.session_date|date:"M j, Y" }}{% elif requirement.absence_request_session_id %}{{ requirement.absence_request_session.session_date|date:"M j, Y" }}{% endif %}</td>
+                            <td>
+                                {% if requirement.current_booking %}<span class="attendance-booking-status"><strong>Scheduled</strong><span>{{ requirement.current_booking.makeup_class.name }} · {{ requirement.current_booking.scheduled_date|date:"M j, Y" }}</span></span>
+                                {% elif can_assign_makeups and requirement.available_meetings %}<button type="button" class="button secondary" data-open-assign-modal data-requirement-id="{{ requirement.id }}" data-student-name="{{ requirement.student.first_name }} {{ requirement.student.last_name }}" data-source-name="{{ requirement.source_class.name }}">Assign Session</button>
+                                {% elif not requirement.available_meetings %}<span class="attendance-inline-warning">No eligible meetings. Ask an admin to configure Attendance Settings.</span>
+                                {% else %}View only{% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="4"><div class="empty-state table-empty-state">No outstanding makeup requirements.</div></td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+{% if can_assign_makeups %}
+<div class="automation-modal-backdrop" data-assign-makeup-modal hidden>
+<section class="automation-modal" role="dialog" aria-modal="true" aria-labelledby="assign-makeup-heading">
+<div class="automation-modal-header"><div><span class="eyebrow">Make-Up Assignment</span><h2 id="assign-makeup-heading">Assign Make-Up Class</h2></div><button type="button" class="modal-close-button" data-close-assign-makeup aria-label="Close">×</button></div>
+<form method="post" class="automation-modal-form" data-assign-makeup-form data-dates-url="{% url 'attendance:available_makeup_dates' studio.slug %}">{% csrf_token %}<input type="hidden" name="action" value="schedule_makeup"><input type="hidden" name="requirement_id" data-makeup-requirement>
+<p data-makeup-student-name></p>
+<label class="automation-email-field"><span>Eligible replacement day and class</span><select name="meeting_id" required data-makeup-meeting><option value="">Choose a meeting…</option>{% for requirement in outstanding_makeups %}{% for rule in requirement.available_meetings %}<option value="{{ rule.eligible_meeting.id }}" data-for-requirement="{{ requirement.id }}" hidden>{{ rule.eligible_meeting.class_instance.name }} · {{ rule.eligible_meeting.get_day_of_week_display }} {{ rule.eligible_meeting.start_time|time:'g:i A' }}</option>{% endfor %}{% endfor %}</select></label>
+<label class="automation-email-field"><span>Available date</span><select name="scheduled_date" required data-makeup-date><option value="">Select a meeting first…</option></select></label>
+<p class="makeup-modal-help">Only active, uncancelled sessions are available. Class enrollment capacity does not apply.</p>
+<div class="automation-modal-actions"><button type="button" class="button secondary" data-close-assign-makeup>Cancel</button><button type="submit" class="button primary">Assign Make-Up</button></div>
+</form></section></div>
+{% endif %}
+{% endif %}
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/encore_attendance.js' %}" defer></script>
+{% endblock %}

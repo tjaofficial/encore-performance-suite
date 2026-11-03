@@ -4,6 +4,7 @@
 {% block title %}Class Dashboard Settings | Encore{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/components/dashboard_quick_links_settings.css' %}">
 <link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}">
 <link rel="stylesheet" href="{% static 'css/encore_dashboard_layout_editor.css' %}">
 {% endblock %}
@@ -102,6 +103,7 @@
                                 data-layout-card="{{ card.key }}"
                                 data-width="{{ card.width }}"
                                 data-height="{{ card.height }}"
+                                data-min-height="{% if card.key == 'stopwatch' %}2{% else %}1{% endif %}"
                                 {% if not card.enabled %}hidden{% endif %}
                             >
                                 <div class="preview-card-top">

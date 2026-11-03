@@ -5,6 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/encore_costumes_measurements.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_costume_detail_polish.css' %}">
 {% endblock %}
 
 {% block topbar_title %}Costume Detail{% endblock %}
@@ -30,11 +31,15 @@
         </p>
     </div>
 
-    <div class="costume-detail-progress">
+    <div class="costume-header-actions">
+        <a class="button secondary costume-measurements-action" href="{% url 'costumes:measurement_roster' studio.slug class_instance.id %}?filter=needs_remeasurement">Collect Missing Measurements</a>
+        <a class="button secondary" href="{% url 'costumes:costume_edit' studio.slug class_instance.id costume.id %}">Edit Costume</a>
+        <div class="costume-detail-progress">
         <strong>
             {{ ready_assignments }}/{{ total_assignments }}
         </strong>
         <span>Students Ready</span>
+        </div>
     </div>
 </section>
 
@@ -92,11 +97,13 @@
                 <div class="costume-assignment-header">
                     <span>Student</span>
                     <span>Costume Size</span>
+                    <span>Recommended</span>
                     <span>Shoe Size</span>
                     <span>Status</span>
                 </div>
 
-                {% for assignment in assignments %}
+                {% for row in assignment_rows %}
+                    {% with assignment=row.assignment %}
                     <div
                         class="costume-assignment-row"
                         data-costume-assignment
@@ -124,6 +131,8 @@
                             placeholder="Size"
                         >
 
+                        <span class="recommended-size">{{ row.recommended_size|default:"—" }}</span>
+
                         <input
                             type="text"
                             value="{{ assignment.shoe_size }}"
@@ -142,6 +151,7 @@
                             {% endfor %}
                         </select>
                     </div>
+                    {% endwith %}
                 {% empty %}
                     <div class="wardrobe-empty-state">
                         No active students are assigned to this costume.
@@ -152,6 +162,16 @@
     </div>
 
     <aside class="costume-detail-sidebar">
+        <section class="wardrobe-form-card">
+            <div class="wardrobe-section-heading"><span>Vendor</span><strong>{% if costume.vendor %}{{ costume.vendor.name }}{% else %}No Vendor Attached{% endif %}</strong></div>
+            {% if costume.vendor %}
+                {% if costume.vendor_size_chart %}<p class="vendor-chart-label">Sizing chart: <b>{{ costume.vendor_size_chart.name }}</b></p>{% endif %}
+                {% if costume.vendor.contact_name %}<p>{{ costume.vendor.contact_name }}</p>{% endif %}
+                {% if costume.vendor.phone %}<p>{{ costume.vendor.phone }}</p>{% endif %}
+                {% if costume.vendor.email %}<p>{{ costume.vendor.email }}</p>{% endif %}
+                {% if costume.vendor.website %}<a class="button secondary full-width" href="{{ costume.vendor.website }}" target="_blank" rel="noopener">Visit Store ↗</a>{% endif %}
+            {% else %}<p class="muted-copy">Attach a vendor to show store information and sizing recommendations.</p>{% endif %}
+        </section>
         <section class="wardrobe-form-card">
             <div class="wardrobe-section-heading">
                 <span>Family Information</span>
@@ -215,12 +235,6 @@
             </div>
         </section>
 
-        <a
-            class="button secondary full-width"
-            href="{% url 'costumes:measurement_roster' studio.slug class_instance.id %}?filter=needs_remeasurement"
-        >
-            Collect Missing Measurements
-        </a>
     </aside>
 </section>
 {% endblock %}

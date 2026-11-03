@@ -8,6 +8,7 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/encore_people_manager.css' %}">
 <link rel="stylesheet" href="{% static 'css/encore_tasks.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_student_detail.css' %}">
 {% endblock %}
 
 {% block topbar_title %}Student Details{% endblock %}
@@ -53,8 +54,18 @@
 </div>
 {% endif %}
 
-<section class="detail-grid">
-    <article class="people-card">
+<section class="student-private-notes" data-save-url="{% url 'students:student_profile_staff_notes_save' studio.slug student.id %}">
+    <div class="student-private-notes-heading">
+        <div><span class="card-kicker">STAFF ONLY · PRIVATE</span><h2>Student Profile Notes</h2>
+        <p>General staff observations across this student's classes. Never shown in the family portal.</p></div>
+        <span class="student-private-notes-status" role="status" aria-live="polite" data-note-status>Saved</span>
+    </div>
+    <textarea data-note-input data-version="{{ profile_note_version }}" rows="4" maxlength="10000" aria-label="Private Student Profile Notes" placeholder="Add private observations and follow-up notes...">{{ profile_note.text|default:'' }}</textarea>
+    {% if profile_note.updated_by %}<small class="student-private-notes-meta">Last updated by {{ profile_note.updated_by }} · {{ profile_note.updated_at|date:'M j, Y g:i A' }}</small>{% endif %}
+</section>
+
+<section class="detail-grid encore-student-detail">
+    <article class="people-card student-accent-card student-accent-blue">
         <div class="card-heading">
             <div>
                 <span class="card-kicker">Profile</span>
@@ -121,43 +132,38 @@
         </dl>
     </article>
 
-    <article class="people-card">
+    <article class="people-card student-accent-card student-accent-green student-attendance-card">
         <div class="card-heading">
-            <div>
-                <span class="card-kicker">Attendance</span>
-                <h2>Recent Attendance</h2>
-            </div>
-
-            <strong>
-                {% if attendance_percentage is not None %}
-                    {{ attendance_percentage }}%
-                {% else %}
-                    —
-                {% endif %}
-            </strong>
+            <div><span class="card-kicker">Attendance</span><h2>Recent Attendance</h2></div>
+            <span class="student-card-orb" aria-hidden="true">✓</span>
         </div>
-
-        {% for record in recent_attendance %}
-            <div class="compact-row">
-                <div>
-                    <strong>{{ record.session.class_instance.name }}</strong>
-                    <span>
-                        {{ record.session.session_date|date:"M j, Y" }}
-                    </span>
+        <div class="student-attendance-layout">
+            <div class="student-attendance-summary">
+                <div class="student-attendance-ring" role="img" aria-label="Attendance rate: {% if attendance_percentage is not None %}{{ attendance_percentage }} percent{% else %}no attendance yet{% endif %}" style="--student-attendance-pct:{{ attendance_percentage|default_if_none:0 }};">
+                    <div class="student-attendance-ring-inner">
+                        <strong>{% if attendance_percentage is not None %}{{ attendance_percentage }}%{% else %}—{% endif %}</strong>
+                        <span>ATTENDANCE</span>
+                    </div>
                 </div>
-
-                <span class="status-pill status-{{ record.status }}">
-                    {{ record.get_status_display }}
-                </span>
+                <small>Overall attendance rate</small>
             </div>
-        {% empty %}
-            <div class="empty-state">
-                No attendance recorded yet.
+            <div class="student-attendance-recent" aria-label="Recent attendance records">
+                {% for record in recent_attendance %}
+                    <div class="student-attendance-item">
+                        <div class="student-attendance-item-info">
+                            <strong>{{ record.session.class_instance.name }}</strong>
+                            <span>{{ record.session.session_date|date:"M j, Y" }}</span>
+                        </div>
+                        <span class="status-pill status-{{ record.status }}">{{ record.get_status_display }}</span>
+                    </div>
+                {% empty %}
+                    <div class="empty-state">No attendance recorded yet.</div>
+                {% endfor %}
             </div>
-        {% endfor %}
+        </div>
     </article>
 
-    <article class="people-card span-2">
+    <article class="people-card span-2 student-accent-card student-accent-purple">
         <div class="card-heading">
             <div>
                 <span class="card-kicker">Reminders / To-Do</span>
@@ -267,7 +273,7 @@
         </div>
     </article>
 
-    <article class="people-card span-2">
+    <article class="people-card span-2 student-accent-card student-accent-blue">
         <div class="card-heading">
             <div>
                 <span class="card-kicker">Classes</span>
@@ -275,62 +281,50 @@
             </div>
         </div>
 
-        <div class="people-table-wrap">
-            <table class="people-table">
-                <thead>
-                    <tr>
-                        <th>Class</th>
-                        <th>Season</th>
-                        <th>Instructor</th>
-                        <th>Status</th>
-                        <th>Source</th>
-                    </tr>
-                </thead>
-
+        <div class="student-enrollment-tabs" role="tablist" aria-label="Enrollment seasons">
+            <button type="button" class="student-enrollment-tab is-active" id="student-current-tab" role="tab" aria-selected="true" aria-controls="student-current-panel" data-student-enrollment-tab="current">Current / Upcoming <span>{{ current_enrollments|length }}</span></button>
+            <button type="button" class="student-enrollment-tab" id="student-past-tab" role="tab" aria-selected="false" aria-controls="student-past-panel" data-student-enrollment-tab="past" tabindex="-1">Past Seasons <span>{{ past_enrollments|length }}</span></button>
+        </div>
+        <div class="student-enrollment-panel" id="student-current-panel" role="tabpanel" aria-labelledby="student-current-tab" >
+            <div class="people-table-wrap"><table class="people-table student-enrollment-table">
+                <thead><tr><th>Class</th><th>Season</th><th>Instructor</th><th>Status</th><th>Source</th></tr></thead>
                 <tbody>
-                    {% for enrollment in enrollments %}
+                    {% for enrollment in current_enrollments %}
                         <tr>
-                            <td>
-                                <a
-                                    href="{% url 'classes:class_detail' studio.slug enrollment.class_instance.id %}"
-                                >
-                                    {{ enrollment.class_instance.class_id }}
-                                    ·
-                                    {{ enrollment.class_instance.name }}
-                                </a>
-                            </td>
-
-                            <td>
-                                {{ enrollment.class_instance.season.name }}
-                            </td>
-
-                            <td>
-                                {{ enrollment.class_instance.instructor.full_name }}
-                            </td>
-
-                            <td>
-                                {{ enrollment.get_status_display }}
-                            </td>
-
-                            <td>
-                                {{ enrollment.get_source_display }}
-                            </td>
+                            <td><a href="{% url 'classes:class_detail' studio.slug enrollment.class_instance.id %}">{{ enrollment.class_instance.class_id }} · {{ enrollment.class_instance.name }}</a></td>
+                            <td>{{ enrollment.class_instance.season.name }}</td>
+                            <td>{{ enrollment.class_instance.instructor.full_name }}</td>
+                            <td>{{ enrollment.get_status_display }}</td>
+                            <td>{{ enrollment.get_source_display }}</td>
                         </tr>
                     {% empty %}
-                        <tr>
-                            <td colspan="5">
-                                <div class="empty-state">
-                                    No enrollment history yet.
-                                </div>
-                            </td>
-                        </tr>
+                        <tr><td colspan="5"><div class="empty-state">No current or upcoming enrollments.</div></td></tr>
                     {% endfor %}
                 </tbody>
-            </table>
+            </table></div>
         </div>
+        <div class="student-enrollment-panel" id="student-past-panel" role="tabpanel" aria-labelledby="student-past-tab" hidden>
+            <div class="people-table-wrap"><table class="people-table student-enrollment-table">
+                <thead><tr><th>Class</th><th>Season</th><th>Instructor</th><th>Status</th><th>Source</th></tr></thead>
+                <tbody>
+                    {% for enrollment in past_enrollments %}
+                        <tr>
+                            <td><a href="{% url 'classes:class_detail' studio.slug enrollment.class_instance.id %}">{{ enrollment.class_instance.class_id }} · {{ enrollment.class_instance.name }}</a></td>
+                            <td>{{ enrollment.class_instance.season.name }}</td>
+                            <td>{{ enrollment.class_instance.instructor.full_name }}</td>
+                            <td>{{ enrollment.get_status_display }}</td>
+                            <td>{{ enrollment.get_source_display }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="5"><div class="empty-state">No past season enrollments.</div></td></tr>
+                    {% endfor %}
+                </tbody>
+            </table></div>
+        </div>
+
     </article>
 
-    <article class="people-card span-2">
+    <article class="people-card span-2 student-accent-card student-accent-orange">
         <div class="card-heading">
             <div>
                 <span class="card-kicker">Health & Notes</span>
@@ -359,8 +353,34 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/encore_student_profile_notes.js' %}" defer></script>
 <script
     src="{% static 'js/encore_quick_tasks.js' %}"
     defer
 ></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const tabs = Array.from(document.querySelectorAll('[data-student-enrollment-tab]'));
+    if (!tabs.length) return;
+    function activate(name) {
+        tabs.forEach(function(tab) {
+            const active = tab.dataset.studentEnrollmentTab === name;
+            tab.classList.toggle('is-active', active);
+            tab.setAttribute('aria-selected', String(active));
+            tab.tabIndex = active ? 0 : -1;
+            const panel = document.getElementById('student-' + tab.dataset.studentEnrollmentTab + '-panel');
+            if (panel) panel.hidden = !active;
+        });
+    }
+    tabs.forEach(function(tab) {
+        tab.addEventListener('click', function() { activate(tab.dataset.studentEnrollmentTab); });
+        tab.addEventListener('keydown', function(event) {
+            if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+            event.preventDefault();
+            const next = tabs[(tabs.indexOf(tab) + (event.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+            activate(next.dataset.studentEnrollmentTab); next.focus();
+        });
+    });
+});
+</script>
 {% endblock %}

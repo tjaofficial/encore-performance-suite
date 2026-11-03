@@ -1,0 +1,125 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Studio Director Onboarding | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}">{% endblock %}
+{% block topbar_title %}Studio Director Onboarding{% endblock %}
+
+{% block content %}
+<div class="settings-workspace">
+    {% include "includes/settings_nav.html" %}
+    <main class="settings-workspace-content">
+        <section class="settings-heading">
+            <div>
+                <a class="back-link" href="{% url 'studios:data_transfer_home' studio.slug %}">← Back to Data Import &amp; Export</a>
+                <p class="eyebrow">Guided Onboarding · Studio Director</p>
+                <h1>Studio Director Playbook</h1>
+                <p>Follow the verified report order so Encore can resolve relationships safely as each layer is imported.</p>
+            </div>
+        </section>
+
+        {% if messages %}
+            <div class="message-stack">
+                {% for message in messages %}<div class="message-banner {{ message.tags }}">{{ message }}</div>{% endfor %}
+            </div>
+        {% endif %}
+
+        <section class="vendor-progress-card">
+            <div>
+                <span>Onboarding Progress</span>
+                <strong>{{ completed }} of {{ total }} steps complete</strong>
+            </div>
+            <div class="vendor-progress-track"><span style="width:{% widthratio completed total 100 %}%"></span></div>
+        </section>
+
+        <section class="studio-director-step-list">
+            {% for step in steps %}
+                <article class="studio-director-step {% if step.is_complete %}complete{% endif %}">
+                    <div class="studio-director-step-number">
+                        {% if step.is_complete %}✓{% else %}{{ step.number }}{% endif %}
+                    </div>
+                    <div class="studio-director-step-main">
+                        <div class="studio-director-step-heading">
+                            <div>
+                                <span>{{ step.report }}</span>
+                                <h2>{{ step.title }}</h2>
+                            </div>
+                            {% if step.state.status == 'skipped' %}
+                                <span class="vendor-step-status">Skipped</span>
+                            {% elif step.is_complete %}
+                                <span class="vendor-step-status success">Complete</span>
+                            {% elif step.discovery %}
+                                <span class="vendor-step-status ready">Ready</span>
+                            {% elif step.coming_next %}
+                                <span class="vendor-step-status">Next Phase</span>
+                            {% elif step.manual %}
+                                <span class="vendor-step-status manual">Manual Check</span>
+                            {% else %}
+                                <span class="vendor-step-status ready">Ready</span>
+                            {% endif %}
+                        </div>
+                        <p>{{ step.description }}</p>
+
+                        {% if step.state.job_id %}
+                            <div class="vendor-step-result">
+                                Import #{{ step.state.job_id }} ·
+                                {{ step.state.created|default:0 }} created ·
+                                {{ step.state.updated|default:0 }} updated ·
+                                {{ step.state.not_imported|default:0 }} not imported
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="studio-director-step-action">
+                        {% if step.instructor_activation %}
+                            <a
+                                class="button {% if step.is_complete %}secondary{% else %}primary{% endif %}"
+                                href="{{ step.instructor_activation_url }}"
+                            >
+                                {% if step.is_complete %}Review Instructor Activation{% else %}Activate Instructors →{% endif %}
+                            </a>
+                        {% elif step.special_class_tuition %}
+                            <a class="button {% if step.is_complete %}secondary{% else %}primary{% endif %}" href="{% url 'studios:studio_director_special_class_tuition' studio.slug %}">Review Classes →</a>
+                            {% if step.state.status != 'completed' %}<form method="post" action="{% url 'studios:studio_director_onboarding' studio.slug %}" class="special-skip-playbook">{% csrf_token %}<input type="hidden" name="action" value="skip_special_class_tuition"><button type="submit" class="button secondary">Skip</button></form>{% endif %}
+                        {% elif step.billing_activation %}
+                            <a class="button {% if step.is_complete %}secondary{% else %}primary{% endif %}" href="{{ step.billing_activation_url }}">{% if step.is_complete %}Review Billing Activation{% else %}Preview Billing Activation →{% endif %}</a>
+                        {% elif step.billing_transition %}
+                            <a class="button {% if step.is_complete %}secondary{% else %}primary{% endif %}" href="{{ step.billing_transition_url }}">
+                                {% if step.is_complete %}Review Billing Transition{% else %}Start Billing Transition{% endif %}
+                            </a>
+                        {% elif step.manual %}
+                            {% if step.review_url %}
+                                <a class="button primary" href="{{ step.review_url }}">Open Final Review →</a>
+                            {% endif %}
+                            {% if step.settings_url %}
+                                <a class="button secondary" href="{{ step.settings_url }}">{{ step.settings_link_label|default:"Open Settings" }} →</a>
+                            {% endif %}
+                            {% if not step.is_complete %}
+                                <form method="post" action="{% url 'studios:studio_director_mark_manual_step' studio.slug step.key %}">
+                                    {% csrf_token %}
+                                    <button class="button secondary" type="submit">Mark Complete</button>
+                                </form>
+                            {% endif %}
+                        {% elif step.coming_next %}
+                            <span>Planned</span>
+                        {% else %}
+                            <a class="button {% if step.is_complete %}secondary{% else %}primary{% endif %}" href="{% url 'studios:studio_director_step_upload' studio.slug step.key %}">
+                                {% if step.is_complete %}Run Again{% else %}Start Step{% endif %}
+                            </a>
+                        {% endif %}
+                    </div>
+                </article>
+            {% endfor %}
+        </section>
+
+        <section class="settings-section-block studio-director-note">
+            <div class="settings-section-heading">
+                <div>
+                    <span>Migration Safety</span>
+                    <h2>Imported enrollment billing remains suppressed</h2>
+                    <p>Encore's current importer creates imported enrollments without firing post-save billing automation. Use the final Billing Activation step to preview and activate future recurring schedules after onboarding review.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+{% endblock %}

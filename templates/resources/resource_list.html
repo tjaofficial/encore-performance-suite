@@ -31,12 +31,22 @@
     </div>
 
     {% if can_manage %}
-        <a
-            class="button primary"
-            href="{% url 'resources:resource_create' studio.slug %}"
-        >
-            + Add Resource
-        </a>
+        <div class="resource-heading-actions">
+            {% if target_class %}
+                <a
+                    class="button secondary"
+                    href="{% url 'resources:resource_reuse_music' studio.slug %}?class={{ target_class.id }}"
+                >
+                    Use Existing Music
+                    {% if reuse_music_count %}
+                        <span class="resource-action-count">{{ reuse_music_count }}</span>
+                    {% endif %}
+                </a>
+            {% endif %}
+            <a class="button primary" href="{% url 'resources:resource_create' studio.slug %}">
+                + Add Resource
+            </a>
+        </div>
     {% endif %}
 </section>
 
@@ -47,6 +57,21 @@
             {{ message }}
         </div>
     {% endfor %}
+</div>
+{% endif %}
+
+{% if target_class %}
+<div class="resource-class-context">
+    <div>
+        <span>Viewing Class</span>
+        <strong>{{ target_class.name }}</strong>
+        <small>{{ target_class.class_id }} · {{ target_class.season.name }}</small>
+    </div>
+    {% if can_manage %}
+        <a href="{% url 'resources:resource_reuse_music' studio.slug %}?class={{ target_class.id }}">
+            Reuse music from this season →
+        </a>
+    {% endif %}
 </div>
 {% endif %}
 
@@ -218,7 +243,7 @@
                                 {% if resource.file %}
                                     <a
                                         class="button secondary"
-                                        href="{{ resource.file.url }}"
+                                        href="{% if resource.resource_type == 'music' %}{% url 'resources:music_file' studio.slug resource.id %}{% else %}{{ resource.file.url }}{% endif %}"
                                         download
                                     >
                                         Download

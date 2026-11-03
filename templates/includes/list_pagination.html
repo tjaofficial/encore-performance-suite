@@ -1,0 +1,59 @@
+{% if page_obj %}
+<section class="encore-pagination" aria-label="{{ pagination_label|default:'List pagination' }}">
+    <div class="encore-pagination-summary">
+        <strong>
+            Showing {{ pagination_start }}–{{ pagination_end }}
+            of {{ pagination_total }}
+        </strong>
+
+        <div class="encore-page-size">
+            <span>Rows per page</span>
+            <div class="encore-page-size-options">
+                {% for option in page_size_options %}
+                    {% if option.selected %}
+                        <span class="active">{{ option.size }}</span>
+                    {% else %}
+                        <a href="{{ option.url }}">{{ option.size }}</a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+        <nav class="encore-page-links" aria-label="Pages">
+            {% if pagination_previous_url %}
+                <a class="encore-page-nav" href="{{ pagination_previous_url }}">
+                    ← Previous
+                </a>
+            {% else %}
+                <span class="encore-page-nav disabled">← Previous</span>
+            {% endif %}
+
+            <div class="encore-page-numbers">
+                {% for item in pagination_items %}
+                    {% if item.is_ellipsis %}
+                        <span class="encore-page-ellipsis">{{ item.label }}</span>
+                    {% elif item.is_current %}
+                        <span class="encore-page-number active" aria-current="page">
+                            {{ item.label }}
+                        </span>
+                    {% else %}
+                        <a class="encore-page-number" href="{{ item.url }}">
+                            {{ item.label }}
+                        </a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            {% if pagination_next_url %}
+                <a class="encore-page-nav" href="{{ pagination_next_url }}">
+                    Next →
+                </a>
+            {% else %}
+                <span class="encore-page-nav disabled">Next →</span>
+            {% endif %}
+        </nav>
+    {% endif %}
+</section>
+{% endif %}

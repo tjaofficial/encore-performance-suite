@@ -1,0 +1,22 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+{% block title %}Email Activity | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_communications.css' %}">{% endblock %}
+{% block content %}
+<div class="email-activity-shell">
+  <header class="email-activity-heading"><div><p class="eyebrow">EMAIL MANAGER / DELIVERY HISTORY</p><h1>Email Activity</h1><p>Every recorded outgoing message for your studio. <strong>Accepted</strong> means SES accepted the message; <strong>Delivered</strong> requires an independent delivery event. Neither proves that a person read it.</p></div></header>
+  {% include "communications/email/_nav.html" %}
+  <section class="email-activity-panel">
+    <form class="email-activity-filter" method="get">
+      <label>Search messages<input name="q" type="search" value="{{ q }}" placeholder="Search subject, sender or recipient"></label>
+      <label>Delivery status<select name="status"><option value="">All statuses</option>{% for value,label in status_options %}<option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+      <button type="submit">Apply Filters</button>
+    </form>
+    <div class="email-activity-tablewrap"><table class="email-activity-table"><thead><tr><th>Created</th><th>Recipient</th><th>Subject</th><th>Status</th><th>Sender</th><th></th></tr></thead><tbody>
+    {% for item in page %}<tr><td class="date">{{ item.created_at|date:'M j, Y' }}<div>{{ item.created_at|date:'g:i A' }}</div></td><td class="address">{{ item.to_addresses|join:', ' }}</td><td class="subject">{{ item.subject|truncatechars:90 }}</td><td><span class="email-activity-status email-activity-status--{{ item.status }}">{{ item.status|title }}</span></td><td class="address">{{ item.sender }}</td><td><a class="view-link" href="{% url 'communications:email_activity_detail' studio.slug item.pk %}">View Details →</a></td></tr>
+    {% empty %}<tr><td class="email-activity-empty" colspan="6">No email activity matches these filters.</td></tr>{% endfor %}
+    </tbody></table></div>
+    <footer class="email-activity-pagination"><span>Page {{ page.number }} of {{ page.paginator.num_pages }} · {{ page.paginator.count }} messages</span><div>{% if page.has_previous %}<a href="?q={{ q|urlencode }}&status={{ status_filter|urlencode }}&page={{ page.previous_page_number }}">← Previous</a>{% endif %}{% if page.has_next %}<a href="?q={{ q|urlencode }}&status={{ status_filter|urlencode }}&page={{ page.next_page_number }}">Next →</a>{% endif %}</div></footer>
+  </section>
+</div>
+{% endblock %}

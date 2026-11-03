@@ -669,3 +669,46 @@ class PerformancePrepItem(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class StageLightingTemplate(models.Model):
+    """Studio-scoped reusable venue staging / lighting setup."""
+    studio = models.ForeignKey(Studio, on_delete=models.CASCADE, related_name="stage_lighting_templates")
+    name = models.CharField(max_length=160)
+    description = models.TextField(blank=True)
+    stage_drawings = models.JSONField(default=list, blank=True)
+    show_offstage_wings = models.BooleanField(default=False)
+    apron_stage_grid = models.BooleanField(default=False)
+    fixtures = models.JSONField(default=list, blank=True)
+    cues = models.JSONField(default=list, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name", "id"]
+        constraints = [models.UniqueConstraint(fields=["studio", "name"], name="unique_studio_stage_lighting_template")]
+
+    def __str__(self):
+        return self.name
+
+
+class DrawingBoardWithdrawalSnapshot(models.Model):
+    """Immutable choreography state captured before an enrollment is withdrawn.
+
+    This record is not a live roster assignment and must never be used to
+    populate active choreography. It preserves the board as it existed at
+    the time of withdrawal for historical review.
+    """
+    board = models.ForeignKey(DrawingBoard, on_delete=models.PROTECT, related_name="withdrawal_snapshots")
+    enrollment_id = models.PositiveBigIntegerField(db_index=True)
+    student_id = models.PositiveBigIntegerField(db_index=True)
+    student_name = models.CharField(max_length=250)
+    reason = models.CharField(max_length=50, default="withdrawal")
+    recorded_at = models.DateTimeField(auto_now_add=True)
+    snapshot = models.JSONField(default=dict)
+
+    class Meta:
+        ordering = ["-recorded_at", "-id"]
+        constraints = [
+            models.UniqueConstraint(fields=["board", "enrollment_id"], name="unique_board_withdrawal_snapshot"),
+        ]

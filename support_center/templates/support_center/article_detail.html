@@ -1,0 +1,133 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ article.title }} | Encore Support{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_support_center.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="support-center-page support-article-page" data-support-center>
+    <nav class="support-breadcrumbs" aria-label="Breadcrumb">
+        <a href="{% url 'support_center:home' %}">Support Center</a>
+        <span>›</span>
+        <a href="{% url 'support_center:home' %}#category-{{ article.category }}">{{ article.category_info.name }}</a>
+        <span>›</span>
+        <span>{{ article.title }}</span>
+    </nav>
+
+    <div class="support-article-layout">
+        <main class="support-article-main">
+            <article class="support-article-card">
+                <header class="support-article-header">
+                    <span>{{ article.category_info.name }}</span>
+                    <h1>{{ article.title }}</h1>
+                    <p>{{ article.summary }}</p>
+
+                    {% if article.quick_link.url %}
+                        <a class="support-feature-link" href="{{ article.quick_link.url }}">
+                            {{ article.quick_link.label }} →
+                        </a>
+                    {% endif %}
+                </header>
+
+                {% if article.screenshot %}
+                    <figure class="support-screenshot">
+                        <img src="{% static article.screenshot %}" alt="Screenshot for {{ article.title }}">
+                    </figure>
+                {% endif %}
+
+                <div class="support-article-sections">
+                    {% for section in article.sections %}
+                        <section id="section-{{ forloop.counter }}" data-support-article-section>
+                            <h2>{{ section.title }}</h2>
+
+                            {% if section.text %}
+                                <p>{{ section.text }}</p>
+                            {% endif %}
+
+                            {% if section.steps %}
+                                <ol>
+                                    {% for step in section.steps %}
+                                        <li>{{ step }}</li>
+                                    {% endfor %}
+                                </ol>
+                            {% endif %}
+
+                            {% if section.bullets %}
+                                <ul>
+                                    {% for item in section.bullets %}
+                                        <li>{{ item }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+
+                            {% if section.note %}
+                                <div class="support-note">
+                                    <strong>Good to know</strong>
+                                    <p>{{ section.note }}</p>
+                                </div>
+                            {% endif %}
+
+                            {% if section.screenshot %}
+                                <figure class="support-screenshot">
+                                    <img src="{% static section.screenshot %}" alt="Screenshot for {{ section.title }}">
+                                </figure>
+                            {% endif %}
+                        </section>
+                    {% endfor %}
+                </div>
+            </article>
+        </main>
+
+        <aside class="support-related-panel">
+            {% if article.sections %}
+                <div class="support-related-card support-on-this-page">
+                    <span>On this page</span>
+                    <h2>Jump to a section</h2>
+                    <div class="support-related-links">
+                        {% for section in article.sections %}
+                            <a href="#section-{{ forloop.counter }}" data-support-section-link="section-{{ forloop.counter }}">
+                                {{ section.title }}
+                                <b>↘</b>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="support-related-card">
+                <span>Related questions</span>
+                <h2>Keep learning</h2>
+                {% if related_articles %}
+                    <div class="support-related-links">
+                        {% for related in related_articles %}
+                            <a href="{% url 'support_center:article' related.slug %}">
+                                {{ related.title }}
+                                <b>→</b>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p>No related articles yet.</p>
+                {% endif %}
+            </div>
+
+            <a class="support-back-card" href="{% url 'support_center:home' %}">
+                <span>⌕</span>
+                <div>
+                    <strong>Search Support Center</strong>
+                    <small>Browse all Encore help topics.</small>
+                </div>
+            </a>
+        </aside>
+    </div>
+
+    <button class="support-back-to-top" type="button" data-support-back-to-top hidden aria-label="Back to top">↑</button>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/encore_support_center.js' %}" defer></script>
+{% endblock %}

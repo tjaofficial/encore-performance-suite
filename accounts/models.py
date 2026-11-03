@@ -4,6 +4,10 @@ from django.db import models
 
 class User(AbstractUser):
     email = models.EmailField(unique=True)
+    email_verification_required = models.BooleanField(default=False)
+    email_verified_at = models.DateTimeField(null=True, blank=True)
+    email_verification_token = models.UUIDField(null=True, blank=True, unique=True)
+    email_verification_sent_at = models.DateTimeField(null=True, blank=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username"]

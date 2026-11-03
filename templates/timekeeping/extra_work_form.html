@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}
-Log Extra Work | Encore
+{% if editing %}Edit Extra Work{% else %}Log Extra Work{% endif %} | Encore
 {% endblock %}
 
 {% block extra_css %}
@@ -31,7 +31,7 @@ Time & Extra Work
         </p>
 
         <h1>
-            Log Extra Work
+            {% if editing %}Edit Extra Work{% else %}Log Extra Work{% endif %}
         </h1>
 
         <p>
@@ -153,7 +153,7 @@ Time & Extra Work
             class="button primary"
             type="submit"
         >
-            Log Extra Work
+            {% if editing %}Edit Extra Work{% else %}Log Extra Work{% endif %}
         </button>
     </div>
 </form>

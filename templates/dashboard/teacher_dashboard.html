@@ -5,7 +5,7 @@
     Teacher Dashboard | Encore Performance Suite
 {% endblock %}
 
-{% block extra_css %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_stopwatch.css' %}">
     <link
         rel="stylesheet"
         href="{% static 'css/encore_teacher_dashboard.css' %}"
@@ -13,6 +13,10 @@
     <link
         rel="stylesheet"
         href="{% static 'css/encore_tasks.css' %}"
+    >
+    <link
+        rel="stylesheet"
+        href="{% static 'css/components/task_completion.css' %}"
     >
 {% endblock %}
 
@@ -23,19 +27,44 @@
 {% block content %}
 {% dashboard_quick_links request.user studio "teacher" as teacher_quick_links %}
 
-<section class="teacher-quick-actions">
-    {% for link in teacher_quick_links %}
+<section class="teacher-overview-card">
+    <div class="teacher-overview-top">
+        <div>
+            <p class="teacher-overview-kicker">Teacher Overview</p>
+            <h1>{{ instructor.first_name|default:request.user.first_name|default:request.user.username }}</h1>
+            <p class="teacher-overview-subtitle">
+                Teacher Workspace
+            </p>
+        </div>
+
         <a
-            href="{{ link.url }}"
-            {% if link.external %}
-                target="_blank"
-                rel="noopener noreferrer"
-            {% endif %}
+            class="button secondary teacher-customize-button"
+            href="{% url 'studios:teacher_dashboard_settings' studio.slug %}"
         >
-            <span>{{ link.icon }}</span>
-            <strong>{{ link.label }}</strong>
+            Customize Dashboard
         </a>
-    {% endfor %}
+    </div>
+
+    <div class="teacher-overview-quick-actions">
+        <span class="teacher-overview-quick-actions-label">
+            Quick Actions
+        </span>
+
+        <div class="teacher-overview-quick-action-buttons">
+            {% for link in teacher_quick_links %}
+                <a
+                    href="{{ link.url }}"
+                    {% if link.external %}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    {% endif %}
+                >
+                    <span class="encore-shortcut-icon">{% include "includes/dashboard_shortcut_icon.html" %}</span>
+                    <strong>{{ link.label }}</strong>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
 </section>
 
 <section class="teacher-dashboard-grid personalized-teacher-dashboard">
@@ -53,8 +82,7 @@
                         <div class="today-class-column">
                             <div class="widget-heading">
                                 <div class="widget-title-group">
-                                    <span class="widget-icon">▣</span>
-                
+                                    
                                     <div>
                                         <span class="widget-kicker">
                                             Today's Classes
@@ -121,7 +149,7 @@
                                             </div>
                 
                                             <span class="open-class-label">
-                                                Open Class
+                                                View
                                             </span>
                                         </button>
                                     {% endfor %}
@@ -143,6 +171,11 @@
                 
                         {% if today_class_cards %}
                             <div class="current-class-column">
+                                <div class="teacher-class-placeholder" data-class-placeholder>
+                                    <span class="teacher-class-placeholder-icon">✦</span>
+                                    <strong>Select a class</strong>
+                                    <p>Choose a class on the left to view its roster, schedule, and attendance options.</p>
+                                </div>
                                 {% for item in today_class_cards %}
                                     <section
                                         class="current-class-panel"
@@ -208,12 +241,7 @@
                                                 ({{ item.student_count }})
                                             </strong>
                 
-                                            <span>
-                                                Present
-                                                {{ item.present_like_count }}
-                                                /
-                                                {{ item.student_count }}
-                                            </span>
+                                            <span>{{ item.student_count }} enrolled</span>
                                         </div>
                 
                                         <div class="current-roster">
@@ -223,10 +251,11 @@
                                                         {{ forloop.counter }}
                                                     </span>
                 
-                                                    <strong>
-                                                        {{ row.student.first_name }}
-                                                        {{ row.student.last_name }}
-                                                    </strong>
+                                                    <div class="teacher-roster-student">
+                                                        <strong>{{ row.student.first_name }} {{ row.student.last_name }}</strong>
+                                                        <small>{% if row.student.age is not None %}Age {{ row.student.age|floatformat:"-2" }}{% endif %}</small>
+                                                    </div>
+                                                    <a class="teacher-roster-detail" href="{% url 'classes:class_student_detail' studio.slug item.class.id row.student.id %}">Student Detail →</a>
                 
                                                     <span
                                                         class="roster-attendance
@@ -245,142 +274,46 @@
                                                     </span>
                                                 </div>
                                             {% empty %}
-                                                <div class="current-roster-empty">
-                                                    No active students enrolled in this class.
+                                                <div class="current-roster-empty teacher-roster-empty">
+                                                    <strong>No active students</strong>
+                                                    <span>This class currently has no active enrollments.</span>
                                                 </div>
                                             {% endfor %}
                                         </div>
                 
-                                        <a
-                                            class="take-attendance-button"
-                                            href="{% url 'attendance:take_attendance' studio.slug item.class.id %}?date={{ today|date:'Y-m-d' }}&start={{ item.meeting.start_time|time:'H:i:s' }}"
-                                        >
-                                            <span>♙</span>
-                                            Take Attendance
-                                        </a>
+                                        <div class="teacher-class-panel-actions">
+                                            <a
+                                                class="take-attendance-button"
+                                                href="{% url 'attendance:take_attendance' studio.slug item.class.id %}?date={{ today|date:'Y-m-d' }}&start={{ item.meeting.start_time|time:'H:i:s' }}"
+                                            >
+                                                Take Attendance
+                                            </a>
+                                            <a
+                                                class="teacher-open-class-button"
+                                                href="{% url 'classes:class_detail' studio.slug item.class.id %}"
+                                            >
+                                                Open Class →
+                                            </a>
+                                        </div>
                                     </section>
                                 {% endfor %}
                             </div>
                         {% endif %}
                     </article>
             {% elif card.key == "tasks" %}
-                <article class="dashboard-widget teacher-task-widget">
-                        <div class="widget-heading teacher-task-heading">
-                            <div class="teacher-task-heading-copy">
-                                <span class="widget-kicker">
-                                    Reminders / To-Do
-                                </span>
-                                <h2>My Tasks</h2>
-                            </div>
-                
-                            <a
-                                class="task-card-header-action"
-                                href="{% url 'tasks:task_create' studio.slug %}"
-                            >
-                                + Add Task
-                            </a>
-                        </div>
-                
-                        <div class="teacher-task-list task-checklist">
-                            {% for task in teacher_tasks %}
-                                <div class="teacher-task-row priority-{{ task.priority }}">
-                                    <form
-                                        method="post"
-                                        action="{% url 'tasks:task_toggle_complete' studio.slug task.id %}"
-                                    >
-                                        {% csrf_token %}
-                                        <input
-                                            type="hidden"
-                                            name="next"
-                                            value="{{ request.path }}"
-                                        >
-                
-                                        <button
-                                            type="submit"
-                                            class="teacher-task-check compact-task-check"
-                                            aria-label="Complete {{ task.title }}"
-                                        ><span aria-hidden="true"></span></button>
-                                    </form>
-                
-                                    <div class="teacher-task-copy">
-                                        <strong>{{ task.title }}</strong>
-                
-                                        {% if task.created_by != request.user %}
-                                            <small>
-                                                Assigned by
-                                                {{ task.created_by.get_full_name|default:task.created_by.email }}
-                                            </small>
-                                        {% elif task.class_instance %}
-                                            <small>{{ task.class_instance.name }}</small>
-                                        {% endif %}
-                                    </div>
-                
-                                    <div class="task-row-end">
-                                        {% if task.due_date %}
-                                            <span class="teacher-task-date">
-                                                {{ task.due_date|date:"M j" }}
-                                            </span>
-                                        {% endif %}
-                
-                                        {% if task.created_by_id == request.user.id or role == "administrator" %}
-                                            <div class="task-row-menu" data-task-menu>
-                                                <button
-                                                    type="button"
-                                                    class="task-row-menu-button"
-                                                    aria-label="Options for {{ task.title }}"
-                                                    aria-expanded="false"
-                                                    data-task-menu-button
-                                                >
-                                                    ⋯
-                                                </button>
-                
-                                                <div
-                                                    class="task-row-menu-popover"
-                                                    data-task-menu-popover
-                                                    hidden
-                                                >
-                                                    <a
-                                                                href="{% url 'tasks:task_edit' studio.slug task.id %}?next={{ request.get_full_path|urlencode }}"
-                                                    >
-                                                                Edit
-                                                    </a>
-                
-                                                    <form
-                                                                method="post"
-                                                                action="{% url 'tasks:task_delete' studio.slug task.id %}"
-                                                                onsubmit="return confirm('Delete this reminder?');"
-                                                    >
-                                                                {% csrf_token %}
-                                                                <input
-                                                                    type="hidden"
-                                                                    name="next"
-                                                                    value="{{ request.get_full_path }}"
-                                                                >
-                                                                <button type="submit">
-                                                                    Delete
-                                                                </button>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            {% empty %}
-                                <div class="teacher-task-empty">
-                                    Nothing on your list right now.
-                                </div>
-                            {% endfor %}
-                        </div>
-                
-                        <a
-                            class="teacher-task-view-all"
-                            href="{% url 'tasks:task_list' studio.slug %}"
-                        >
-                            View All Tasks →
-                        </a>
-                    </article>
+                {% include "dashboard/teacher_cards/tasks.html" %}
             {% elif card.key == "dances" %}
                 {% include "dashboard/teacher_cards/dances.html" %}
+            {% elif card.key == "stopwatch" %}
+                {% include "dashboard/widgets/stopwatch.html" %}
+            {% elif card.key == "extra_work" %}
+                {% include "dashboard/teacher_cards/extra_work.html" %}
+            {% elif card.key == "attendance" %}
+                {% include "dashboard/teacher_cards/attendance.html" %}
+            {% elif card.key == "announcements" %}
+                {% include "dashboard/teacher_cards/announcements.html" %}
+            {% elif card.key == "upcoming_events" %}
+                {% include "dashboard/teacher_cards/upcoming_events.html" %}
             {% endif %}
         </div>
     {% empty %}
@@ -402,7 +335,7 @@
 </section>
 {% endblock %}
 
-{% block extra_js %}
+{% block extra_js %}<script defer src="{% static 'js/encore_stopwatch.js' %}"></script>
 <script
     src="{% static 'js/encore_teacher_dashboard.js' %}"
     defer

@@ -5,6 +5,8 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/encore_calendar.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_time_off_polish.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_time_off_lists.css' %}">
 {% endblock %}
 
 {% block topbar_title %}Teacher Time Off{% endblock %}
@@ -117,5 +119,13 @@
             </div>
         {% endfor %}
     </section>
+<section class="time-off-summary">
+ <header class="time-off-summary-header"><div><p class="eyebrow">Season Overview</p><h2>Teacher Approved Days Off</h2><p>Distinct approved dates for active instructors in the selected season.</p></div></header>
+ <form method="get" class="time-off-summary-filters">
+ <input type="hidden" name="status" value="{{ status_filter }}">
+ <label>Season <select name="season" class="calendar-input"><option value="">Current & upcoming</option>{% for season in seasons %}<option value="{{ season.pk }}" {% if selected_season == season.pk|stringformat:'s' %}selected{% endif %}>{{ season.name }}</option>{% endfor %}</select></label>
+ <label>Teacher <input class="calendar-input" name="teacher" placeholder="Search instructor" value="{{ teacher_search }}"></label><button class="button primary" type="submit">Filter</button></form>
+ <div class="time-off-summary-table-wrap"><table class="time-off-summary-table"><thead><tr><th>Teacher</th><th>Approved days</th></tr></thead><tbody>{% for row in teacher_summary %}<tr><td>{{ row.instructor.full_name }}</td><td><strong>{{ row.approved_days }}</strong></td></tr>{% empty %}<tr><td colspan="2">No active teachers match these filters.</td></tr>{% endfor %}</tbody></table></div>
+</section>
 </section>
 {% endblock %}

@@ -1,4 +1,5 @@
 import csv
+from decimal import Decimal
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q, Sum
@@ -3122,6 +3123,129 @@ def _report_payload(
     return None
 
 
+def _month_key(value):
+    return value.year, value.month
+
+
+def _month_label(year, month):
+    from datetime import date
+
+    return date(year, month, 1).strftime("%b")
+
+
+def _reporting_months(selected_season):
+    from datetime import date
+
+    if not selected_season:
+        today = date.today()
+        year = today.year
+        month = today.month
+        months = []
+
+        for _ in range(6):
+            months.append((year, month))
+            month -= 1
+
+            if month == 0:
+                month = 12
+                year -= 1
+
+        return list(reversed(months))
+
+    year = selected_season.start_date.year
+    month = selected_season.start_date.month
+    end_key = (
+        selected_season.end_date.year,
+        selected_season.end_date.month,
+    )
+    months = []
+
+    while (year, month) <= end_key:
+        months.append((year, month))
+        month += 1
+
+        if month == 13:
+            month = 1
+            year += 1
+
+    return months[-12:]
+
+
+def _percent_of(value, maximum):
+    if not maximum:
+        return 0
+
+    return round((float(value) / float(maximum)) * 100, 2)
+
+
+def _nice_axis(maximum, *, integer=False, currency=False):
+    import math
+
+    value = float(maximum or 0)
+
+    if value <= 0:
+        axis_max = 4 if integer else 1
+        step = 1 if integer else 0.25
+    else:
+        target = value / 4
+        magnitude = 10 ** math.floor(math.log10(target)) if target > 0 else 1
+        normalized = target / magnitude
+
+        if integer and target < 1:
+            step = 1
+        elif normalized <= 1:
+            step = 1 * magnitude
+        elif normalized <= 2:
+            step = 2 * magnitude
+        elif normalized <= 2.5:
+            step = 2.5 * magnitude
+        elif normalized <= 5:
+            step = 5 * magnitude
+        else:
+            step = 10 * magnitude
+
+        if integer:
+            step = max(1, int(math.ceil(step)))
+
+        # The chart always renders 4 equal vertical intervals (5 ticks).
+        # Keep the axis maximum tied to those intervals so bar heights,
+        # tick labels, and horizontal grid lines all use the exact same scale.
+        axis_max = step * 4
+
+        # A defensive fallback in case a future step-selection change ever
+        # produces an axis that does not fully contain the data.
+        while axis_max < value:
+            step *= 2
+            if integer:
+                step = max(1, int(math.ceil(step)))
+            axis_max = step * 4
+
+    ticks = []
+    for index in range(5):
+        tick = step * index
+
+        if integer:
+            raw = int(round(tick))
+            label = str(raw)
+        elif currency:
+            raw = tick
+            if abs(raw) >= 1000000:
+                label = f"${raw / 1000000:.1f}M".replace(".0M", "M")
+            elif abs(raw) >= 1000:
+                label = f"${raw / 1000:.1f}K".replace(".0K", "K")
+            elif float(raw).is_integer():
+                label = f"${int(raw):,}"
+            else:
+                label = f"${raw:,.2f}"
+        else:
+            raw = tick
+            label = str(int(raw)) if float(raw).is_integer() else f"{raw:g}"
+
+        ticks.append({"value": raw, "label": label})
+
+    return axis_max, ticks
+
+
 @login_required
 def reports_dashboard(request, studio_slug):
     studio = get_object_or_404(
@@ -3214,7 +3338,7 @@ def reports_dashboard(request, studio_slug):
                 * 100
             )
 
-        attendance_records = AttendanceRecord.objects.filter(
+        attendance_records_for_class = AttendanceRecord.objects.filter(
             session__class_instance=class_instance,
         )
 
@@ -3230,7 +3354,7 @@ def reports_dashboard(request, studio_slug):
                 ),
                 "percent_full": percent_full,
                 "attendance_rate": _attendance_rate_for_queryset(
-                    attendance_records
+                    attendance_records_for_class
                 ),
             }
         )
@@ -3314,6 +3438,298 @@ def reports_dashboard(request, studio_slug):
         )[:12]
     )
 
+    charge_window = Charge.objects.filter(
+        account__studio=studio,
+    )
+
+    payment_window = Payment.objects.filter(
+        account__studio=studio,
+        status=Payment.Status.SUCCEEDED,
+    )
+
+    if selected_season:
+        charge_window = charge_window.filter(
+            created_at__date__gte=selected_season.start_date,
+            created_at__date__lte=selected_season.end_date,
+        )
+        payment_window = payment_window.filter(
+            paid_at__date__gte=selected_season.start_date,
+            paid_at__date__lte=selected_season.end_date,
+        )
+
+    billed_total = (
+        charge_window.aggregate(total=Sum("amount"))["total"]
+        or Decimal("0")
+    )
+    collected_total = (
+        payment_window.aggregate(total=Sum("amount"))["total"]
+        or Decimal("0")
+    )
+
+    open_charges = (
+        Charge.objects
+        .filter(
+            account__studio=studio,
+            status__in=[
+                Charge.Status.OPEN,
+                Charge.Status.PARTIALLY_PAID,
+            ],
+        )
+        .select_related("account__family")
+    )
+
+    if selected_season:
+        open_charges = open_charges.filter(
+            created_at__date__gte=selected_season.start_date,
+            created_at__date__lte=selected_season.end_date,
+        )
+
+    outstanding_total = sum(
+        (
+            charge.balance_remaining
+            for charge in open_charges
+        ),
+        Decimal("0"),
+    )
+
+    collection_rate = (
+        round(float(collected_total / billed_total) * 100)
+        if billed_total > 0
+        else 0
+    )
+
+    enrollment_count = active_enrollments.count()
+    average_enrollments_per_student = (
+        round(enrollment_count / season_student_count, 1)
+        if season_student_count
+        else 0
+    )
+
+    utilization_values = [
+        row["percent_full"]
+        for row in class_rows
+        if row["class"].capacity
+    ]
+    average_class_utilization = (
+        round(
+            sum(utilization_values)
+            / len(utilization_values)
+        )
+        if utilization_values
+        else 0
+    )
+
+    previous_season = None
+
+    if selected_season:
+        previous_season = (
+            Season.objects
+            .filter(
+                studio=studio,
+                start_date__lt=selected_season.start_date,
+            )
+            .order_by("-start_date")
+            .first()
+        )
+
+    retention_rate = None
+    retained_students = 0
+    previous_student_count = 0
+
+    if selected_season and previous_season:
+        previous_ids = set(
+            Enrollment.objects
+            .filter(
+                class_instance__season=previous_season,
+                status__in=[
+                    Enrollment.Status.ACTIVE,
+                    Enrollment.Status.COMPLETED,
+                ],
+            )
+            .values_list("student_id", flat=True)
+            .distinct()
+        )
+        current_ids = set(
+            active_enrollments
+            .values_list("student_id", flat=True)
+            .distinct()
+        )
+
+        previous_student_count = len(previous_ids)
+        retained_students = len(previous_ids & current_ids)
+
+        if previous_student_count:
+            retention_rate = round(
+                retained_students
+                / previous_student_count
+                * 100
+            )
+
+    reporting_months = _reporting_months(selected_season)
+    billed_by_month = {
+        _month_key(row["month"]): row["total"] or Decimal("0")
+        for row in (
+            charge_window
+            .annotate(month=TruncMonth("created_at"))
+            .values("month")
+            .annotate(total=Sum("amount"))
+        )
+        if row["month"]
+    }
+    collected_by_month = {
+        _month_key(row["month"]): row["total"] or Decimal("0")
+        for row in (
+            payment_window
+            .annotate(month=TruncMonth("paid_at"))
+            .values("month")
+            .annotate(total=Sum("amount"))
+        )
+        if row["month"]
+    }
+
+    enrollment_trend_qs = Enrollment.objects.filter(
+        class_instance__studio=studio,
+    )
+
+    if selected_season:
+        enrollment_trend_qs = enrollment_trend_qs.filter(
+            class_instance__season=selected_season,
+        )
+
+    new_enrollments_by_month = {
+        _month_key(row["month"]): row["total"]
+        for row in (
+            enrollment_trend_qs
+            .annotate(month=TruncMonth("enrolled_at"))
+            .values("month")
+            .annotate(total=Count("id"))
+        )
+        if row["month"]
+    }
+    drops_by_month = {
+        _month_key(row["month"]): row["total"]
+        for row in (
+            enrollment_trend_qs
+            .filter(dropped_at__isnull=False)
+            .annotate(month=TruncMonth("dropped_at"))
+            .values("month")
+            .annotate(total=Count("id"))
+        )
+        if row["month"]
+    }
+
+    revenue_maximum = max(
+        [
+            float(billed_by_month.get(key, 0))
+            for key in reporting_months
+        ]
+        + [
+            float(collected_by_month.get(key, 0))
+            for key in reporting_months
+        ]
+        + [1]
+    )
+    enrollment_maximum = max(
+        [
+            int(new_enrollments_by_month.get(key, 0))
+            for key in reporting_months
+        ]
+        + [
+            int(drops_by_month.get(key, 0))
+            for key in reporting_months
+        ]
+        + [1]
+    )
+
+    revenue_axis_max, revenue_axis_ticks = _nice_axis(
+        revenue_maximum,
+        currency=True,
+    )
+    enrollment_axis_max, enrollment_axis_ticks = _nice_axis(
+        enrollment_maximum,
+        integer=True,
+    )
+
+    revenue_chart = []
+    enrollment_chart = []
+
+    for year, month in reporting_months:
+        key = (year, month)
+        billed = billed_by_month.get(key, Decimal("0"))
+        collected = collected_by_month.get(key, Decimal("0"))
+        new_count = int(new_enrollments_by_month.get(key, 0))
+        drop_count = int(drops_by_month.get(key, 0))
+
+        revenue_chart.append(
+            {
+                "label": _month_label(year, month),
+                "billed": billed,
+                "collected": collected,
+                "billed_height": _percent_of(
+                    billed,
+                    revenue_axis_max,
+                ),
+                "collected_height": _percent_of(
+                    collected,
+                    revenue_axis_max,
+                ),
+            }
+        )
+        enrollment_chart.append(
+            {
+                "label": _month_label(year, month),
+                "new": new_count,
+                "dropped": drop_count,
+                "new_height": _percent_of(
+                    new_count,
+                    enrollment_axis_max,
+                ),
+                "dropped_height": _percent_of(
+                    drop_count,
+                    enrollment_axis_max,
+                ),
+            }
+        )
+
+    near_capacity_rows = sorted(
+        [
+            row
+            for row in class_rows
+            if row["percent_full"] >= 80
+        ],
+        key=lambda row: (
+            -row["percent_full"],
+            row["class"].name,
+        ),
+    )[:5]
+
+    low_enrollment_rows = sorted(
+        [
+            row
+            for row in class_rows
+            if (
+                row["class"].capacity
+                and row["percent_full"] <= 35
+            )
+        ],
+        key=lambda row: (
+            row["percent_full"],
+            row["class"].name,
+        ),
+    )[:5]
+
+    waitlisted_rows = sorted(
+        [
+            row
+            for row in class_rows
+            if row["waitlist_count"] > 0
+        ],
+        key=lambda row: (
+            -row["waitlist_count"],
+            row["class"].name,
+        ),
+    )[:5]
+
     top_classes = sorted(
         class_rows,
         key=lambda row: (
@@ -3321,6 +3737,36 @@ def reports_dashboard(request, studio_slug):
             row["class"].name,
         ),
     )[:8]
+
+    attention_counts = {
+        "repeated_absences": repeated_absences.count(),
+        "full_classes": sum(
+            1
+            for row in class_rows
+            if row["percent_full"] >= 100
+        ),
+        "waitlisted_classes": sum(
+            1
+            for row in class_rows
+            if row["waitlist_count"] > 0
+        ),
+        "missing_tuition": sum(
+            1
+            for row in class_rows
+            if row["class"].tuition_amount is None
+        ),
+        "low_enrollment_classes": len(
+            [
+                row
+                for row in class_rows
+                if (
+                    row["class"].capacity
+                    and row["percent_full"] <= 35
+                )
+            ]
+        ),
+        "open_balances": open_charges.count(),
+    }
 
     return render(
         request,
@@ -3335,7 +3781,7 @@ def reports_dashboard(request, studio_slug):
             "repeated_absences": repeated_absences,
             "active_student_count": active_students.count(),
             "season_student_count": season_student_count,
-            "active_enrollment_count": active_enrollments.count(),
+            "active_enrollment_count": enrollment_count,
             "family_count": Family.objects.filter(
                 studio=studio,
                 is_active=True,
@@ -3356,24 +3802,33 @@ def reports_dashboard(request, studio_slug):
                 for report in category["reports"]
                 if report[3] in {"live", "dashboard"}
             ),
-            "attention_counts": {
-                "repeated_absences": repeated_absences.count(),
-                "full_classes": sum(
-                    1
-                    for row in class_rows
-                    if row["percent_full"] >= 100
-                ),
-                "waitlisted_classes": sum(
-                    1
-                    for row in class_rows
-                    if row["waitlist_count"] > 0
-                ),
-                "missing_tuition": sum(
-                    1
-                    for row in class_rows
-                    if row["class"].tuition_amount is None
-                ),
+            "attention_counts": attention_counts,
+            "bi_kpis": {
+                "billed_total": billed_total,
+                "collected_total": collected_total,
+                "outstanding_total": outstanding_total,
+                "collection_rate": collection_rate,
+                "average_enrollments_per_student": average_enrollments_per_student,
+                "average_class_utilization": average_class_utilization,
+                "retention_rate": retention_rate,
+                "retained_students": retained_students,
+                "previous_student_count": previous_student_count,
             },
+            "revenue_chart": revenue_chart,
+            "enrollment_chart": enrollment_chart,
+            "revenue_axis_ticks": revenue_axis_ticks,
+            "enrollment_axis_ticks": enrollment_axis_ticks,
+            "has_revenue_chart_data": any(
+                point["billed"] or point["collected"]
+                for point in revenue_chart
+            ),
+            "has_enrollment_chart_data": any(
+                point["new"] or point["dropped"]
+                for point in enrollment_chart
+            ),
+            "near_capacity_rows": near_capacity_rows,
+            "low_enrollment_rows": low_enrollment_rows,
+            "waitlisted_rows": waitlisted_rows,
         },
     )
 

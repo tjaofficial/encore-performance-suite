@@ -1,0 +1,19 @@
+{% extends "dashboard/parent_portal_base.html" %}
+{% load static %}
+{% block title %}Attendance | Encore{% endblock %}
+{% block parent_portal_heading %}Attendance{% endblock %}
+{% block parent_extra_css %}<link rel="stylesheet" href="{% static 'css/encore_attendance_phase2.css' %}"><link rel="stylesheet" href="{% static 'css/encore_parent_attendance.css' %}">{% endblock %}
+{% block parent_content %}
+<section class="attendance-family-page attendance-overview">
+  <header class="attendance-family-header"><div><h1>Attendance</h1><p>{{ student.first_name }} {{ student.last_name }} · Attendance history and make-up progress</p></div><div class="attendance-overview-actions"><a class="button secondary" href="{% url 'attendance:absence_request_create' studio.slug %}?student={{ student.id }}">Request an Absence</a><a class="button primary" href="{% url 'attendance:makeup_schedule' studio.slug %}?student={{ student.id }}">Make-Up Schedule →</a></div></header>
+  <div class="attendance-overview-metrics">
+    <article><span>Attendance Rate</span><strong>{% if stats.rate is not None %}{{ stats.rate }}%{% else %}—{% endif %}</strong><small>Finalized regular classes</small></article>
+    <article><span>Attended</span><strong>{{ stats.present }}</strong><small>Present, late, or left early</small></article>
+    <article><span>Absent</span><strong>{{ stats.absent }}</strong><small>Recorded absences</small></article>
+    <article><span>Excused</span><strong>{{ stats.excused }}</strong><small>Excused sessions</small></article>
+  </div>
+  <section class="attendance-family-section"><div class="attendance-overview-section-heading"><div><h2>Make-Up Progress</h2><p>Requirements are updated as make-ups are booked and attendance is finalized.</p></div><a href="{% url 'attendance:makeup_schedule' studio.slug %}?student={{ student.id }}">Manage make-ups →</a></div>
+  <div class="attendance-overview-progress"><div><strong>{{ makeup.to_schedule }}</strong><span>To schedule</span></div><div><strong>{{ makeup.scheduled }}</strong><span>Scheduled</span></div><div><strong>{{ makeup.completed }}</strong><span>Completed</span></div></div></section>
+  <section class="attendance-family-section"><h2>Recent Attendance</h2><div class="attendance-overview-table-wrap"><table class="attendance-overview-table"><thead><tr><th>Class</th><th>Date</th><th>Status</th></tr></thead><tbody>{% for record in recent_records %}<tr><td>{{ record.session.class_instance.name }}</td><td>{{ record.session.session_date|date:'M j, Y' }}</td><td><span class="attendance-overview-status is-{{ record.status }}">{{ record.get_status_display }}</span></td></tr>{% empty %}<tr><td colspan="3">No finalized attendance has been recorded yet.</td></tr>{% endfor %}</tbody></table></div></section>
+</section>
+{% endblock %}

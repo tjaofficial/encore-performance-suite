@@ -30,96 +30,55 @@ PRICE_CATALOG = {
         "label": "0–100",
         "min": 0,
         "max": 100,
-        "essentials": {
-            "software_only": Decimal("79.00"),
-            "software_payments": Decimal("59.00"),
-        },
-        "pro": {
-            "software_only": Decimal("99.00"),
-            "software_payments": Decimal("79.00"),
-        },
+        "essentials": Decimal("79.00"),
+        "pro": Decimal("99.00"),
     },
     "101_250": {
         "label": "101–250",
         "min": 101,
         "max": 250,
-        "essentials": {
-            "software_only": Decimal("109.00"),
-            "software_payments": Decimal("79.00"),
-        },
-        "pro": {
-            "software_only": Decimal("139.00"),
-            "software_payments": Decimal("109.00"),
-        },
+        "essentials": Decimal("109.00"),
+        "pro": Decimal("139.00"),
     },
     "251_500": {
         "label": "251–500",
         "min": 251,
         "max": 500,
-        "essentials": {
-            "software_only": Decimal("139.00"),
-            "software_payments": Decimal("109.00"),
-        },
-        "pro": {
-            "software_only": Decimal("169.00"),
-            "software_payments": Decimal("129.00"),
-        },
+        "essentials": Decimal("139.00"),
+        "pro": Decimal("169.00"),
     },
     "501_1000": {
         "label": "501–1,000",
         "min": 501,
         "max": 1000,
-        "essentials": {
-            "software_only": Decimal("159.00"),
-            "software_payments": Decimal("119.00"),
-        },
-        "pro": {
-            "software_only": Decimal("199.00"),
-            "software_payments": Decimal("149.00"),
-        },
+        "essentials": Decimal("159.00"),
+        "pro": Decimal("199.00"),
     },
     "1001_2000": {
         "label": "1,001–2,000",
         "min": 1001,
         "max": 2000,
-        "essentials": {
-            "software_only": Decimal("199.00"),
-            "software_payments": Decimal("149.00"),
-        },
-        "pro": {
-            "software_only": Decimal("249.00"),
-            "software_payments": Decimal("189.00"),
-        },
+        "essentials": Decimal("199.00"),
+        "pro": Decimal("249.00"),
     },
     "2001_3000": {
         "label": "2,001–3,000",
         "min": 2001,
         "max": 3000,
-        "essentials": {
-            "software_only": Decimal("239.00"),
-            "software_payments": Decimal("179.00"),
-        },
-        "pro": {
-            "software_only": Decimal("299.00"),
-            "software_payments": Decimal("229.00"),
-        },
+        "essentials": Decimal("239.00"),
+        "pro": Decimal("299.00"),
     },
     "3001_5000": {
         "label": "3,001–5,000",
         "min": 3001,
         "max": 5000,
-        "essentials": {
-            "software_only": Decimal("299.00"),
-            "software_payments": Decimal("229.00"),
-        },
-        "pro": {
-            "software_only": Decimal("369.00"),
-            "software_payments": Decimal("289.00"),
-        },
+        "essentials": Decimal("299.00"),
+        "pro": Decimal("369.00"),
     },
 }
 
 DRAWING_BOARD_PRICE = Decimal("39.00")
+TERMS_VERSION = "2026-10-02"
 
 
 def configure_stripe():
@@ -179,7 +138,6 @@ def student_band_for_count(count):
 
 def subscription_price(
     plan_tier,
-    payment_mode,
     student_band,
     *,
     drawing_board=False,
@@ -189,13 +147,12 @@ def subscription_price(
 
     base = PRICE_CATALOG[
         student_band
-    ][plan_tier][payment_mode]
+    ][plan_tier]
 
     if drawing_board:
         base += DRAWING_BOARD_PRICE
 
     return base
-
 
 def price_catalog_rows():
     rows = []
@@ -205,23 +162,12 @@ def price_catalog_rows():
             {
                 "key": key,
                 "label": row["label"],
-                "essentials_software": row[
-                    "essentials"
-                ]["software_only"],
-                "essentials_payments": row[
-                    "essentials"
-                ]["software_payments"],
-                "pro_software": row[
-                    "pro"
-                ]["software_only"],
-                "pro_payments": row[
-                    "pro"
-                ]["software_payments"],
+                "essentials": row["essentials"],
+                "pro": row["pro"],
             }
         )
 
     return rows
-
 
 def _find_or_create_product(
     *,
@@ -255,26 +201,23 @@ def _find_or_create_product(
 def _price_lookup_key(
     *,
     plan_tier,
-    payment_mode,
     student_band,
 ):
     return (
         f"encore_{plan_tier}_"
-        f"{payment_mode}_{student_band}_monthly"
+        f"{student_band}_monthly"
     )
 
 
 def ensure_software_price(
     *,
     plan_tier,
-    payment_mode,
     student_band,
 ):
     configure_stripe()
 
     amount = subscription_price(
         plan_tier,
-        payment_mode,
         student_band,
     )
 
@@ -285,8 +228,11 @@ def ensure_software_price(
 
     lookup_key = _price_lookup_key(
         plan_tier=plan_tier,
-        payment_mode=payment_mode,
         student_band=student_band,
+    )
+
+    expected_unit_amount = int(
+        amount * 100
     )
 
     prices = stripe.Price.list(
@@ -298,7 +244,74 @@ def ensure_software_price(
     )
 
     if prices.data:
-        return prices.data[0]
+        existing = prices.data[0]
+        recurring = stripe_value(
+            existing,
+            "recurring",
+            {},
+        ) or {}
+
+        existing_interval = stripe_value(
+            recurring,
+            "interval",
+            "",
+        )
+
+        if (
+            stripe_value(
+                existing,
+                "unit_amount",
+                0,
+            )
+            == expected_unit_amount
+            and stripe_value(
+                existing,
+                "currency",
+                "",
+            )
+            == "usd"
+            and existing_interval == "month"
+        ):
+            return existing
+
+        product_id = stripe_value(
+            existing,
+            "product",
+            "",
+        )
+
+        if not isinstance(
+            product_id,
+            str,
+        ):
+            product_id = stripe_value(
+                product_id,
+                "id",
+                "",
+            )
+
+        if not product_id:
+            product = _find_or_create_product(
+                name="Encore Performance Suite",
+                metadata_key="software",
+            )
+            product_id = product.id
+
+        return stripe.Price.create(
+            product=product_id,
+            currency="usd",
+            unit_amount=expected_unit_amount,
+            recurring={
+                "interval": "month",
+            },
+            lookup_key=lookup_key,
+            transfer_lookup_key=True,
+            metadata={
+                "encore_kind": "software",
+                "plan_tier": plan_tier,
+                "student_band": student_band,
+            },
+        )
 
     product = _find_or_create_product(
         name="Encore Performance Suite",
@@ -308,10 +321,7 @@ def ensure_software_price(
     return stripe.Price.create(
         product=product.id,
         currency="usd",
-        unit_amount=int(
-            amount
-            * 100
-        ),
+        unit_amount=expected_unit_amount,
         recurring={
             "interval": "month",
         },
@@ -319,11 +329,9 @@ def ensure_software_price(
         metadata={
             "encore_kind": "software",
             "plan_tier": plan_tier,
-            "payment_mode": payment_mode,
             "student_band": student_band,
         },
     )
-
 
 def ensure_drawing_board_price():
     configure_stripe()
@@ -365,12 +373,562 @@ def ensure_drawing_board_price():
     )
 
 
+def _subscription_item_kind(item):
+    """
+    Identify an Encore subscription item without guessing.
+    Unknown items intentionally return an empty string.
+    """
+    price = stripe_value(
+        item,
+        "price",
+    )
+
+    price_metadata = stripe_metadata(
+        price
+    )
+
+    kind = price_metadata.get(
+        "encore_kind",
+        "",
+    )
+
+    if kind in {
+        "software",
+        "drawing_board",
+    }:
+        return kind
+
+    lookup_key = stripe_value(
+        price,
+        "lookup_key",
+        "",
+    ) or ""
+
+    if lookup_key == "encore_drawing_board_monthly":
+        return "drawing_board"
+
+    if (
+        lookup_key.startswith("encore_")
+        and lookup_key.endswith("_monthly")
+    ):
+        return "software"
+
+    product = stripe_value(
+        price,
+        "product",
+    )
+
+    if product and not isinstance(
+        product,
+        str,
+    ):
+        product_kind = stripe_metadata(
+            product
+        ).get(
+            "encore_product",
+            "",
+        )
+
+        if product_kind in {
+            "software",
+            "drawing_board",
+        }:
+            return product_kind
+
+    return ""
+
+
+def _retrieve_subscription_items(subscription):
+    configure_stripe()
+
+    stripe_subscription = (
+        stripe.Subscription.retrieve(
+            subscription.stripe_subscription_id,
+            expand=[
+                "items.data.price.product",
+            ],
+        )
+    )
+
+    software_items = []
+    drawing_board_items = []
+    unknown_items = []
+
+    items = stripe_value(
+        stripe_value(
+            stripe_subscription,
+            "items",
+            {},
+        ),
+        "data",
+        [],
+    ) or []
+
+    for item in items:
+        kind = _subscription_item_kind(
+            item
+        )
+
+        if kind == "software":
+            software_items.append(item)
+        elif kind == "drawing_board":
+            drawing_board_items.append(item)
+        else:
+            unknown_items.append(item)
+
+    return {
+        "subscription": stripe_subscription,
+        "software": software_items,
+        "drawing_board": drawing_board_items,
+        "unknown": unknown_items,
+    }
+
+
+def reconcile_subscription_item_ids(
+    subscription,
+    *,
+    fail_on_duplicates=True,
+):
+    if not subscription.stripe_subscription_id:
+        return {
+            "software": [],
+            "drawing_board": [],
+            "unknown": [],
+        }
+
+    state = _retrieve_subscription_items(
+        subscription
+    )
+
+    software_items = state["software"]
+    drawing_board_items = state[
+        "drawing_board"
+    ]
+
+    if (
+        fail_on_duplicates
+        and len(software_items) > 1
+    ):
+        raise ValueError(
+            "Stripe has multiple Encore software items on this "
+            "subscription. Repair the subscription before making "
+            "another billing change."
+        )
+
+    if (
+        fail_on_duplicates
+        and len(drawing_board_items) > 1
+    ):
+        raise ValueError(
+            "Stripe has multiple Drawing Board items on this "
+            "subscription. Repair the subscription before making "
+            "another billing change."
+        )
+
+    update_fields = []
+
+    software_item_id = (
+        stripe_value(
+            software_items[0],
+            "id",
+            "",
+        )
+        if len(software_items) == 1
+        else ""
+    )
+
+    drawing_board_item_id = (
+        stripe_value(
+            drawing_board_items[0],
+            "id",
+            "",
+        )
+        if len(drawing_board_items) == 1
+        else ""
+    )
+
+    if (
+        software_item_id
+        != subscription.stripe_software_item_id
+    ):
+        subscription.stripe_software_item_id = (
+            software_item_id
+        )
+        update_fields.append(
+            "stripe_software_item_id"
+        )
+
+    if (
+        drawing_board_item_id
+        != subscription.stripe_drawing_board_item_id
+    ):
+        subscription.stripe_drawing_board_item_id = (
+            drawing_board_item_id
+        )
+        update_fields.append(
+            "stripe_drawing_board_item_id"
+        )
+
+    if update_fields:
+        update_fields.append("updated_at")
+        subscription.save(
+            update_fields=update_fields
+        )
+
+    return state
+
+
+def _current_subscription_state(subscription):
+    return {
+        "plan_tier": subscription.plan_tier,
+        "student_band": subscription.student_band,
+        "drawing_board_enabled": (
+            subscription.drawing_board_enabled
+        ),
+    }
+
+
+def _next_subscription_state(subscription):
+    return {
+        "plan_tier": (
+            subscription.pending_plan_tier
+            or subscription.plan_tier
+        ),
+        "student_band": (
+            subscription.pending_student_band
+            or subscription.student_band
+        ),
+        "drawing_board_enabled": (
+            subscription.drawing_board_enabled
+            if (
+                subscription.pending_drawing_board_enabled
+                is None
+            )
+            else subscription.pending_drawing_board_enabled
+        ),
+    }
+
+
+def _apply_stripe_subscription_state(
+    subscription,
+    *,
+    plan_tier,
+    student_band,
+    drawing_board_enabled,
+    proration_behavior="none",
+):
+    """
+    Reconcile Stripe to one explicit Encore billing state.
+
+    Exactly one software item is preserved. Drawing Board is present zero
+    or one time according to drawing_board_enabled. Unknown third-party
+    Stripe items are left untouched.
+    """
+    state = reconcile_subscription_item_ids(
+        subscription,
+        fail_on_duplicates=True,
+    )
+
+    if not subscription.stripe_software_item_id:
+        raise ValueError(
+            "Encore could not identify the Stripe software item."
+        )
+
+    software_price = ensure_software_price(
+        plan_tier=plan_tier,
+        student_band=student_band,
+    )
+
+    changes = [
+        {
+            "id": subscription.stripe_software_item_id,
+            "price": software_price.id,
+            "quantity": 1,
+        }
+    ]
+
+    drawing_board_items = state[
+        "drawing_board"
+    ]
+
+    if drawing_board_enabled:
+        drawing_price = ensure_drawing_board_price()
+
+        if subscription.stripe_drawing_board_item_id:
+            changes.append(
+                {
+                    "id": (
+                        subscription.stripe_drawing_board_item_id
+                    ),
+                    "price": drawing_price.id,
+                    "quantity": 1,
+                }
+            )
+        else:
+            changes.append(
+                {
+                    "price": drawing_price.id,
+                    "quantity": 1,
+                }
+            )
+    else:
+        for item in drawing_board_items:
+            changes.append(
+                {
+                    "id": stripe_value(
+                        item,
+                        "id",
+                        "",
+                    ),
+                    "deleted": True,
+                }
+            )
+
+    stripe.Subscription.modify(
+        subscription.stripe_subscription_id,
+        items=changes,
+        proration_behavior=proration_behavior,
+    )
+
+    return reconcile_subscription_item_ids(
+        subscription,
+        fail_on_duplicates=True,
+    )
+
+
+def _stage_next_subscription_state(subscription):
+    """
+    Make Stripe's next recurring configuration match Encore's combined
+    pending state without creating prorations.
+    """
+    if not subscription.stripe_subscription_id:
+        return None
+
+    next_state = _next_subscription_state(
+        subscription
+    )
+
+    return _apply_stripe_subscription_state(
+        subscription,
+        plan_tier=next_state["plan_tier"],
+        student_band=next_state["student_band"],
+        drawing_board_enabled=(
+            next_state["drawing_board_enabled"]
+        ),
+        proration_behavior="none",
+    )
+
+
+def _restore_current_stripe_state(subscription):
+    """
+    Undo any no-proration future staging temporarily so an immediate
+    upgrade/add-on proration is calculated from the real current state.
+    """
+    if not subscription.stripe_subscription_id:
+        return None
+
+    current_state = _current_subscription_state(
+        subscription
+    )
+
+    return _apply_stripe_subscription_state(
+        subscription,
+        plan_tier=current_state["plan_tier"],
+        student_band=current_state["student_band"],
+        drawing_board_enabled=(
+            current_state["drawing_board_enabled"]
+        ),
+        proration_behavior="none",
+    )
+
+
+def repair_subscription_items(subscription):
+    """
+    Explicit one-time repair for malformed Encore Stripe subscriptions.
+
+    This is intentionally manual. It removes duplicate Encore software or
+    Drawing Board items, restores the intended current/pending configuration,
+    and creates no prorations.
+    """
+    if not subscription.stripe_subscription_id:
+        raise ValueError(
+            "This studio does not have a Stripe subscription ID."
+        )
+
+    state = _retrieve_subscription_items(
+        subscription
+    )
+
+    software_items = state["software"]
+    drawing_board_items = state[
+        "drawing_board"
+    ]
+
+    if not software_items:
+        raise ValueError(
+            "No Encore software item could be identified in Stripe."
+        )
+
+    next_state = _next_subscription_state(
+        subscription
+    )
+
+    software_price = ensure_software_price(
+        plan_tier=next_state["plan_tier"],
+        student_band=next_state["student_band"],
+    )
+
+    software_ids = {
+        stripe_value(item, "id", "")
+        for item in software_items
+    }
+
+    if (
+        subscription.stripe_software_item_id
+        in software_ids
+    ):
+        canonical_software = next(
+            item
+            for item in software_items
+            if stripe_value(
+                item,
+                "id",
+                "",
+            )
+            == subscription.stripe_software_item_id
+        )
+    else:
+        canonical_software = software_items[0]
+
+    canonical_software_id = stripe_value(
+        canonical_software,
+        "id",
+        "",
+    )
+
+    changes = [
+        {
+            "id": canonical_software_id,
+            "price": software_price.id,
+            "quantity": 1,
+        }
+    ]
+
+    for item in software_items:
+        item_id = stripe_value(
+            item,
+            "id",
+            "",
+        )
+
+        if item_id != canonical_software_id:
+            changes.append(
+                {
+                    "id": item_id,
+                    "deleted": True,
+                }
+            )
+
+    if next_state["drawing_board_enabled"]:
+        drawing_price = ensure_drawing_board_price()
+
+        if drawing_board_items:
+            canonical_drawing = (
+                drawing_board_items[0]
+            )
+
+            changes.append(
+                {
+                    "id": stripe_value(
+                        canonical_drawing,
+                        "id",
+                        "",
+                    ),
+                    "price": drawing_price.id,
+                    "quantity": 1,
+                }
+            )
+
+            for item in drawing_board_items[1:]:
+                changes.append(
+                    {
+                        "id": stripe_value(
+                            item,
+                            "id",
+                            "",
+                        ),
+                        "deleted": True,
+                    }
+                )
+        else:
+            changes.append(
+                {
+                    "price": drawing_price.id,
+                    "quantity": 1,
+                }
+            )
+    else:
+        for item in drawing_board_items:
+            changes.append(
+                {
+                    "id": stripe_value(
+                        item,
+                        "id",
+                        "",
+                    ),
+                    "deleted": True,
+                }
+            )
+
+    stripe.Subscription.modify(
+        subscription.stripe_subscription_id,
+        items=changes,
+        proration_behavior="none",
+    )
+
+    reconcile_subscription_item_ids(
+        subscription,
+        fail_on_duplicates=True,
+    )
+
+    has_pending_change = bool(
+        subscription.pending_plan_tier
+        or subscription.pending_student_band
+        or (
+            subscription.pending_drawing_board_enabled
+            is not None
+        )
+    )
+
+    if not has_pending_change:
+        subscription.current_monthly_price = (
+            subscription_price(
+                subscription.plan_tier,
+                subscription.student_band,
+                drawing_board=(
+                    subscription.drawing_board_enabled
+                ),
+            )
+            or subscription.current_monthly_price
+        )
+
+        subscription.save(
+            update_fields=[
+                "current_monthly_price",
+                "updated_at",
+            ]
+        )
+
+    return _retrieve_subscription_items(
+        subscription
+    )
+
+
 def create_signup_intent(cleaned):
     band = "0_100"
 
     monthly_price = subscription_price(
         cleaned["plan_tier"],
-        cleaned["payment_mode"],
         band,
         drawing_board=cleaned[
             "drawing_board_enabled"
@@ -407,14 +965,13 @@ def create_signup_intent(cleaned):
         plan_tier=cleaned[
             "plan_tier"
         ],
-        payment_mode=cleaned[
-            "payment_mode"
-        ],
         drawing_board_enabled=cleaned[
             "drawing_board_enabled"
         ],
         student_band=band,
         monthly_price=monthly_price,
+        terms_version=TERMS_VERSION,
+        terms_accepted_at=timezone.now(),
     )
 
 
@@ -426,7 +983,6 @@ def create_checkout_session(
 
     software_price = ensure_software_price(
         plan_tier=intent.plan_tier,
-        payment_mode=intent.payment_mode,
         student_band=intent.student_band,
     )
 
@@ -489,7 +1045,6 @@ def create_checkout_session(
                     )
                 ),
                 "plan_tier": intent.plan_tier,
-                "payment_mode": intent.payment_mode,
                 "student_band": (
                     intent.student_band
                 ),
@@ -594,6 +1149,7 @@ def finalize_paid_signup(
         first_name=intent.owner_first_name,
         last_name=intent.owner_last_name,
         is_active=True,
+        email_verification_required=True,
     )
 
     user.password = intent.owner_password_hash
@@ -623,6 +1179,10 @@ def finalize_paid_signup(
             StudioMembership.Role.ADMINISTRATOR
         ),
         is_active=True,
+        onboarding_tour_status=(
+            StudioMembership.TourStatus.NOT_STARTED
+        ),
+        onboarding_tour_step=0,
     )
 
     stripe_subscription = stripe_value(
@@ -649,25 +1209,40 @@ def finalize_paid_signup(
     for item in stripe_subscription[
         "items"
     ]["data"]:
-        kind = stripe_metadata(
-            item["price"]
-        ).get(
-            "encore_kind"
+        kind = _subscription_item_kind(
+            item
         )
 
-        if kind == "drawing_board":
+        if kind == "software":
+            if software_item_id:
+                raise ValueError(
+                    "Stripe returned multiple Encore software items "
+                    "during signup."
+                )
+
+            software_item_id = item["id"]
+
+        elif kind == "drawing_board":
+            if drawing_board_item_id:
+                raise ValueError(
+                    "Stripe returned multiple Drawing Board items "
+                    "during signup."
+                )
+
             drawing_board_item_id = (
                 item["id"]
             )
 
-        else:
-            software_item_id = item["id"]
+    if not software_item_id:
+        raise ValueError(
+            "Encore could not identify the software subscription "
+            "item returned by Stripe."
+        )
 
     subscription = (
         StudioSubscription.objects.create(
             studio=studio,
             plan_tier=intent.plan_tier,
-            payment_mode=intent.payment_mode,
             student_band=intent.student_band,
             drawing_board_enabled=(
                 intent.drawing_board_enabled
@@ -737,7 +1312,35 @@ def finalize_paid_signup(
         ]
     )
 
+    intent_id = intent.pk
+    transaction.on_commit(
+        lambda: _dispatch_signup_communications(intent_id)
+    )
+
     return studio
+
+
+def _dispatch_signup_communications(intent_id):
+    try:
+        from accounts.registration_services import (
+            ensure_signup_communications,
+        )
+
+        intent = (
+            StudioSignupIntent.objects
+            .select_related("studio")
+            .filter(pk=intent_id)
+            .first()
+        )
+        if intent is not None:
+            ensure_signup_communications(intent)
+    except Exception:
+        import logging
+
+        logging.getLogger(__name__).exception(
+            "Unable to send Encore signup communications for intent %s",
+            intent_id,
+        )
 
 
 def create_subscription_notice(
@@ -819,21 +1422,34 @@ def evaluate_student_band_change(
         count
     )
 
-    if (
-        new_band == "custom"
-        or new_band == subscription.student_band
-        or new_band == subscription.pending_student_band
-    ):
+    if new_band == "custom":
         return False
 
-    new_price = subscription_price(
-        subscription.plan_tier,
-        subscription.payment_mode,
-        new_band,
-        drawing_board=(
-            subscription.drawing_board_enabled
-        ),
-    )
+    # If the studio returned to the currently billed band before renewal,
+    # cancel any previously scheduled band change.
+    if new_band == subscription.student_band:
+        if subscription.pending_student_band:
+            subscription.pending_student_band = ""
+            subscription.save(
+                update_fields=[
+                    "pending_student_band",
+                    "updated_at",
+                ]
+            )
+
+            _stage_next_subscription_state(
+                subscription
+            )
+
+            return "cancelled"
+
+        return False
+
+    if (
+        new_band
+        == subscription.pending_student_band
+    ):
+        return False
 
     old_price = (
         subscription.current_monthly_price
@@ -848,6 +1464,18 @@ def evaluate_student_band_change(
             "pending_student_band",
             "updated_at",
         ]
+    )
+
+    next_state = _next_subscription_state(
+        subscription
+    )
+
+    new_price = subscription_price(
+        next_state["plan_tier"],
+        next_state["student_band"],
+        drawing_board=(
+            next_state["drawing_board_enabled"]
+        ),
     )
 
     create_subscription_notice(
@@ -880,25 +1508,9 @@ def evaluate_student_band_change(
         ),
     )
 
-    if subscription.stripe_subscription_id:
-        software_price = ensure_software_price(
-            plan_tier=subscription.plan_tier,
-            payment_mode=subscription.payment_mode,
-            student_band=new_band,
-        )
-
-        stripe.Subscription.modify(
-            subscription.stripe_subscription_id,
-            items=[
-                {
-                    "id": (
-                        subscription.stripe_software_item_id
-                    ),
-                    "price": software_price.id,
-                }
-            ],
-            proration_behavior="none",
-        )
+    _stage_next_subscription_state(
+        subscription
+    )
 
     return True
 
@@ -907,7 +1519,33 @@ def request_plan_change(
     subscription,
     new_plan,
 ):
-    if new_plan == subscription.plan_tier:
+    current_plan = subscription.plan_tier
+    pending_plan = subscription.pending_plan_tier
+
+    # Selecting the actual current plan while a downgrade is pending
+    # means "cancel my scheduled downgrade."
+    if (
+        new_plan == current_plan
+        and pending_plan
+    ):
+        subscription.pending_plan_tier = ""
+        subscription.save(
+            update_fields=[
+                "pending_plan_tier",
+                "updated_at",
+            ]
+        )
+
+        _stage_next_subscription_state(
+            subscription
+        )
+
+        return "downgrade_cancelled"
+
+    if (
+        new_plan == current_plan
+        and not pending_plan
+    ):
         return "unchanged"
 
     current_rank = {
@@ -917,46 +1555,52 @@ def request_plan_change(
 
     is_upgrade = (
         current_rank[new_plan]
-        > current_rank[
-            subscription.plan_tier
-        ]
+        > current_rank[current_plan]
     )
 
     configure_stripe()
 
-    new_price = ensure_software_price(
-        plan_tier=new_plan,
-        payment_mode=subscription.payment_mode,
-        student_band=subscription.student_band,
-    )
-
     if is_upgrade:
-        stripe.Subscription.modify(
-            subscription.stripe_subscription_id,
-            items=[
-                {
-                    "id": (
-                        subscription.stripe_software_item_id
-                    ),
-                    "price": new_price.id,
-                }
-            ],
-            proration_behavior="create_prorations",
+        # Stripe may already be staged to a future student band or add-on
+        # configuration. Restore the real current state first so Stripe's
+        # proration is based on what the customer is actually paying now.
+        _restore_current_stripe_state(
+            subscription
+        )
+
+        immediate_state = {
+            "plan_tier": new_plan,
+            "student_band": (
+                subscription.student_band
+            ),
+            "drawing_board_enabled": (
+                subscription.drawing_board_enabled
+            ),
+        }
+
+        _apply_stripe_subscription_state(
+            subscription,
+            plan_tier=immediate_state["plan_tier"],
+            student_band=immediate_state["student_band"],
+            drawing_board_enabled=(
+                immediate_state[
+                    "drawing_board_enabled"
+                ]
+            ),
+            proration_behavior="always_invoice",
         )
 
         subscription.plan_tier = new_plan
+        subscription.pending_plan_tier = ""
         subscription.current_monthly_price = (
             subscription_price(
                 new_plan,
-                subscription.payment_mode,
                 subscription.student_band,
                 drawing_board=(
                     subscription.drawing_board_enabled
                 ),
             )
         )
-
-        subscription.pending_plan_tier = ""
 
         subscription.save(
             update_fields=[
@@ -967,28 +1611,27 @@ def request_plan_change(
             ]
         )
 
+        # Re-stage any remaining future band/add-on change after the
+        # immediate upgrade has been prorated correctly.
+        _stage_next_subscription_state(
+            subscription
+        )
+
         return "upgraded"
 
-    stripe.Subscription.modify(
-        subscription.stripe_subscription_id,
-        items=[
-            {
-                "id": (
-                    subscription.stripe_software_item_id
-                ),
-                "price": new_price.id,
-            }
-        ],
-        proration_behavior="none",
-    )
-
+    # Downgrades remain active through the paid period. Store the desired
+    # future plan and stage Stripe's next recurring configuration without
+    # creating a credit/proration today.
     subscription.pending_plan_tier = new_plan
-
     subscription.save(
         update_fields=[
             "pending_plan_tier",
             "updated_at",
         ]
+    )
+
+    _stage_next_subscription_state(
+        subscription
     )
 
     return "downgrade_scheduled"
@@ -1000,48 +1643,64 @@ def request_drawing_board_change(
 ):
     configure_stripe()
 
-    if enabled == subscription.drawing_board_enabled:
+    current_enabled = (
+        subscription.drawing_board_enabled
+    )
+
+    pending_enabled = (
+        subscription.pending_drawing_board_enabled
+    )
+
+    # User has Drawing Board now, scheduled its removal, then changes
+    # their mind. Cancel the pending removal with no charge.
+    if (
+        current_enabled
+        and enabled
+        and pending_enabled is False
+    ):
+        subscription.pending_drawing_board_enabled = (
+            None
+        )
+
+        subscription.save(
+            update_fields=[
+                "pending_drawing_board_enabled",
+                "updated_at",
+            ]
+        )
+
+        _stage_next_subscription_state(
+            subscription
+        )
+
+        return "removal_cancelled"
+
+    if enabled == current_enabled:
         return "unchanged"
 
     if enabled:
-        price = ensure_drawing_board_price()
-
-        result = stripe.Subscription.modify(
-            subscription.stripe_subscription_id,
-            items=[
-                {
-                    "price": price.id,
-                    "quantity": 1,
-                }
-            ],
-            proration_behavior="create_prorations",
-            expand=[
-                "items.data.price",
-            ],
+        # Adding an add-on is immediate and prorated. Temporarily restore
+        # the actual current Stripe state so any separately scheduled
+        # plan/student-band changes do not contaminate the proration.
+        _restore_current_stripe_state(
+            subscription
         )
 
-        for item in result[
-            "items"
-        ]["data"]:
-            if (
-                stripe_metadata(
-                    item["price"]
-                ).get(
-                    "encore_kind"
-                )
-                == "drawing_board"
-            ):
-                subscription.stripe_drawing_board_item_id = (
-                    item["id"]
-                )
-                break
+        _apply_stripe_subscription_state(
+            subscription,
+            plan_tier=subscription.plan_tier,
+            student_band=subscription.student_band,
+            drawing_board_enabled=True,
+            proration_behavior="always_invoice",
+        )
 
         subscription.drawing_board_enabled = True
-        subscription.pending_drawing_board_enabled = None
+        subscription.pending_drawing_board_enabled = (
+            None
+        )
         subscription.current_monthly_price = (
             subscription_price(
                 subscription.plan_tier,
-                subscription.payment_mode,
                 subscription.student_band,
                 drawing_board=True,
             )
@@ -1057,29 +1716,27 @@ def request_drawing_board_change(
             ]
         )
 
-        return "added"
-
-    if subscription.stripe_drawing_board_item_id:
-        stripe.Subscription.modify(
-            subscription.stripe_subscription_id,
-            items=[
-                {
-                    "id": (
-                        subscription.stripe_drawing_board_item_id
-                    ),
-                    "deleted": True,
-                }
-            ],
-            proration_behavior="none",
+        _stage_next_subscription_state(
+            subscription
         )
 
-    subscription.pending_drawing_board_enabled = False
+        return "added"
+
+    # Removal is next-cycle only. Access remains active in Encore during
+    # the paid period, while Stripe is staged to omit the add-on next time.
+    subscription.pending_drawing_board_enabled = (
+        False
+    )
 
     subscription.save(
         update_fields=[
             "pending_drawing_board_enabled",
             "updated_at",
         ]
+    )
+
+    _stage_next_subscription_state(
+        subscription
     )
 
     return "removal_scheduled"
@@ -1173,20 +1830,10 @@ def apply_renewal_state(
 
         changed = True
 
-    if subscription.pending_payment_mode:
-        subscription.payment_mode = (
-            subscription.pending_payment_mode
-        )
-
-        subscription.pending_payment_mode = ""
-
-        changed = True
-
     if changed:
         subscription.current_monthly_price = (
             subscription_price(
                 subscription.plan_tier,
-                subscription.payment_mode,
                 subscription.student_band,
                 drawing_board=(
                     subscription.drawing_board_enabled

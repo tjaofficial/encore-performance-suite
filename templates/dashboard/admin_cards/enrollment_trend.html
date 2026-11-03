@@ -1,0 +1,29 @@
+<article class="admin-dashboard-card admin-analytics-card analytics-chart-card analytics-enrollment-trend-card card-tone-violet">
+    <div class="card-heading"><h2>Enrollment Trend</h2><span class="analytics-change is-{{ admin_analytics.enrollment_trend.change.direction }}">{% if admin_analytics.enrollment_trend.change.direction == "up" %}↑{% elif admin_analytics.enrollment_trend.change.direction == "down" %}↓{% else %}—{% endif %} {{ admin_analytics.enrollment_trend.change.label }}</span></div>
+    <div class="analytics-chart-summary"><div><span>New this month</span><strong>{{ admin_analytics.enrollment_trend.current_total }}</strong></div><small>Enrollment records created · last 6 months</small></div>
+    <div class="analytics-chart-shell" data-analytics-chart>
+        <div class="analytics-y-axis" aria-hidden="true">{% for tick in admin_analytics.enrollment_trend.y_ticks %}<span>{{ tick.label }}</span>{% endfor %}</div>
+        <div class="analytics-chart-main">
+            <div class="analytics-line-chart analytics-line-chart-enrollment" role="img" aria-label="New enrollment trend for the last six months">
+                <svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">
+                    <line x1="0" y1="4" x2="100" y2="4" class="analytics-grid-line"></line><line x1="0" y1="12" x2="100" y2="12" class="analytics-grid-line"></line><line x1="0" y1="20" x2="100" y2="20" class="analytics-grid-line"></line><line x1="0" y1="28" x2="100" y2="28" class="analytics-grid-line"></line><line x1="0" y1="36" x2="100" y2="36" class="analytics-grid-line"></line>
+                    <polygon points="{{ admin_analytics.enrollment_trend.area_points }}" class="analytics-area"></polygon><polyline points="{{ admin_analytics.enrollment_trend.points }}" class="analytics-line"></polyline>
+                </svg>
+                <div class="analytics-point-layer" aria-hidden="false">
+                    {% for item in admin_analytics.enrollment_trend.rows %}
+                        <button
+                            type="button"
+                            class="analytics-data-point"
+                            style="--point-x: {{ item.x_pct }}%; --point-y: {{ item.y_pct }}%;"
+                            data-label="{{ item.label }}"
+                            data-value="{{ item.display_value }} enrollment{{ item.value|pluralize }}"
+                            aria-label="{{ item.label }}: {{ item.display_value }} enrollment{{ item.value|pluralize }}"
+                        ></button>
+                    {% endfor %}
+                </div>
+                <div class="analytics-tooltip" role="status" hidden></div>
+            </div>
+            <div class="analytics-axis-labels">{% for item in admin_analytics.enrollment_trend.rows %}<span>{{ item.label }}</span>{% endfor %}</div>
+        </div>
+    </div>
+</article>

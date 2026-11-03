@@ -9,9 +9,16 @@ from django.shortcuts import (
 )
 
 from studios.models import Studio, StudioMembership
+from communications.models import WorkspaceNotification
+from communications.notification_services import (
+    administrator_users,
+    create_workspace_notification,
+)
 
 from .forms import ExtraWorkEntryForm
 from .models import ExtraWorkEntry
+from .pay_period_lock import can_modify_extra_work
+from django.views.decorators.http import require_POST
 
 
 def _teacher_workspace(
@@ -136,6 +143,9 @@ def extra_work_list(
         )
     )
 
+    for entry in entries:
+        entry.can_modify = can_modify_extra_work(studio, entry.work_date)
+
     total_minutes = sum(
         entry.duration_minutes
         for entry in entries
@@ -213,7 +223,41 @@ def extra_work_create(
         request.method == "POST"
         and form.is_valid()
     ):
-        form.save()
+        if not can_modify_extra_work(studio, form.cleaned_data["work_date"]):
+            form.add_error("work_date", "Extra work can only be logged for the current configured pay period.")
+        else:
+            return _create_extra_work_entry(request, studio, form)
+
+    return render(request, "timekeeping/extra_work_form.html", {"studio": studio, "role": "teacher", "form": form})
+
+
+def _create_extra_work_entry(request, studio, form):
+        entry = form.save()
+
+        teacher_name = (
+            request.user.get_full_name()
+            or request.user.email
+            or request.user.username
+        )
+
+        for admin in administrator_users(studio):
+            create_workspace_notification(
+                studio=studio,
+                user=admin,
+                category=WorkspaceNotification.Category.TIMEKEEPING,
+                kind="extra_work_logged",
+                title="Extra Work Logged",
+                message=(
+                    f"{teacher_name} logged "
+                    f"{entry.duration_display} of "
+                    f"{entry.get_category_display()} work "
+                    f"for {entry.work_date:%b %d}."
+                ),
+                dedupe_key=(
+                    f"extra-work-{entry.pk}-{admin.pk}"
+                ),
+                preference_field="extra_work_logged",
+            )
 
         messages.success(
             request,
@@ -225,12 +269,38 @@ def extra_work_create(
             studio_slug=studio.slug,
         )
 
-    return render(
-        request,
-        "timekeeping/extra_work_form.html",
-        {
-            "studio": studio,
-            "role": "teacher",
-            "form": form,
-        },
-    )
+
+
+@login_required
+def extra_work_edit(request, studio_slug, entry_id):
+    studio = get_object_or_404(Studio, slug=studio_slug, is_active=True)
+    if not _teacher_workspace(request, studio):
+        return render(request, "dashboard/access_denied.html", {"studio": studio}, status=403)
+    entry = get_object_or_404(ExtraWorkEntry, studio=studio, user=request.user, pk=entry_id)
+    if not can_modify_extra_work(studio, entry.work_date):
+        messages.error(request, "This pay period is closed. Ask an administrator about corrections.")
+        return redirect("timekeeping:extra_work_list", studio_slug=studio.slug)
+    form = ExtraWorkEntryForm(request.POST or None, instance=entry, studio=studio, user=request.user)
+    if request.method == "POST" and form.is_valid():
+        if not can_modify_extra_work(studio, form.cleaned_data["work_date"]):
+            form.add_error("work_date", "The selected date is not in the current pay period.")
+        else:
+            form.save()
+            messages.success(request, "Extra work entry updated.")
+            return redirect("timekeeping:extra_work_list", studio_slug=studio.slug)
+    return render(request, "timekeeping/extra_work_form.html", {"studio": studio, "role": "teacher", "form": form, "editing": True})
+
+
+@login_required
+@require_POST
+def extra_work_delete(request, studio_slug, entry_id):
+    studio = get_object_or_404(Studio, slug=studio_slug, is_active=True)
+    if not _teacher_workspace(request, studio):
+        return render(request, "dashboard/access_denied.html", {"studio": studio}, status=403)
+    entry = get_object_or_404(ExtraWorkEntry, studio=studio, user=request.user, pk=entry_id)
+    if not can_modify_extra_work(studio, entry.work_date):
+        messages.error(request, "This pay period is closed. Entries cannot be deleted.")
+    else:
+        entry.delete()
+        messages.success(request, "Extra work entry deleted.")
+    return redirect("timekeeping:extra_work_list", studio_slug=studio.slug)

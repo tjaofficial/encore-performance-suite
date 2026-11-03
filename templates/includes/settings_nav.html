@@ -18,6 +18,16 @@
         <div class="settings-nav-group">
             <span>Personal</span>
 
+            {% if role == "administrator" or role == "teacher" %}
+                <a
+                    class="{% if settings_section == 'notifications' %}active{% endif %}"
+                    href="{% url 'studios:notification_settings' studio.slug %}"
+                >
+                    <span>◌</span>
+                    Notifications
+                </a>
+            {% endif %}
+
             <a
                 class="{% if settings_section == 'class_dashboard' %}active{% endif %}"
                 href="{% url 'studios:class_dashboard_settings' studio.slug %}"
@@ -66,6 +76,21 @@
                     Widgets & Public Pages
                 </a>
 
+                <a class="{% if settings_section == 'registration_policies' %}active{% endif %}" href="{% url 'studios:registration_policy_list' studio.slug %}">
+                    <span>✓</span>
+                    Registration Policies & Agreements
+                </a>
+
+                <a class="{% if settings_section == 'measurements' %}active{% endif %}" href="{% url 'studios:measurement_settings' studio.slug %}">
+                    <span>↔</span>
+                    Measurements & Costumes
+                </a>
+
+                <a href="{% url 'costumes:vendor_list' studio.slug %}">
+                    <span>◇</span>
+                    Vendor Conversions
+                </a>
+
                 <a class="{% if settings_section == 'locations' %}active{% endif %}" href="{% url 'studios:location_list' studio.slug %}">
                     <span>⌖</span>
                     Locations
@@ -81,6 +106,15 @@
                     Class Types
                 </a>
 
+                <a class="{% if settings_section == 'class_levels' %}active{% endif %}" href="{% url 'studios:class_level_list' studio.slug %}">
+                    <span>≡</span>
+                    Class Levels
+                </a>
+
+                <a class="{% if settings_section == 'attendance' %}active{% endif %}" href="{% url 'attendance:settings' studio.slug %}">
+                    <span>✓</span>Attendance
+                </a>
+
                 <a class="{% if settings_section == 'staff' %}active{% endif %}" href="{% url 'studios:staff_invite' studio.slug %}">
                     <span>△</span>
                     Staff Access
@@ -91,7 +125,7 @@
                     href="{% url 'billing:tuition_plan_list' studio.slug %}"
                 >
                     <span>▤</span>
-                    Billing Policies
+                    Tuition & Billing
                 </a>
 
                 <a

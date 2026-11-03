@@ -1,0 +1,50 @@
+/* Keep the CSV mapping workspace inside the visible dashboard content area. */
+.data-import-map-page,
+.data-import-map-page .settings-form,
+.data-import-map-page .settings-panel,
+.data-import-map-page .settings-section-block {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.data-import-map-page .import-mapping-row > div,
+.data-import-map-page .import-mapping-row .encore-input {
+    min-width: 0;
+}
+
+.data-import-map-page .import-mapping-row .encore-input {
+    width: 100%;
+    max-width: 100%;
+}
+
+.data-import-map-page .import-preview-block {
+    overflow: hidden;
+}
+
+.data-import-map-page .import-preview-table-wrap {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+.data-import-map-page .import-preview-table {
+    width: max-content;
+    min-width: 100%;
+}
+
+@media (max-width: 900px) {
+    .data-import-map-page .import-mapping-head,
+    .data-import-map-page .import-mapping-row {
+        grid-template-columns: minmax(0, .72fr) minmax(0, 1.28fr);
+    }
+}
+
+@media (max-width: 760px) {
+    .data-import-map-page .import-mapping-head,
+    .data-import-map-page .import-mapping-row {
+        grid-template-columns: 1fr;
+    }
+}

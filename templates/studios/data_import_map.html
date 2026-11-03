@@ -1,0 +1,85 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Map Import Columns | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}"><link rel="stylesheet" href="{% static 'css/encore_data_import_map.css' %}">{% endblock %}
+{% block topbar_title %}Map Import Columns{% endblock %}
+
+{% block content %}
+<div class="settings-workspace">
+    {% include "includes/settings_nav.html" %}
+    <main class="settings-workspace-content data-import-map-page">
+        <section class="settings-heading">
+            <div>
+                <a class="back-link" href="{% url 'studios:data_import_upload' studio.slug %}">← Choose a Different File</a>
+                <p class="eyebrow">Import · Step 2 of 4</p>
+                <h1>Map CSV Columns</h1>
+                <p>{{ state.filename }} · {{ state.total_rows }} data row{{ state.total_rows|pluralize }} · {{ import_type.label }}</p>
+            </div>
+        </section>
+
+        {% if messages %}
+            <div class="message-stack">
+                {% for message in messages %}<div class="message-banner {{ message.tags }}">{{ message }}</div>{% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post" class="settings-form">
+            {% csrf_token %}
+            <section class="settings-panel import-mapping-panel">
+                <div class="import-mapping-head">
+                    <span>CSV column</span>
+                    <span>Encore field</span>
+                </div>
+                {% for item in mapped_headers %}
+                    <div class="import-mapping-row">
+                        <div>
+                            <strong>{{ item.header }}</strong>
+                            <small>Source column</small>
+                        </div>
+                        <select class="encore-input" name="column_{{ item.index }}">
+                            <option value="">Ignore this column</option>
+                            {% for field, label in fields %}
+                                <option value="{{ field }}" {% if item.selected == field %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% endfor %}
+            </section>
+
+            {% if state.preview_rows %}
+                <section class="settings-section-block import-preview-block">
+                    <div class="settings-section-heading">
+                        <div>
+                            <span>Source Preview</span>
+                            <h2>First {{ state.preview_rows|length }} row{{ state.preview_rows|length|pluralize }}</h2>
+                            <p>This is the original source data. Nothing has been written to Encore.</p>
+                        </div>
+                    </div>
+                    <div class="import-preview-table-wrap">
+                        <table class="import-preview-table">
+                            <thead>
+                                <tr>{% for header in state.headers %}<th>{{ header }}</th>{% endfor %}</tr>
+                            </thead>
+                            <tbody>
+                                {% for row in state.preview_rows %}
+                                    <tr>
+                                        {% for key, value in row.items %}
+                                            <td>{{ value }}</td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            {% endif %}
+
+            <div class="form-actions">
+                <a class="button secondary" href="{% url 'studios:data_import_upload' studio.slug %}">Back</a>
+                <button class="button primary" type="submit">Validate Rows →</button>
+            </div>
+        </form>
+    </main>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+@import url("info_bubble.css");
+.dashboard-custom-shortcuts{display:grid;gap:15px;margin-top:18px}
+.custom-shortcuts-heading{display:grid;gap:5px}
+.custom-shortcuts-title-line{display:flex;align-items:center;gap:8px}
+.custom-shortcuts-heading small,.custom-shortcut-limit-note{color:var(--encore-muted,#64748b)}
+.custom-shortcuts-list{display:grid;gap:12px}
+.custom-shortcut-row{border:1px solid #b9c9ea;border-radius:14px;background:linear-gradient(140deg,#fff 65%,#f5f7ff);padding:15px 17px;display:grid;gap:15px;box-shadow:0 3px 10px rgba(24,54,113,.035)}
+.custom-shortcut-row[hidden]{display:none!important}
+.custom-shortcut-row-heading{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.custom-shortcut-row-number{display:grid;place-items:center;flex:none;width:34px;height:34px;border-radius:10px;background:#e8eeff;color:#1f5cdd;font-weight:900;font-size:12px}
+.custom-shortcut-row-title{display:grid;gap:2px}
+.custom-shortcut-row-title strong{font-size:13px;color:#101c42}
+.custom-shortcut-row-title small{font-size:11px;color:#66738e}
+.custom-shortcut-preview{display:flex;align-items:center;gap:7px;min-width:0;max-width:220px;margin-left:auto;border-radius:9px;border:1px solid #d5dff4;background:#f3f6ff;padding:6px 10px;color:#184ed2;font-size:12px;font-weight:750}
+.custom-shortcut-preview span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.custom-shortcut-preview-icon{font-size:16px;line-height:1}
+.custom-shortcut-clear{border:1px solid #d4dff2;background:white;color:#526482;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:750;cursor:pointer}
+.custom-shortcut-clear:hover{color:#ae3245;border-color:#edbcc4;background:#fff8f9}
+.custom-shortcut-fields{display:grid;grid-template-columns:minmax(175px,1fr) minmax(220px,1.7fr) minmax(155px,.85fr);gap:12px;align-items:start}
+.custom-shortcut-field{display:grid;gap:6px;min-width:0}
+.custom-shortcut-field-label{font-size:10px;font-weight:850;letter-spacing:.075em;text-transform:uppercase;color:#384e78}
+.custom-shortcut-field input,.custom-shortcut-field select{width:100%;box-sizing:border-box;min-width:0;min-height:43px;padding:0 12px;border:1px solid #b8c9ed;border-radius:9px;background:#fff;color:#142448;font-size:13px;outline:none}
+.custom-shortcut-field input:focus,.custom-shortcut-field select:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.custom-shortcut-field small{font-size:10px;color:#66758f;line-height:1.4}
+.custom-shortcut-add{justify-self:start;min-height:36px}
+@media(max-width:950px){.custom-shortcut-fields{grid-template-columns:1fr 1fr}.custom-shortcut-field-url{grid-column:1 / -1;grid-row:2}}
+@media(max-width:600px){.custom-shortcut-row{padding:13px}.custom-shortcut-fields{grid-template-columns:1fr}.custom-shortcut-field-url{grid-column:auto;grid-row:auto}.custom-shortcut-preview{margin-left:0;order:5;max-width:100%}.custom-shortcut-clear{margin-left:auto}}
+
+/* Keep the live preview and Clear control grouped and aligned on every row. */
+.custom-shortcut-row-heading{display:grid;grid-template-columns:34px minmax(135px,1fr) auto;align-items:center;gap:10px;flex-wrap:initial}
+.custom-shortcut-row-actions{display:flex;align-items:center;justify-content:flex-end;gap:9px;min-width:0}
+.custom-shortcut-preview{margin-left:0;max-width:200px;min-width:90px;min-height:33px;box-sizing:border-box;justify-content:center}
+.custom-shortcut-clear{min-height:33px;min-width:56px;box-sizing:border-box;white-space:nowrap;margin-left:0}
+@media(max-width:650px){
+ .custom-shortcut-row-heading{grid-template-columns:34px minmax(0,1fr)}
+ .custom-shortcut-row-actions{grid-column:1/-1;justify-content:flex-start}
+ .custom-shortcut-preview{order:initial;max-width:220px;margin-left:0}
+ .custom-shortcut-clear{margin-left:0}
+}

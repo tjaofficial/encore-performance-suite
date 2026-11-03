@@ -1,0 +1,46 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Verify Your Email | {{ studio.name }}</title>
+    <link rel="stylesheet" href="{% static 'css/encore_public_registration.css' %}">
+    <link rel="stylesheet" href="{% static 'css/encore_tenant_branding.css' %}">
+    {% include "includes/studio_brand_vars.html" %}
+</head>
+<body class="{% if embed_mode %}embed-mode{% endif %}">
+<main class="public-shell narrow">
+    <section class="public-registration-card verification-card">
+        <div class="verification-icon">✉</div>
+        <span class="public-kicker">{{ studio.name }}</span>
+        <h1>Check Your Email</h1>
+        <p>
+            We sent a verification link to <strong>{{ registration_session.contact_email }}</strong>.
+            Open that email and follow the link to continue to checkout.
+        </p>
+
+        {% if messages %}
+            {% for message in messages %}
+            <div class="public-notice {% if message.tags %}{{ message.tags }}{% endif %}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="verification-safety-note">
+            <strong>Nothing permanent has been created yet.</strong>
+            <span>Your family, guardians, students, enrollments, and billing records stay in this saved registration draft until verification and final checkout are complete.</span>
+        </div>
+
+        <form method="post" class="public-form verification-resend-form">
+            {% csrf_token %}
+            <button class="public-button secondary large" type="submit">Resend Verification Email</button>
+        </form>
+
+        <div class="wizard-actions split">
+            <a class="public-button secondary" href="{% url 'registration_portal:registration_wizard' studio.slug registration_session.token 'account' %}">Edit Email</a>
+            <a class="public-button secondary" href="{% url 'registration_portal:registration_wizard' studio.slug registration_session.token 'review' %}">Back to Review</a>
+        </div>
+    </section>
+</main>
+</body>
+</html>

@@ -82,7 +82,7 @@
                             class="public-field
                             {% if field.name == 'notes' %}full{% endif %}"
                         >
-                            {{ field.label_tag }}
+                            <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span style="color:#c92a42;font-weight:800" aria-label="required">*</span>{% endif %}</label>
                             {{ field }}
 
                             {% for error in field.errors %}

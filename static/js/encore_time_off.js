@@ -151,6 +151,27 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         );
 
+        // A date typed or picked in the field counts even if the teacher
+        // forgets to press the separate Add Date button.
+        form.addEventListener("submit", (event) => {
+            const pending = (dateInput.value || "").trim();
+            if (pending && !dates.includes(pending)) {
+                dates.push(pending);
+            }
+            syncHidden();
+            renderDates();
+            if (!dates.length) {
+                event.preventDefault();
+                dateInput.setCustomValidity("Choose at least one date.");
+                dateInput.reportValidity();
+                dateInput.focus();
+            } else {
+                dateInput.setCustomValidity("");
+            }
+        });
+        dateInput.addEventListener("input", () => dateInput.setCustomValidity(""));
+        dateInput.addEventListener("change", () => dateInput.setCustomValidity(""));
+
         syncHidden();
         renderDates();
     }

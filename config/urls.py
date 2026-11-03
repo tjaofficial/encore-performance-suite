@@ -26,6 +26,7 @@ urlpatterns = [
     path("tasks/", include("tasks.urls")),
     path("time/", include("timekeeping.urls")),
     path("costumes/", include("costumes.urls")),
+    path("support/", include("support_center.urls")),
 ]
 
 

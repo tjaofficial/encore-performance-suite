@@ -1,0 +1,141 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Support Center | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_support_center.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="support-center-page" data-support-center>
+    <section class="support-hero">
+        <div class="support-hero-copy">
+            <p class="support-eyebrow">Encore Support Center</p>
+            <h1>How can we help?</h1>
+            <p>
+                Find step-by-step directions, feature explanations, automatic workflows,
+                setup help, and answers to common Encore questions.
+            </p>
+            <div class="support-hero-meta">
+                <span><strong>{{ article_count }}</strong> help articles</span>
+                <span><strong>{{ category_cards|length }}</strong> support topics</span>
+                <span><strong>⌘/Ctrl + K</strong> to search</span>
+            </div>
+        </div>
+
+        <div class="support-search-shell">
+            <label class="support-search-label" for="support-live-search">Search Encore Help</label>
+            <div class="support-search-input-wrap">
+                <span class="support-search-icon" aria-hidden="true">⌕</span>
+                <input
+                    id="support-live-search"
+                    type="search"
+                    placeholder="Try: teacher login, payments, import data, payroll..."
+                    autocomplete="off"
+                    aria-label="Search Encore Support Center"
+                    aria-controls="support-live-results"
+                    aria-expanded="false"
+                >
+                <kbd>⌘K</kbd>
+            </div>
+            <div id="support-search-status" class="support-search-status" aria-live="polite">
+                Start typing to search all {{ article_count }} help articles.
+            </div>
+            <div id="support-live-results" class="support-live-results" role="listbox" hidden></div>
+        </div>
+    </section>
+
+    <nav class="support-topic-nav" aria-label="Support topics">
+        <div class="support-topic-nav-heading">
+            <span>Jump to a topic</span>
+            <button type="button" class="support-topic-nav-toggle" data-topic-nav-toggle aria-expanded="true">Hide topics</button>
+        </div>
+        <div class="support-topic-chips" data-topic-nav-list>
+            {% for category in category_cards %}
+                <a href="#category-{{ category.slug }}" data-support-topic-link="{{ category.slug }}">
+                    <span>{{ category.name }}</span>
+                    <b>{{ category.count }}</b>
+                </a>
+            {% endfor %}
+        </div>
+    </nav>
+
+    <section class="support-section-heading" id="support-topics">
+        <div>
+            <span>Browse by topic</span>
+            <h2>Support categories</h2>
+            <p>Choose the area of Encore you are working in, then open the guide you need.</p>
+        </div>
+        <button class="support-expand-all" type="button" data-support-expand-all>Expand all categories</button>
+    </section>
+
+    <div class="support-category-grid">
+        {% for category in category_cards %}
+            <section class="support-category-card" id="category-{{ category.slug }}" data-support-category="{{ category.slug }}">
+                <header class="support-category-header">
+                    <div class="support-category-title-row">
+                        <div>
+                            <span>{{ category.count }} article{{ category.count|pluralize }}</span>
+                            <h2>{{ category.name }}</h2>
+                        </div>
+                        <button
+                            type="button"
+                            class="support-category-collapse"
+                            data-support-category-collapse="{{ category.slug }}"
+                            aria-expanded="true"
+                            aria-label="Collapse {{ category.name }}"
+                        >⌃</button>
+                    </div>
+                    <p>{{ category.description }}</p>
+                </header>
+
+                <div class="support-category-body" data-support-category-body="{{ category.slug }}">
+                    <div class="support-category-links">
+                        {% for article in category.articles|slice:":4" %}
+                            <a href="{% url 'support_center:article' article.slug %}">
+                                <div class="support-link-copy">
+                                    <strong>{{ article.title }}</strong>
+                                    <span>{{ article.summary }}</span>
+                                </div>
+                                <b aria-hidden="true">→</b>
+                            </a>
+                        {% endfor %}
+                    </div>
+
+                    {% if category.count > 4 %}
+                        <button
+                            class="support-show-more"
+                            type="button"
+                            data-support-category-toggle="{{ category.slug }}"
+                            data-count="{{ category.count }}"
+                            aria-expanded="false"
+                        >
+                            Show all {{ category.count }} articles
+                        </button>
+                        <div class="support-category-more" data-support-category-more="{{ category.slug }}" hidden>
+                            {% for article in category.articles|slice:"4:" %}
+                                <a href="{% url 'support_center:article' article.slug %}">
+                                    <div class="support-link-copy">
+                                        <strong>{{ article.title }}</strong>
+                                        <span>{{ article.summary }}</span>
+                                    </div>
+                                    <b aria-hidden="true">→</b>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </section>
+        {% endfor %}
+    </div>
+
+    <button class="support-back-to-top" type="button" data-support-back-to-top hidden aria-label="Back to top">↑</button>
+</div>
+
+{{ search_index|json_script:"support-search-index" }}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/encore_support_center.js' %}" defer></script>
+{% endblock %}

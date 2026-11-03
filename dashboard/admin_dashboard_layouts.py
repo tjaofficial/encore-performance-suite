@@ -10,13 +10,20 @@ ADMIN_SNAPSHOT_METRICS = [
     {"key": "active_enrollments", "label": "Active Enrollments", "description": "Current active class enrollments."},
     {"key": "instructors", "label": "Instructors", "description": "Active faculty members."},
     {"key": "waitlisted", "label": "Waitlisted", "description": "Students currently waiting for a class."},
+    {"key": "monthly_revenue", "label": "Monthly Revenue", "description": "Successful payments collected this month."},
+    {"key": "attendance_rate", "label": "Attendance Rate", "description": "Present-rate across the last 30 days."},
+    {"key": "outstanding_balances", "label": "Outstanding Balances", "description": "Current open family-account balance."},
+    {"key": "new_enrollments", "label": "New Enrollments", "description": "Enrollment records created this month."},
+    {"key": "classes_near_capacity", "label": "Classes Near Capacity", "description": "Active classes currently at least 80% full."},
 ]
 
 DEFAULT_ADMIN_SNAPSHOT_METRICS = [
-    "student_records",
     "active_classes",
+    "active_enrollments",
     "instructors",
-    "waitlisted",
+    "monthly_revenue",
+    "attendance_rate",
+    "outstanding_balances",
 ]
 
 ADMIN_DASHBOARD_CARDS = [
@@ -70,6 +77,83 @@ ADMIN_DASHBOARD_CARDS = [
         "required": False,
         "template": "dashboard/admin_cards/upcoming_birthdays.html",
     },
+    {
+        "key": "tasks",
+        "label": "Tasks",
+        "description": "Open administrator tasks and reminders.",
+        "default_width": "half",
+        "default_height": 1,
+        "locked": False,
+        "required": False,
+        "default_enabled": True,
+        "template": "dashboard/admin_cards/tasks.html",
+    },
+    {
+        "key": "monthly_revenue",
+        "label": "Monthly Revenue",
+        "description": "Payments collected this month with month-over-month change.",
+        "default_width": "quarter",
+        "default_height": 1,
+        "locked": False,
+        "required": False,
+        "default_enabled": True,
+        "template": "dashboard/admin_cards/monthly_revenue.html",
+    },
+    {
+        "key": "revenue_trend",
+        "label": "Revenue Trend",
+        "description": "Six-month payment revenue trend and current-month performance.",
+        "default_width": "half",
+        "default_height": 2,
+        "locked": False,
+        "required": False,
+        "default_enabled": True,
+        "template": "dashboard/admin_cards/revenue_trend.html",
+    },
+    {
+        "key": "enrollment_trend",
+        "label": "Enrollment Trend",
+        "description": "New enrollment activity across the last six months.",
+        "default_width": "half",
+        "default_height": 2,
+        "locked": False,
+        "required": False,
+        "default_enabled": True,
+        "template": "dashboard/admin_cards/enrollment_trend.html",
+    },
+    {
+        "key": "attendance_rate",
+        "label": "Attendance Rate",
+        "description": "Studio attendance performance across the last 30 days.",
+        "default_width": "quarter",
+        "default_height": 1,
+        "locked": False,
+        "required": False,
+        "default_enabled": True,
+        "template": "dashboard/admin_cards/attendance_rate.html",
+    },
+    {
+        "key": "outstanding_balances",
+        "label": "Outstanding Balances",
+        "description": "Open family balances with overdue exposure highlighted.",
+        "default_width": "quarter",
+        "default_height": 1,
+        "locked": False,
+        "required": False,
+        "default_enabled": True,
+        "template": "dashboard/admin_cards/outstanding_balances.html",
+    },
+    {
+        "key": "registration_sources",
+        "label": "Registration Sources",
+        "description": "Where recent enrollments are coming from over the last 90 days.",
+        "default_width": "half",
+        "default_height": 1,
+        "locked": False,
+        "required": False,
+        "default_enabled": False,
+        "template": "dashboard/admin_cards/registration_sources.html",
+    },
 ]
 
 VALID_ADMIN_WIDTHS = {"quarter", "half", "full"}
@@ -92,12 +176,12 @@ def _normalize_snapshot_metrics(values):
     if not clean:
         clean = list(DEFAULT_ADMIN_SNAPSHOT_METRICS)
 
-    return clean[:6]
+    return clean
 
 
 def default_admin_dashboard_layout():
     return {
-        "version": 3,
+        "version": 4,
         "snapshot_metrics": list(DEFAULT_ADMIN_SNAPSHOT_METRICS),
         "quick_links": default_dashboard_quick_links(
             "admin"
@@ -105,7 +189,7 @@ def default_admin_dashboard_layout():
         "cards": [
             {
                 "key": card["key"],
-                "enabled": True,
+                "enabled": card.get("default_enabled", True),
                 "order": order,
                 "width": card["default_width"],
                 "height": card["default_height"],
@@ -175,7 +259,7 @@ def normalize_admin_dashboard_layout(layout):
     )
 
     return {
-        "version": 3,
+        "version": 4,
         "snapshot_metrics": _normalize_snapshot_metrics(snapshot_metrics),
         "quick_links": normalize_dashboard_quick_links(
             layout,

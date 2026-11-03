@@ -1,0 +1,23 @@
+{% extends "dashboard/base_dashboard.html" %}{% load static %}
+{% block title %}Music Manager — Encore{% endblock %}{% block topbar_title %}Music Manager{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_music_manager.css' %}">{% endblock %}
+{% block content %}
+<div class="music-manager music-manager-v2">
+  <a class="dh-back" href="{{ back_url }}" style="display:inline-block;margin-bottom:16px;color:#2463f5;font-weight:700;text-decoration:none">← Back</a>
+  <header class="music-manager-head"><div><span class="music-eyebrow">DANCE RESOURCE APPROVALS</span><h1>Music Manager</h1><p>Listen to teacher submissions, review requests and publish approved soundtracks.</p></div><div class="music-manager-symbol" aria-hidden="true">♫</div></header>
+  {% if messages %}{% for message in messages %}<p class="music-message">{{ message }}</p>{% endfor %}{% endif %}
+  <nav class="music-status-tabs" aria-label="Music review status">
+  <a class="{% if status == 'pending' %}is-active{% endif %}" href="?status=pending&amp;class={{ selected_class }}&amp;next={{ back_url|urlencode }}">Pending Review</a>
+  <a class="{% if status == 'approved' %}is-active{% endif %}" href="?status=approved&amp;class={{ selected_class }}&amp;next={{ back_url|urlencode }}">Approved</a>
+  <a class="{% if status == 'rejected' %}is-active{% endif %}" href="?status=rejected&amp;class={{ selected_class }}&amp;next={{ back_url|urlencode }}">Rejected</a>
+  <a class="{% if status == 'replaced' %}is-active{% endif %}" href="?status=replaced&amp;class={{ selected_class }}&amp;next={{ back_url|urlencode }}">Replaced</a>
+  <a class="{% if status == 'all' %}is-active{% endif %}" href="?status=all&amp;class={{ selected_class }}&amp;next={{ back_url|urlencode }}">All Songs</a>
+  </nav>
+  <form method="get" class="music-filters"><input type="hidden" name="status" value="{{ status }}"><input type="hidden" name="class" value="{{ selected_class }}"><input type="hidden" name="next" value="{{ back_url }}"><label>SEARCH SONGS & CLASSES <input type="search" name="q" value="{{ query }}" placeholder="Song title, artist or class…"></label><button class="button primary" type="submit">Search</button>{% if query %}<a class="button secondary" href="?status={{ status }}&amp;class={{ selected_class }}&amp;next={{ back_url|urlencode }}">Clear</a>{% endif %}</form>
+  <div class="music-table-scroll"><table class="music-table"><thead><tr><th>Submission</th><th>Class & Dance</th><th>Teacher</th><th>Submitted</th><th>Status</th><th>Action</th></tr></thead><tbody>
+  {% for song in records %}<tr><td><div class="music-song-cell"><span class="music-song-icon">♫</span><div><strong>{{ song.title }}</strong><small>{{ song.artist|default:'Artist not specified' }}</small></div></div></td><td><strong>{{ song.class_instance.name }}</strong><small>{{ song.dance }}</small></td><td>{{ song.uploaded_by|default:'Studio staff' }}</td><td>{{ song.created_at|date:'M j, Y' }}<small>{{ song.created_at|time:'g:i A' }}</small></td><td><span class="music-pill music-{{ song.approval_status }}">{{ song.get_approval_status_display }}</span></td><td>{% if can_review %}<a class="button secondary" href="{% url 'resources:music_review' studio.slug song.id %}">{% if song.approval_status == 'pending' %}Review Song →{% else %}View Details →{% endif %}</a>{% else %}<span class="music-pill">Read only</span>{% endif %}</td></tr>
+  {% empty %}<tr><td colspan="6" class="music-empty"><div class="music-empty-symbol">♫</div><strong>No songs found</strong><p>Submissions matching this review status will appear here.</p></td></tr>{% endfor %}
+  </tbody></table></div>
+</div>
+{% endblock %}
+

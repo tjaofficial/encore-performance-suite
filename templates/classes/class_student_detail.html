@@ -55,9 +55,10 @@ Student Class Detail
     </div>
 
     <div class="class-student-actions">
+        <a class="button secondary" href="{% url 'students:student_detail' studio.slug student.id %}">View Full Student Profile →</a>
         <a
             class="button secondary"
-            href="{% url 'evaluations:evaluation_create' studio.slug %}"
+            href="{% url 'evaluations:evaluation_create' studio.slug %}?student={{ student.id }}&amp;class={{ class_instance.id }}"
         >
             + Evaluation
         </a>
@@ -69,6 +70,19 @@ Student Class Detail
             + Reminder
         </a>
     </div>
+</section>
+
+<section class="class-student-notes" data-save-url="{% url 'classes:class_student_notes_save' studio.slug class_instance.id student.id %}">
+    <article class="student-class-card">
+        <div class="class-card-heading"><div><span class="card-kicker">Staff Only</span><h2>Class-Specific Notes</h2></div><small data-status="class">Saved</small></div>
+        <textarea data-note="class" data-version="" placeholder="Notes about this student in this class...">{{ class_note.text|default:'' }}</textarea>
+    </article>
+    {% if role == 'administrator' %}
+    <article class="student-class-card">
+        <div class="class-card-heading"><div><span class="card-kicker">Staff Only</span><h2>Student Profile Notes</h2></div><small data-status="profile">Saved</small></div>
+        <textarea data-note="profile" data-version="" placeholder="Private notes across classes...">{{ profile_note.text|default:'' }}</textarea>
+    </article>
+    {% endif %}
 </section>
 
 <section class="student-class-summary-grid">
@@ -149,7 +163,7 @@ Student Class Detail
                 <h2>Evaluations for This Class</h2>
             </div>
 
-            <a href="{% url 'evaluations:evaluation_create' studio.slug %}">
+            <a href="{% url 'evaluations:evaluation_create' studio.slug %}?student={{ student.id }}&amp;class={{ class_instance.id }}">
                 Add New
             </a>
         </div>
@@ -355,6 +369,7 @@ Student Class Detail
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/encore_class_student_notes.js' %}" defer></script>
 <script
     src="{% static 'js/encore_quick_tasks.js' %}"
     defer

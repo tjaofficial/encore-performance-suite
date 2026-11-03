@@ -1,0 +1,12 @@
+/* Costume detail: action hierarchy and shared Encore surface treatments. */
+.wardrobe-page-header {border:1px solid #b1c5f2; border-radius:18px; padding:20px 24px; background:radial-gradient(circle at 96% 8%, #cddcff 0 54px, transparent 55px),radial-gradient(circle at 82% 110%, #e7d8fb 0 46px,transparent 47px),#fff; display:flex; justify-content:space-between; gap:20px; align-items:center;}
+.wardrobe-page-header h1 {margin:7px 0;}
+.costume-header-actions {display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;}
+.costume-header-actions .button {white-space:nowrap; min-height:41px; display:inline-flex; align-items:center; justify-content:center;}
+.costume-header-actions .costume-measurements-action {background:#eff4ff; border:1px solid #8facf8; color:#174fd5; font-weight:750;}
+.costume-detail-progress {min-width:96px; border:1px solid #aec3f0; border-radius:12px; padding:8px 13px; text-align:center; background:#f0f5ff;}
+.costume-detail-layout {align-items:start;}
+.costume-detail-layout .wardrobe-form-card {border-color:#b5c6ea; box-shadow:0 8px 22px rgba(27,52,100,.035);}
+.costume-detail-sidebar {display:grid; align-content:start; gap:12px;}
+.costume-detail-sidebar .wardrobe-form-card {margin:0;}
+@media (max-width:850px){.wardrobe-page-header {align-items:stretch; flex-direction:column}.costume-header-actions{justify-content:flex-start}}

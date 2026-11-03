@@ -1,0 +1,1525 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Review {{ step.title }} | Studio Director Onboarding{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}"><link rel="stylesheet" href="{% static 'css/encore_class_naming.css' %}"><style>
+.class-review-tabbar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 8px;border-bottom:1px solid #d8e1f1;padding-bottom:0}
+.class-review-tab{cursor:pointer;padding:13px 20px;border:1px solid transparent;border-radius:10px 10px 0 0;background:transparent;color:#465875;font-size:14px;font-weight:700}
+.class-review-tab.is-active{color:#1759df;background:#fff;border-color:#d8e1f1;border-bottom-color:#fff;margin-bottom:-1px}
+.class-review-tab:focus-visible{outline:3px solid #4c8aff;outline-offset:2px}
+.class-review-tab span{font-size:12px;margin-left:5px;opacity:.8}
+.class-review-tab-note{color:#65718a;font-size:13px;margin:8px 0 18px}
+.vendor-discovery-row[data-class-tab-hidden="true"]{display:none!important}
+.class-review-season-filter{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:12px 0 18px}.class-review-season-filter select{max-width:320px}.class-inline-edit{background:#f5f8ff;border:1px solid #d6e1f5;padding:18px;border-radius:12px;margin:18px 0}.class-inline-edit-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:14px 0}.class-inline-edit-grid label{display:flex;flex-direction:column;gap:6px;font-weight:650}.class-review-edit-top{display:flex;justify-content:flex-end;margin-bottom:8px}
+</style>{% endblock %}
+{% block topbar_title %}Studio Director Onboarding{% endblock %}
+
+{% block content %}
+<div class="settings-workspace">
+    {% include "includes/settings_nav.html" %}
+    <main class="settings-workspace-content">
+        <section class="settings-heading">
+            <div>
+                <a class="back-link" href="{% url 'studios:studio_director_step_upload' studio.slug step.key %}">← Choose a Different File</a>
+                <p class="eyebrow">Studio Director · Step {{ step.number }}</p>
+                <h1>Review {{ step.title }}</h1>
+                <p>{{ state.filename }} · {{ state.total_rows }} source rows · {{ step.report }}</p>
+            </div>
+        </section>
+
+        {% if messages %}
+            <div class="message-stack">
+                {% for message in messages %}<div class="message-banner {{ message.tags }}">{{ message }}</div>{% endfor %}
+            </div>
+        {% endif %}
+
+        <section class="import-review-summary">
+            <div class="import-review-stat"><span>Discovered</span><strong data-live-count="total">{{ counts.total }}</strong><small>Unique records</small></div>
+            <div class="import-review-stat create"><span>Create</span><strong data-live-count="create">{{ counts.create }}</strong><small>Ready</small></div>
+            <div class="import-review-stat update"><span>Update</span><strong data-live-count="update">{{ counts.update }}</strong><small>Existing match</small></div>
+            <div class="import-review-stat skip"><span>Skip</span><strong data-live-count="skip">{{ counts.skip }}</strong><small>Already exists</small></div>
+            <div class="import-review-stat error"><span>Needs Review</span><strong data-live-count="error">{{ counts.error }}</strong><small>Not ready</small></div>
+        </section>
+
+        {% if step.key == "classes_meetings" %}
+        <section class="settings-panel class-name-review-banner">
+            <strong>Class name pattern</strong> <code>{{ class_name_template }}</code>
+            <p>Review the original and proposed names below. The preview is based on discovered class fields; resolved class types or levels may affect the final name. Historical classes retain their original Studio Director names and historical dates. Encore organizes their remaining fields using the information available in the import. Review historical records separately if you need to make corrections.</p>
+        </section>
+        {% endif %}
+
+        {% if step.key == "classes_meetings" %}
+        <section class="settings-panel translation-panel" id="translation-panel">
+            <div class="translation-heading">
+                <div><p class="eyebrow">Import interpretation</p><h2>Class title translations</h2>
+                <p>Map studio-specific wording to class age groups, types, levels, performance settings, or registration status. Example: “Pre-School, Preschool” → Age group 3–5. Rules match whole words or phrases in the original class title. Existing source age columns take priority.</p></div>
+            </div>
+            <div id="translation-rule-list"></div>
+            <div class="translation-controls"><button type="button" class="btn btn-secondary" id="add-translation-rule">+ Add translation</button>
+            <button type="button" class="btn btn-primary" id="apply-review-translations">Apply Translations &amp; Refresh Preview</button>
+            <button type="button" class="btn btn-secondary" id="refresh-review-fresh">Start Fresh · Reset Review</button></div>
+            <small>Apply Translations preserves manual review edits in this browser. Start Fresh discards them and resets translations for this uploaded file. Neither button imports data.</small>
+        </section>
+        <form method="post" id="translation-action-form" action="{% url 'studios:studio_director_discovery_review' studio.slug step.key %}" hidden>
+          {% csrf_token %}<input type="hidden" name="review_action" id="review-action"><input type="hidden" name="translation_rules_json" id="translation-rules-json">
+        </form>
+        {{ class_review_translations|json_script:"initial-class-translations" }}
+        {% endif %}
+
+        {% if step.key == "class_types" and meta.unresolved %}
+            <div class="message-banner warning">
+                {{ meta.unresolved }} source row{{ meta.unresolved|pluralize }} did not contain a recognizable class type.
+                Those rows are not creating a class type. They can be resolved later during Classes + Meetings.
+            </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'studios:studio_director_discovery_commit' studio.slug step.key %}" class="settings-form" id="vendor-discovery-form">
+            {% csrf_token %}
+            <input type="hidden" name="selected_json" id="selected-json" value="[]">
+            <input type="hidden" name="resolutions_json" id="resolutions-json" value="{}">
+
+            {% if step.key == "locations_rooms" %}
+                <section class="settings-section-block vendor-parent-location">
+                    <div class="settings-section-heading">
+                        <div>
+                            <span>Room Parent</span>
+                            <h2>Assign these rooms to a location</h2>
+                            <p>Choose one of the physical locations you confirmed in the previous onboarding step. Leave blank if these rooms belong directly to the studio's main/default location.</p>
+                        </div>
+                    </div>
+                    <select class="encore-input" name="parent_location">
+                        <option value="">Main / Default Studio Location</option>
+                        {% for location in physical_locations %}
+                            <option value="{{ location.id }}">{{ location.name }}{% if location.is_primary %} · Primary{% endif %}</option>
+                        {% endfor %}
+                    </select>
+                </section>
+            {% endif %}
+
+            {% if step.key == "classes_meetings" %}
+            <section class="settings-panel" style="margin-bottom:16px; padding:20px 22px;">
+                <div style="display:flex;gap:12px;align-items:flex-start;">
+                    <span aria-hidden="true" style="font-size:22px;line-height:1;">ⓘ</span>
+                    <div>
+                        <strong>Current classes first. Historical classes kept separate.</strong>
+                        <p style="margin:6px 0 0;color:#5b6782;line-height:1.55;">Classes belonging to seasons that have ended appear under Historical. Their original names and historical dates are retained; Encore imports and organizes the other available details as accurately as the source data allows. You can review or edit those records before importing, but you don't need to work through them to review current classes.</p>
+                    </div>
+                </div>
+            </section>
+            <div class="class-review-tabbar" role="tablist" aria-label="Class import review sections">
+                <button type="button" class="class-review-tab is-active" role="tab" id="class-current-tab" aria-controls="class-review-list" aria-selected="true" data-class-tab="current">Current / Upcoming <span id="class-current-count"></span></button>
+                <button type="button" class="class-review-tab" role="tab" id="class-history-tab" aria-controls="class-review-list" aria-selected="false" data-class-tab="historical">Historical <span id="class-history-count"></span></button>
+            </div>
+            <div class="class-review-season-filter"><label for="class-season-filter"><b>Season</b></label><select id="class-season-filter" class="encore-input"><option value="">All seasons in this tab</option></select><span id="class-visible-count"></span></div>
+            <p class="class-review-tab-note" id="class-tab-description" aria-live="polite">Review active and upcoming-season classes. Switching tabs keeps all of your edits and selections on this page.</p>
+            {% endif %}
+            <section class="settings-panel vendor-discovery-panel">
+                <div class="vendor-discovery-list" id="class-review-list">
+                    {% for item in proposals %}
+                        <article
+                            class="vendor-discovery-row status-{{ item.status }}"
+                            {% if step.key == "classes_meetings" %}
+                                data-proposal-row
+                                data-class-group="{% if item.is_historical %}historical{% else %}current{% endif %}"
+                                data-original-status="{{ item.status }}"
+                                data-season="{{ item.season_name|default:""|escape }}"
+                                data-class-id="{{ item.class_id|escape }}"
+                                data-ready-status="{% if item.existing_id %}update{% else %}create{% endif %}"
+                                data-historical="{% if item.is_historical %}true{% else %}false{% endif %}"
+                                data-source-name="{{ item.source_name|escape }}"
+                                data-preview-min-age="{{ item.min_age|default_if_none:'' }}"
+                                data-preview-max-age="{{ item.max_age|default_if_none:'' }}"
+                            {% endif %}
+                        >
+                            <div class="vendor-discovery-select">
+                                {% if item.status == "create" or item.status == "update" or step.key == "classes_meetings" or step.key == "class_types" %}
+                                    {% if item.key %}
+                                        <input type="checkbox" class="vendor-select-checkbox" data-key="{{ item.key }}" checked>
+                                    {% else %}
+                                        <input type="checkbox" class="vendor-select-checkbox" data-key="{{ item.identity }}" checked>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="vendor-discovery-dot"></span>
+                                {% endif %}
+                            </div>
+
+                            <div class="vendor-discovery-main">
+                                {% if step.key == "locations_rooms" %}
+                                    <strong>{{ item.name }}</strong>
+                                    <span>{{ item.count }} source row{{ item.count|pluralize }} · {{ item.reason }}</span>
+
+                                {% elif step.key == "seasons" %}
+                                    <div class="vendor-discovery-edit-grid season-grid">
+                                        <div class="settings-field">
+                                            <label>Season Name</label>
+                                            <input class="encore-input" name="name_{{ item.key }}" value="{{ item.name }}">
+                                        </div>
+                                        <div class="settings-field">
+                                            <label>Suggested Start</label>
+                                            <input class="encore-input" type="date" name="start_{{ item.key }}" value="{{ item.start_date }}">
+                                        </div>
+                                        <div class="settings-field">
+                                            <label>Suggested End</label>
+                                            <input class="encore-input" type="date" name="end_{{ item.key }}" value="{{ item.end_date }}">
+                                        </div>
+                                    </div>
+                                    <span>{{ item.raw_names|join:", " }} · {{ item.count }} source row{{ item.count|pluralize }}</span>
+                                    {% for warning in item.warnings %}<small class="row-warning">{{ warning }}</small>{% endfor %}
+
+                                {% elif step.key == "class_types" %}
+                                    <div class="vendor-discovery-edit-grid">
+                                        <div class="settings-field">
+                                            <label>Encore Class Type</label>
+                                            <input class="encore-input" name="name_{{ item.key }}" value="{{ item.name }}">
+                                        </div>
+                                        <div class="settings-field">
+                                            <label for="type-active-{{ forloop.counter }}">Status</label>
+                                            <select class="encore-input" id="type-active-{{ forloop.counter }}" name="active_{{ item.key }}">
+                                                <option value="active" {% if item.review_is_active %}selected{% endif %}>Active</option>
+                                                <option value="inactive" {% if not item.review_is_active %}selected{% endif %}>Inactive</option>
+                                            </select>
+                                            <small>Inactive types remain available while importing classes.</small>
+                                        </div>
+                                    </div>
+                                    <span>{{ item.count }} source row{{ item.count|pluralize }} · inferred from {{ item.source }}</span>
+                                    {% if item.examples %}<small>Examples: {{ item.examples|join:", " }}</small>{% endif %}
+
+                                {% elif step.key == "classes_meetings" %}
+                                    <div class="class-review-edit-top"><button type="button" class="button secondary js-toggle-class-edit" aria-expanded="false">Edit class</button></div>
+                                    <div class="vendor-class-title">
+                                        <strong class="class-name-result">{% if item.is_historical %}{{ item.name }}{% else %}{{ item.preview_name }}{% endif %}</strong>
+                                        <span>{{ item.season_name|default:item.season_raw }}</span>
+                                    </div>
+                                    <div class="class-name-comparison">
+                                        <span><b>Original Studio Director name</b>{{ item.source_name }}</span>
+                                        <span aria-hidden="true">→</span>
+                                        <span><b>Proposed Encore name</b>{% if item.is_historical %}{{ item.name }} <small>(historical name retained on import)</small>{% else %}{{ item.preview_name }}{% endif %}</span>
+                                    </div>
+                                    <div class="vendor-class-meta">
+                                        {% if item.meetings %}
+                                            {% for meeting in item.meetings %}
+                                                <span>{{ meeting.day_name }} · {{ meeting.start_time }} · {{ meeting.duration_minutes }} min{% if meeting.room_name %} · {{ meeting.room_name }}{% endif %}</span>
+                                            {% endfor %}
+                                        {% else %}
+                                            <span>{{ item.day_name|default:"No day" }}</span>
+                                            <span>{% if item.start_time %}{{ item.start_time }}{% else %}TBD time{% endif %}</span>
+                                            <span>{{ item.duration_minutes }} min</span>
+                                            {% if item.room_name %}<span>{{ item.room_name }}</span>{% endif %}
+                                        {% endif %}
+                                        <span>{{ item.instructor_name|default:"Instructor unresolved" }}</span>
+                                        {% if item.min_age is not None or item.max_age is not None %}<span>Ages {% if item.min_age is not None %}{{ item.min_age|floatformat:"-2" }}{% else %}Any{% endif %}–{% if item.max_age is not None %}{{ item.max_age|floatformat:"-2" }}{% else %}No max{% endif %}</span>{% endif %}
+                                        {% if item.level_id %}<span>Level {{ item.level_number }} — {{ item.level_name }}</span>{% else %}<span>Level not set</span>{% endif %}
+                                        {% if item.special_session_start %}<span>Session {{ item.special_session_start }} → {{ item.special_session_end }}</span>{% endif %}
+                                        <span>Capacity {{ item.capacity }}</span>
+                                        <span>
+                                            {% if item.is_performance_class is None %}
+                                                Performance: Unconfirmed
+                                            {% elif item.is_performance_class %}
+                                                Performance Class
+                                            {% else %}
+                                                Non-Performance
+                                            {% endif %}
+                                        </span>
+                                        <span>
+                                            Registration:
+                                            {% if item.registration_open %}Open{% else %}Closed{% endif %}
+                                        </span>
+                                    </div>
+                                    {% if item.matched_vocabulary %}
+                                        <small>Vocabulary matched: {{ item.matched_vocabulary|join:", " }}</small>
+                                    {% endif %}
+                                    <small>{{ item.class_id }} · {{ item.class_type_name|default:"Class type unresolved" }}</small>
+
+                                    <div class="class-inline-edit" hidden data-resolution-kind="edit" data-resolution-id="{{ item.class_id }}">
+                                        <p><strong>Edit proposed class details</strong> · Original Studio Director information stays unchanged.</p>
+                                        <input type="hidden" class="js-resolution-value" data-resolution-field="enabled" data-key="edit:{{ item.class_id }}:enabled" value="false">
+                                        <div class="class-inline-edit-grid">
+                                            <label>Encore class name<input class="encore-input js-resolution-value js-edited-class-name" data-resolution-field="name" data-key="edit:{{ item.class_id }}:name" value="{% if item.is_historical %}{{ item.name }}{% else %}{{ item.preview_name }}{% endif %}" maxlength="255"></label>
+                                            <label>Minimum age<input type="number" min="0" max="99" step="0.01" class="encore-input js-resolution-value" data-resolution-field="min_age" data-key="edit:{{ item.class_id }}:min_age" value="{{ item.min_age|default_if_none:'' }}"></label>
+                                            <label>Maximum age<input type="number" min="0" max="99" step="0.01" class="encore-input js-resolution-value" data-resolution-field="max_age" data-key="edit:{{ item.class_id }}:max_age" value="{{ item.max_age|default_if_none:'' }}"></label>
+                                            <label>Class type<select class="encore-input js-resolution-value" data-resolution-field="class_type_id" data-key="edit:{{ item.class_id }}:class_type_id"><option value="">Keep discovered type</option>{% for class_type in class_types %}<option value="{{ class_type.id }}" {% if item.class_type_id == class_type.id %}selected{% endif %}>{{ class_type.name }}</option>{% endfor %}</select></label>
+                                            <label>Class level<select class="encore-input js-resolution-value" data-resolution-field="level_id" data-key="edit:{{ item.class_id }}:level_id"><option value="">Keep discovered level</option><option value="none">No level</option>{% for level in class_levels %}<option value="{{ level.id }}" {% if item.level_id == level.id %}selected{% endif %}>{{ level.number }} — {{ level.name }}</option>{% endfor %}</select></label>
+                                            <label>Capacity<input class="encore-input js-resolution-value" type="number" min="1" max="10000" data-resolution-field="capacity" data-key="edit:{{ item.class_id }}:capacity" value="{{ item.capacity }}"></label>
+                                        </div><button type="button" class="button primary js-finish-class-edit">Done editing</button>
+                                    </div>
+                                    {% if item.requires_split_review %}
+                                        <div
+                                            class="vendor-discovery-edit-grid resolution-card"
+                                            data-resolution-kind="split"
+                                            data-resolution-group="{{ item.split_group }}"
+                                            data-resolution-id="{{ item.class_id }}"
+                                        >
+                                            <div class="settings-field full">
+                                                <label>Multiple class types detected</label>
+                                                <select
+                                                    class="encore-input js-resolution-action js-resolution-value"
+                                                    data-resolution-field="action"
+                                                >
+                                                    <option value="">Choose what this source row really represents…</option>
+                                                    <option value="split">Split into separate Encore classes</option>
+                                                    <option value="keep">Keep as one Encore class</option>
+                                                </select>
+                                                <small>
+                                                    This row remains in Needs Review until the resolution is complete.
+                                                </small>
+                                            </div>
+
+                                            <div class="resolution-split split-resolution-fields" hidden>
+                                                <div class="js-split-row-list">
+                                                    {% for split in item.split_candidates|slice:":2" %}
+                                                        <div class="settings-section-block js-split-row" data-split-index="{{ forloop.counter }}">
+                                                            <div class="settings-section-heading">
+                                                                <div>
+                                                                    <span>Split Class <b class="js-split-number">{{ forloop.counter }}</b></span>
+                                                                    <h3 class="js-split-heading">{{ split.class_type_name }}</h3>
+                                                                </div>
+                                                                <button
+                                                                    type="button"
+                                                                    class="button secondary js-remove-split"
+                                                                    {% if forloop.counter <= 2 %}disabled{% endif %}
+                                                                >
+                                                                    Remove Split
+                                                                </button>
+                                                            </div>
+
+                                                            <div class="vendor-discovery-edit-grid">
+                                                                <div class="settings-field">
+                                                                    <label>Class Type</label>
+                                                                    <select
+                                                                        class="encore-input js-resolution-value js-standard-name-part"
+                                                                        data-resolution-field="item_{{ forloop.counter }}_class_type_id"
+                                                                        data-standard-index="{{ forloop.counter }}"
+                                                                    >
+                                                                        <option value="">Choose class type…</option>
+                                                                        {% for class_type in class_types %}
+                                                                            <option
+                                                                                value="{{ class_type.id }}"
+                                                                                data-name="{{ class_type.name }}"
+                                                                                {% if class_type.id == split.class_type_id %}selected{% endif %}
+                                                                            >
+                                                                                {{ class_type.name }}
+                                                                            </option>
+                                                                        {% endfor %}
+                                                                    </select>
+                                                                </div>
+
+                                                                <div class="settings-field">
+                                                                    <label>Level</label>
+                                                                    <select
+                                                                        class="encore-input js-resolution-value js-standard-level-part"
+                                                                        data-resolution-field="item_{{ forloop.counter }}_level_id"
+                                                                        data-standard-index="{{ forloop.counter }}"
+                                                                    >
+                                                                        <option value="">Choose level…</option>
+                                                                        <option value="none">No level</option>
+                                                                        {% for level in class_levels %}
+                                                                            <option
+                                                                                value="{{ level.id }}"
+                                                                                data-name="{{ level.name }}"
+                                                                                {% if item.level_id == level.id %}selected{% endif %}
+                                                                            >
+                                                                                Level {{ level.number }} — {{ level.name }}
+                                                                            </option>
+                                                                        {% endfor %}
+                                                                    </select>
+                                                                </div>
+
+                                                                <div class="settings-field">
+                                                                    <label>Start</label>
+                                                                    <input
+                                                                        class="encore-input js-resolution-value"
+                                                                        data-resolution-field="item_{{ forloop.counter }}_start"
+                                                                        type="time"
+                                                                        value="{{ split.start_time }}"
+                                                                    >
+                                                                </div>
+
+                                                                <div class="settings-field">
+                                                                    <label>End</label>
+                                                                    <input
+                                                                        class="encore-input js-resolution-value"
+                                                                        data-resolution-field="item_{{ forloop.counter }}_end"
+                                                                        type="time"
+                                                                        value="{{ split.end_time }}"
+                                                                    >
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+
+                                                <button
+                                                    type="button"
+                                                    class="button secondary js-add-split"
+                                                >
+                                                    + Add Another Class Split
+                                                </button>
+
+                                                <small>
+                                                    Encore starts with two splits whenever multiple styles are detected.
+                                                    Add another split if the source row actually contains three or more classes.
+                                                </small>
+
+                                                <template class="js-split-row-template">
+                                                    <div class="settings-section-block js-split-row">
+                                                        <div class="settings-section-heading">
+                                                            <div>
+                                                                <span>Split Class <b class="js-split-number"></b></span>
+                                                                <h3 class="js-split-heading">New Class Split</h3>
+                                                            </div>
+                                                            <button
+                                                                type="button"
+                                                                class="button secondary js-remove-split"
+                                                            >
+                                                                Remove Split
+                                                            </button>
+                                                        </div>
+
+                                                        <div class="vendor-discovery-edit-grid">
+                                                            <div class="settings-field">
+                                                                <label>Class Type</label>
+                                                                <select class="encore-input js-resolution-value js-standard-name-part">
+                                                                    <option value="">Choose class type…</option>
+                                                                    {% for class_type in class_types %}
+                                                                        <option value="{{ class_type.id }}" data-name="{{ class_type.name }}">
+                                                                            {{ class_type.name }}
+                                                                        </option>
+                                                                    {% endfor %}
+                                                                </select>
+                                                            </div>
+
+                                                            <div class="settings-field">
+                                                                <label>Level</label>
+                                                                <select class="encore-input js-resolution-value js-standard-level-part">
+                                                                    <option value="">Choose level…</option>
+                                                                    <option value="none">No level</option>
+                                                                    {% for level in class_levels %}
+                                                                        <option value="{{ level.id }}" data-name="{{ level.name }}">
+                                                                            Level {{ level.number }} — {{ level.name }}
+                                                                        </option>
+                                                                    {% endfor %}
+                                                                </select>
+                                                            </div>
+
+                                                            <div class="settings-field">
+                                                                <label>Start</label>
+                                                                <input class="encore-input js-resolution-value" type="time">
+                                                            </div>
+
+                                                            <div class="settings-field">
+                                                                <label>End</label>
+                                                                <input class="encore-input js-resolution-value" type="time">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                            </div>
+
+                                            <div class="resolution-keep" hidden>
+                                                <div class="vendor-discovery-edit-grid">
+                                                    <div class="settings-field">
+                                                        <label>Keep as Class Type</label>
+                                                        <select
+                                                            class="encore-input js-resolution-value js-keep-type"
+                                                            data-resolution-field="keep_class_type_id"
+                                                        >
+                                                            <option value="">Choose class type…</option>
+                                                            {% for class_type in class_types %}
+                                                                <option value="{{ class_type.id }}" data-name="{{ class_type.name }}">
+                                                                    {{ class_type.name }}
+                                                                </option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+
+                                                    <div class="settings-field">
+                                                        <label>Level</label>
+                                                        <select
+                                                            class="encore-input js-resolution-value js-keep-level"
+                                                            data-resolution-field="keep_level_id"
+                                                        >
+                                                            <option value="">Choose level…</option>
+                                                            <option value="none">No level</option>
+                                                            {% for level in class_levels %}
+                                                                <option value="{{ level.id }}" data-name="{{ level.name }}">
+                                                                    Level {{ level.number }} — {{ level.name }}
+                                                                </option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <label class="widget-check">
+                                                <input
+                                                    type="checkbox"
+                                                    class="js-apply-resolution"
+                                                    data-resolution-apply-all="1"
+                                                >
+                                                <span>Use this resolution for all similar multi-style classes</span>
+                                            </label>
+                                            <div class="resolution-save-actions">
+                                                <button type="button" class="button primary js-save-split-resolution">Save &amp; Refresh</button>
+                                                <small class="js-split-save-result" role="status" aria-live="polite"></small>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+
+                                    {% if not item.season_id %}
+                                        <div class="vendor-discovery-edit-grid season-grid resolution-card" data-resolution-kind="season" data-resolution-group="{{ item.season_group }}" data-resolution-id="{{ item.class_id }}">
+                                            <div class="settings-field">
+                                                <label>Season</label>
+                                                <input class="encore-input js-resolution-value" data-resolution-field="name" value="{{ item.season_raw }}">
+                                            </div>
+                                            <div class="settings-field">
+                                                <label>Season Start</label>
+                                                <input class="encore-input js-resolution-value" data-resolution-field="start" type="date" value="{{ item.season_suggested_start }}">
+                                            </div>
+                                            <div class="settings-field">
+                                                <label>Season End</label>
+                                                <input class="encore-input js-resolution-value" data-resolution-field="end" type="date" value="{{ item.season_suggested_end }}">
+                                            </div>
+                                            <label class="widget-check">
+                                                <input type="checkbox" class="js-apply-resolution" data-resolution-apply-all="1">
+                                                <span>Change all “{{ item.season_raw }}” classes</span>
+                                            </label>
+                                            <small>If this season does not exist, Encore creates it before importing the classes. Start/end dates are required for a new season.</small>
+                                        </div>
+                                    {% endif %}
+
+                                    {% if not item.instructor_id %}
+                                        <div class="vendor-discovery-edit-grid resolution-card" data-resolution-kind="instructor" data-resolution-group="{{ item.instructor_group }}" data-resolution-id="{{ item.class_id }}">
+                                            <div class="settings-field">
+                                                <label>Instructor resolution{% if item.instructor_raw %} · {{ item.instructor_raw }}{% endif %}</label>
+                                                <select class="encore-input js-resolution-action js-resolution-value" data-resolution-field="action">
+                                                    <option value="">Choose…</option>
+                                                    <option value="existing">Choose existing instructor</option>
+                                                    <option value="new">Add new instructor</option>
+                                                </select>
+                                            </div>
+                                            <div class="settings-field resolution-existing">
+                                                <label>Existing Instructor</label>
+                                                <select class="encore-input js-resolution-value" data-resolution-field="existing">
+                                                    <option value="">Select instructor…</option>
+                                                    {% if item.instructor_candidates %}
+                                                        <optgroup label="Likely matches">
+                                                            {% for candidate in item.instructor_candidates %}<option value="{{ candidate.id }}">{{ candidate.name }}</option>{% endfor %}
+                                                        </optgroup>
+                                                    {% endif %}
+                                                    <optgroup label="All instructors">
+                                                        {% for instructor in instructors %}<option value="{{ instructor.id }}">{{ instructor.full_name }}</option>{% endfor %}
+                                                    </optgroup>
+                                                </select>
+                                            </div>
+                                            <div class="settings-field resolution-new">
+                                                <label>New First Name</label>
+                                                <input class="encore-input js-resolution-value" data-resolution-field="first">
+                                            </div>
+                                            <div class="settings-field resolution-new">
+                                                <label>New Last Name</label>
+                                                <input class="encore-input js-resolution-value" data-resolution-field="last">
+                                            </div>
+                                            <div class="settings-field resolution-new">
+                                                <label>New Email (optional)</label>
+                                                <input class="encore-input js-resolution-value" data-resolution-field="email" type="email">
+                                            </div>
+                                            <label class="widget-check">
+                                                <input type="checkbox" class="js-apply-resolution" data-resolution-apply-all="1">
+                                                <span>Use this resolution for all “{{ item.instructor_raw|default:"blank" }}” references</span>
+                                            </label>
+                                        </div>
+                                    {% endif %}
+
+                                    {% if not item.class_type_id and not item.requires_split_review %}
+                                        <div class="vendor-discovery-edit-grid resolution-card" data-resolution-kind="class_type" data-resolution-group="{{ item.class_type_group }}" data-resolution-id="{{ item.class_id }}">
+                                            <div class="settings-field">
+                                                <label>Class Type resolution</label>
+                                                <select class="encore-input js-resolution-action js-resolution-value" data-resolution-field="action">
+                                                    <option value="">Choose…</option>
+                                                    <option value="existing">Choose existing class type</option>
+                                                    <option value="new">Add new class type</option>
+                                                </select>
+                                            </div>
+                                            <div class="settings-field resolution-existing">
+                                                <label>Existing Class Type</label>
+                                                <select class="encore-input js-resolution-value" data-resolution-field="existing">
+                                                    <option value="">Select class type…</option>
+                                                    {% for class_type in class_types %}<option value="{{ class_type.id }}">{{ class_type.name }}</option>{% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="settings-field resolution-new">
+                                                <label>New Class Type</label>
+                                                <input class="encore-input js-resolution-value" data-resolution-field="name" value="{{ item.class_type_suggested_name }}">
+                                            </div>
+                                            <label class="widget-check">
+                                                <input type="checkbox" class="js-apply-resolution" data-resolution-apply-all="1">
+                                                <span>Use this resolution for all similar class-type errors</span>
+                                            </label>
+                                        </div>
+                                    {% endif %}
+
+                                    {% for warning in item.warnings %}<small class="row-warning">{{ warning }}</small>{% endfor %}
+                                    {% for error in item.errors %}<small class="field-error js-row-error">{{ error }}</small>{% endfor %}
+
+                                {% elif step.key == "student_measurements" %}
+                                    <div class="vendor-class-title">
+                                        <strong>{{ item.student_name|default:item.label }}</strong>
+                                        <span>{% if item.measured_at %}Measured {{ item.measured_at }}{% else %}Measurement date not provided{% endif %}</span>
+                                    </div>
+                                    <div class="vendor-class-meta">
+                                        {% if item.bust %}<span>Bust {{ item.bust }}</span>{% endif %}
+                                        {% if item.waist %}<span>Waist {{ item.waist }}</span>{% endif %}
+                                        {% if item.hips %}<span>Hips {{ item.hips }}</span>{% endif %}
+                                        {% if item.girth %}<span>Girth {{ item.girth }}</span>{% endif %}
+                                        {% if item.inseam %}<span>Inseam {{ item.inseam }}</span>{% endif %}
+                                        {% if item.outseam %}<span>Outseam {{ item.outseam }}</span>{% endif %}
+                                        {% if item.height %}<span>Height {{ item.height }}</span>{% endif %}
+                                        {% if item.clothing_size %}<span>Clothing {{ item.clothing_size }}</span>{% endif %}
+                                        {% if item.shoe_size %}<span>Shoe {{ item.shoe_size }}</span>{% endif %}
+                                    </div>
+                                    {% if item.other_size_info %}<small>Other size info: {{ item.other_size_info }}</small>{% endif %}
+                                    {% if item.costume_size_notes %}<small>{{ item.costume_size_notes|join:" · " }}</small>{% endif %}
+                                    {% for warning in item.warnings %}<small class="row-warning">{{ warning }}</small>{% endfor %}
+                                    {% for error in item.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+
+                                {% elif step.key == "enrollments" %}
+                                    <div class="vendor-class-title">
+                                        <strong>{{ item.student_name|default:item.label }}</strong>
+                                        <span>→ {{ item.class_name }}</span>
+                                    </div>
+                                    <div class="vendor-class-meta">
+                                        <span>{{ item.season_name }}</span>
+                                        {% if item.day %}<span>{{ item.day }}</span>{% endif %}
+                                        {% if item.start_time %}<span>{{ item.start_time }}</span>{% endif %}
+                                        {% if item.room %}<span>{{ item.room }}</span>{% endif %}
+                                        <span>{{ item.status_label }}</span>
+                                    </div>
+                                    {% if item.class_code %}<small>{{ item.class_code }}</small>{% endif %}
+                                    {% for warning in item.warnings %}<small class="row-warning">{{ warning }}</small>{% endfor %}
+                                    {% for error in item.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+
+                                {% elif step.key == "drop_history" %}
+                                    <div class="vendor-class-title">
+                                        <strong>{{ item.student_name|default:item.label }}</strong>
+                                        <span>→ {{ item.class_name }}</span>
+                                    </div>
+                                    <div class="vendor-class-meta">
+                                        <span>{{ item.season_name }}</span>
+                                        <span>Dropped</span>
+                                        {% if item.dropped_at %}<span>{{ item.dropped_at }}</span>{% endif %}
+                                    </div>
+                                    {% if item.drop_reason %}<small>Reason: {{ item.drop_reason }}</small>{% endif %}
+                                    {% if item.drop_notes %}<small>Notes: {{ item.drop_notes }}</small>{% endif %}
+                                    {% for warning in item.warnings %}<small class="row-warning">{{ warning }}</small>{% endfor %}
+                                    {% for error in item.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="vendor-discovery-status">
+                                <span
+                                    class="import-status-badge {{ item.status }} js-live-status-badge"
+                                    data-original-status="{{ item.status }}"
+                                data-season="{{ item.season_name|default:""|escape }}"
+                                data-class-id="{{ item.class_id|escape }}"
+                                >
+                                    {% if item.status == "error" %}Needs Review{% else %}{{ item.status|title }}{% endif %}
+                                </span>
+                            </div>
+                        </article>
+                    {% empty %}
+                        <div class="empty-state">Encore did not discover any records for this step.</div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <div class="form-actions">
+                <a class="button secondary" href="{% url 'studios:studio_director_onboarding' studio.slug %}">Back to Playbook</a>
+                <button
+                    class="button primary"
+                    type="submit"
+                    onclick="return confirm('Create or synchronize the selected Studio Director records now?');"
+                >
+                    Save Selected {{ step.title }}
+                </button>
+            </div>
+        </form>
+    </main>
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const tabs = [...document.querySelectorAll("[data-class-tab]")];
+    if (!tabs.length) return;
+    const cards = [...document.querySelectorAll(".vendor-discovery-row[data-class-group]")];
+    const counts = {current:0, historical:0};
+    cards.forEach(card => { counts[card.dataset.classGroup]++; });
+    document.getElementById("class-current-count").textContent = `(${counts.current})`;
+    document.getElementById("class-history-count").textContent = `(${counts.historical})`;
+    const description = document.getElementById("class-tab-description");
+    const seasonFilter = document.getElementById("class-season-filter");
+    const allSeasons = [...new Set(cards.map(card => card.dataset.season).filter(Boolean))].sort();
+    allSeasons.forEach(season => seasonFilter.add(new Option(season, season)));
+    let activeGroup = "current";
+    function filterCards() {
+        const season = seasonFilter.value;
+        let shown = 0;
+        cards.forEach(card => {
+            const hide = card.dataset.classGroup !== activeGroup || (season && card.dataset.season !== season);
+            card.dataset.classTabHidden = String(hide);
+            if (!hide) shown++;
+        });
+        document.getElementById("class-visible-count").textContent = shown + " classes shown";
+    }
+    function activate(group) {
+        activeGroup = group;
+        filterCards();
+        tabs.forEach(tab => {
+            const active = tab.dataset.classTab === group;
+            tab.classList.toggle("is-active", active);
+            tab.setAttribute("aria-selected", String(active));
+            tab.tabIndex = active ? 0 : -1;
+        });
+        description.textContent = group === "historical"
+          ? "Historical classes keep their original names and dates. You can review and edit them here without losing your current-class changes."
+          : "Review current and upcoming-season classes. Switching tabs keeps all edits and selections on this page.";
+    }
+    seasonFilter.addEventListener("change", filterCards);
+    tabs.forEach(tab => tab.addEventListener("click", () => activate(tab.dataset.classTab)));
+    activate("current");
+});
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const rulesList = document.getElementById("translation-rule-list");
+    if (!rulesList) return;
+    const initial = JSON.parse(document.getElementById("initial-class-translations").textContent || "[]");
+    const reviewForm = document.getElementById("vendor-discovery-form");
+    const storageKey = "encore-class-review:" + window.location.pathname;
+    // Capture review state by class identity, not by field name or DOM position
+    // across the entire page. Most resolution controls have no HTML name.
+    const reviewRows = () => [...(reviewForm?.querySelectorAll('[data-proposal-row]') || [])];
+    const rowKey = row => row.querySelector('.vendor-select-checkbox')?.dataset.key || '';
+    const controls = row => [...row.querySelectorAll('input, select, textarea')]
+        .filter(el => el.type !== 'hidden' || el.dataset.resolutionField);
+    const readValue = el => (el.type === 'checkbox' || el.type === 'radio')
+        ? {checked: el.checked} : {value: el.value};
+    const originalValues = new Map(reviewRows().map(row => [rowKey(row), controls(row).map(readValue)]));
+    const typeOptions = [{% for obj in class_types %}{ value: "{{ obj.pk|escapejs }}", label: "{{ obj.name|escapejs }}" },{% endfor %}];
+    const levelOptions = [{% for obj in class_levels %}{ value: "{{ obj.pk|escapejs }}", label: "{{ obj.name|escapejs }}" },{% endfor %}];
+    const fieldOptions = [
+        ["age_range", "Age group"], ["class_type_id", "Class type"],
+        ["level_id", "Class level"], ["class_type_suffix", "Class type suffix"],
+        ["performance", "Performance"], ["registration", "Registration"]
+    ];
+    const makeRule = (entry = {}) => {
+        const line = document.createElement("div"); line.className = "translation-rule";
+        line.innerHTML = `<label>When class title contains<input type="text" class="translation-terms encore-input" placeholder="Words or phrases, separated by commas" maxlength="600"></label>
+          <label>Set field<select class="translation-field encore-input"></select></label>
+          <label>To value<span class="translation-value-wrap"></span></label>
+          <button type="button" class="btn btn-secondary translation-remove" aria-label="Remove translation">Remove</button>`;
+        const fieldSelect = line.querySelector(".translation-field");
+        fieldOptions.forEach(([value, label]) => fieldSelect.add(new Option(label, value)));
+        fieldSelect.value = entry.field || "age_range";
+        const renderValue = (selected) => {
+            const wrap = line.querySelector(".translation-value-wrap"); wrap.replaceChildren();
+            let control;
+            const field = fieldSelect.value;
+            const choices = field === "class_type_id" ? typeOptions :
+              field === "level_id" ? levelOptions :
+              field === "performance" ? [{value:"yes",label:"Yes"},{value:"no",label:"No"}] :
+              field === "registration" ? [{value:"open",label:"Open"},{value:"closed",label:"Closed"}] : null;
+            if (choices) {
+                control = document.createElement("select"); control.add(new Option("Choose value", ""));
+                choices.forEach(option => control.add(new Option(option.label, option.value)));
+            } else {
+                control = document.createElement("input"); control.type = "text";
+                control.placeholder = field === "age_range" ? "3-5" : "Enter suffix";
+                control.maxLength = field === "age_range" ? 8 : 60;
+            }
+            control.className = "translation-value encore-input";
+            control.value = selected || ""; wrap.appendChild(control);
+        };
+        renderValue(entry.value);
+        fieldSelect.addEventListener("change", () => renderValue(""));
+        line.querySelector(".translation-terms").value = entry.terms || "";
+        line.querySelector(".translation-remove").addEventListener("click", () => line.remove());
+        rulesList.appendChild(line);
+    };
+    (initial.length ? initial : [{}]).forEach(makeRule);
+    document.getElementById("add-translation-rule").addEventListener("click", () => makeRule());
+    const stored = sessionStorage.getItem(storageKey);
+    if (stored && reviewForm) {
+        sessionStorage.removeItem(storageKey);
+        try {
+            const saved = JSON.parse(stored);
+            // Run once all of the page's normal change handlers have been installed.
+            queueMicrotask(() => {
+                reviewRows().forEach(row => {
+                    const record = saved[rowKey(row)];
+                    if (!record) return;
+                    const fields = controls(row);
+                    record.changes.forEach(([index, value]) => {
+                        const target = fields[index];
+                        if (!target) return;
+                        if ('checked' in value) target.checked = value.checked;
+                        else target.value = value.value;
+                        target.dispatchEvent(new Event('change', {bubbles: true}));
+                    });
+                    if (record.savedSplit) {
+                        row.querySelector('.js-save-split-resolution')?.click();
+                    }
+                    // Keep deliberately edited names displayed after a refresh.
+                    const edited = row.querySelector('.class-inline-edit [data-resolution-field="name"]');
+                    const enabled = row.querySelector('.class-inline-edit [data-resolution-field="enabled"]');
+                    if (edited && enabled?.value === 'true' && edited.value.trim()) {
+                        const title = row.querySelector('.class-name-result');
+                        if (title) title.textContent = edited.value;
+                        const comparison = row.querySelector('.class-name-comparison span:last-child');
+                        if (comparison) {
+                            comparison.replaceChildren();
+                            const heading = document.createElement('b');
+                            heading.textContent = 'Proposed Encore name (edited)';
+                            comparison.append(heading, document.createTextNode(edited.value));
+                        }
+                    }
+                });
+            });
+        } catch (error) { console.warn('Review corrections could not be restored', error); }
+    }
+    function submitAction(action) {
+        const form = document.getElementById("translation-action-form");
+        if (action === "apply_translations") {
+            const rules = [...rulesList.querySelectorAll(".translation-rule")].map(row => ({
+                terms: row.querySelector(".translation-terms").value.trim(),
+                field: row.querySelector(".translation-field").value,
+                value: row.querySelector(".translation-value").value.trim()
+            })).filter(row => row.terms || row.value);
+            for (const rule of rules) {
+                if (!rule.terms || !rule.value || (rule.field === "age_range" && !/^\d{1,2}\s*[-–]\s*\d{1,2}$/.test(rule.value))) {
+                    window.alert("Each translation needs a matching phrase and a valid value for its selected field."); return;
+                }
+            }
+            if (reviewForm) {
+                const changesByClass = {};
+                reviewRows().forEach(row => {
+                    const key = rowKey(row);
+                    if (!key) return;
+                    const baseline = originalValues.get(key) || [];
+                    const changes = controls(row).map((el, i) => [i, readValue(el)])
+                        .filter(([i, value]) => JSON.stringify(value) !== JSON.stringify(baseline[i]));
+                    const savedSplit = !!row.querySelector('.js-split-save-result')?.textContent?.trim();
+                    if (changes.length || savedSplit) changesByClass[key] = {changes, savedSplit};
+                });
+                sessionStorage.setItem(storageKey, JSON.stringify(changesByClass));
+            }
+            document.getElementById("translation-rules-json").value = JSON.stringify(rules);
+        } else {
+            if (!window.confirm("Start fresh? This discards manual review edits and removes preview translations for this file.")) return;
+            sessionStorage.removeItem(storageKey);
+        }
+        document.getElementById("review-action").value = action;
+        form.submit();
+    }
+    document.getElementById("apply-review-translations").addEventListener("click", () => submitAction("apply_translations"));
+    document.getElementById("refresh-review-fresh").addEventListener("click", () => submitAction("start_fresh"));
+});
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("vendor-discovery-form");
+    const hidden = document.getElementById("selected-json");
+    if (!form || !hidden) return;
+
+    function syncVendorSelections() {
+        const selected = Array.from(
+            form.querySelectorAll(".vendor-select-checkbox:checked")
+        ).map(function (checkbox) {
+            return checkbox.dataset.key;
+        });
+        hidden.value = JSON.stringify(selected);
+    }
+
+    function optionName(select) {
+        if (!select || !select.value || select.value === "none") return "";
+        const option = select.options[select.selectedIndex];
+        return option ? (option.dataset.name || option.textContent.trim()) : "";
+    }
+
+    function standardName(typeName, levelName) {
+        if (!typeName) return "";
+        return levelName ? typeName + " - " + levelName : typeName;
+    }
+
+    function renumberSplitRows(card) {
+        const rows = Array.from(
+            card.querySelectorAll(".js-split-row-list > .js-split-row")
+        );
+
+        rows.forEach(function (row, position) {
+            const index = position + 1;
+            row.dataset.splitIndex = index;
+
+            const number = row.querySelector(".js-split-number");
+            if (number) number.textContent = index;
+
+            const type = row.querySelector(".js-standard-name-part");
+            const level = row.querySelector(".js-standard-level-part");
+            const preview = row.querySelector(".js-standard-name-preview");
+            const start = row.querySelector('input[type="time"]:first-of-type');
+            const times = row.querySelectorAll('input[type="time"]');
+            const end = times.length > 1 ? times[1] : null;
+
+            if (type) {
+                type.dataset.resolutionField = "item_" + index + "_class_type_id";
+                type.dataset.standardIndex = index;
+            }
+            if (level) {
+                level.dataset.resolutionField = "item_" + index + "_level_id";
+                level.dataset.standardIndex = index;
+            }
+            if (preview) {
+                preview.dataset.standardIndex = index;
+            }
+            if (start) {
+                start.dataset.resolutionField = "item_" + index + "_start";
+            }
+            if (end) {
+                end.dataset.resolutionField = "item_" + index + "_end";
+            }
+
+            const remove = row.querySelector(".js-remove-split");
+            if (remove) {
+                remove.disabled = rows.length <= 2;
+            }
+        });
+
+        syncStandardNamePreviews(card);
+    }
+
+    function syncStandardNamePreviews(card) {
+        if (card.dataset.resolutionKind !== "split") return;
+
+        card.querySelectorAll(".js-split-row").forEach(function (row) {
+            const type = row.querySelector(".js-standard-name-part");
+            const level = row.querySelector(".js-standard-level-part");
+            const preview = row.querySelector(".js-standard-name-preview");
+            const heading = row.querySelector(".js-split-heading");
+
+            const typeName = optionName(type);
+            const levelName = optionName(level);
+            const name = standardName(typeName, levelName);
+
+            if (preview) preview.value = name;
+            if (heading) heading.textContent = typeName || "New Class Split";
+        });
+
+        const keepPreview = card.querySelector(".js-keep-name-preview");
+        if (keepPreview) {
+            keepPreview.value = standardName(
+                optionName(card.querySelector(".js-keep-type")),
+                optionName(card.querySelector(".js-keep-level"))
+            );
+        }
+    }
+
+    function wireDynamicSplitRow(card, row) {
+        row.querySelectorAll(".js-resolution-value").forEach(function (field) {
+            const eventName = (
+                field.tagName === "SELECT"
+                || field.type === "date"
+                || field.type === "time"
+            ) ? "change" : "input";
+
+            field.addEventListener(eventName, function () {
+                syncStandardNamePreviews(card);
+
+                const applyAll = card.querySelector(".js-apply-resolution");
+                if (applyAll && applyAll.checked) {
+                    applyResolutionToGroup(card);
+                }
+
+                syncRowsAndCounts();
+            });
+        });
+
+        const remove = row.querySelector(".js-remove-split");
+        if (remove) {
+            remove.addEventListener("click", function () {
+                const rows = card.querySelectorAll(
+                    ".js-split-row-list > .js-split-row"
+                );
+                if (rows.length <= 2) return;
+
+                row.remove();
+                renumberSplitRows(card);
+
+                const applyAll = card.querySelector(".js-apply-resolution");
+                if (applyAll && applyAll.checked) {
+                    applyResolutionToGroup(card);
+                }
+
+                syncRowsAndCounts();
+            });
+        }
+    }
+
+    function addSplitRow(card) {
+        const template = card.querySelector(".js-split-row-template");
+        const list = card.querySelector(".js-split-row-list");
+        if (!template || !list) return null;
+
+        const fragment = template.content.cloneNode(true);
+        const row = fragment.querySelector(".js-split-row");
+        list.appendChild(fragment);
+
+        wireDynamicSplitRow(card, row);
+        renumberSplitRows(card);
+        return row;
+    }
+
+    function ensureSplitCount(card, desiredCount) {
+        const list = card.querySelector(".js-split-row-list");
+        if (!list) return;
+
+        let rows = Array.from(
+            list.querySelectorAll(":scope > .js-split-row")
+        );
+
+        while (rows.length < desiredCount) {
+            addSplitRow(card);
+            rows = Array.from(
+                list.querySelectorAll(":scope > .js-split-row")
+            );
+        }
+
+        while (rows.length > desiredCount && rows.length > 2) {
+            rows[rows.length - 1].remove();
+            rows = Array.from(
+                list.querySelectorAll(":scope > .js-split-row")
+            );
+        }
+
+        renumberSplitRows(card);
+    }
+
+    function syncResolutionPanel(card) {
+        const action = card.querySelector(".js-resolution-action");
+        if (!action) return;
+
+        const value = action.value;
+        const kind = card.dataset.resolutionKind;
+
+        card.querySelectorAll(".resolution-existing").forEach(function (node) {
+            node.style.display = value === "existing" ? "block" : "none";
+        });
+
+        card.querySelectorAll(".resolution-new").forEach(function (node) {
+            node.style.display = value === "new" ? "block" : "none";
+        });
+
+        if (kind === "split") {
+            card.querySelectorAll(".resolution-split").forEach(function (node) {
+                node.hidden = value !== "split";
+            });
+            card.querySelectorAll(".resolution-keep").forEach(function (node) {
+                node.hidden = value !== "keep";
+            });
+        }
+
+        syncStandardNamePreviews(card);
+    }
+
+    function validTimeRange(startValue, endValue) {
+        if (!startValue || !endValue) return false;
+        return endValue > startValue;
+    }
+
+    function resolutionComplete(card) {
+        const kind = card.dataset.resolutionKind;
+
+        if (kind === "season") {
+            const name = card.querySelector('[data-resolution-field="name"]');
+            const start = card.querySelector('[data-resolution-field="start"]');
+            const end = card.querySelector('[data-resolution-field="end"]');
+            return !!(
+                name && name.value.trim()
+                && start && start.value
+                && end && end.value
+                && end.value >= start.value
+            );
+        }
+
+        if (kind === "instructor") {
+            const action = card.querySelector('[data-resolution-field="action"]');
+            if (!action || !action.value) return false;
+
+            if (action.value === "existing") {
+                const existing = card.querySelector('[data-resolution-field="existing"]');
+                return !!(existing && existing.value);
+            }
+
+            if (action.value === "new") {
+                const first = card.querySelector('[data-resolution-field="first"]');
+                const last = card.querySelector('[data-resolution-field="last"]');
+                return !!(
+                    first && first.value.trim()
+                    && last && last.value.trim()
+                );
+            }
+            return false;
+        }
+
+        if (kind === "class_type") {
+            const action = card.querySelector('[data-resolution-field="action"]');
+            if (!action || !action.value) return false;
+
+            if (action.value === "existing") {
+                const existing = card.querySelector('[data-resolution-field="existing"]');
+                return !!(existing && existing.value);
+            }
+
+            if (action.value === "new") {
+                const name = card.querySelector('[data-resolution-field="name"]');
+                return !!(name && name.value.trim());
+            }
+            return false;
+        }
+
+        if (kind === "split") {
+            const action = card.querySelector('[data-resolution-field="action"]');
+            if (!action || !action.value) return false;
+
+            if (action.value === "keep") {
+                const type = card.querySelector('[data-resolution-field="keep_class_type_id"]');
+                const level = card.querySelector('[data-resolution-field="keep_level_id"]');
+                return !!(
+                    type && type.value
+                    && level && level.value
+                );
+            }
+
+            if (action.value === "split") {
+                const rows = Array.from(
+                    card.querySelectorAll(
+                        ".js-split-row-list > .js-split-row"
+                    )
+                );
+
+                if (rows.length < 2) return false;
+
+                return rows.every(function (row) {
+                    const type = row.querySelector(".js-standard-name-part");
+                    const level = row.querySelector(".js-standard-level-part");
+                    const times = row.querySelectorAll('input[type="time"]');
+                    const start = times.length ? times[0] : null;
+                    const end = times.length > 1 ? times[1] : null;
+
+                    return !!(
+                        type && type.value
+                        && level && level.value
+                        && start && end
+                        && validTimeRange(start.value, end.value)
+                    );
+                });
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+
+    function statusLabel(status) {
+        if (status === "error") return "Needs Review";
+        if (status === "create") return "Create";
+        if (status === "update") return "Update";
+        if (status === "skip") return "Skip";
+        return status;
+    }
+
+    function setRowStatus(row, status) {
+        ["create", "update", "skip", "error"].forEach(function (value) {
+            row.classList.remove("status-" + value);
+        });
+        row.classList.add("status-" + status);
+        row.dataset.currentStatus = status;
+
+        const badge = row.querySelector(".js-live-status-badge");
+        if (badge) {
+            ["create", "update", "skip", "error"].forEach(function (value) {
+                badge.classList.remove(value);
+            });
+            badge.classList.add(status);
+            badge.textContent = statusLabel(status);
+        }
+
+        row.querySelectorAll(".js-row-error").forEach(function (node) {
+            node.style.display = status === "error" ? "" : "none";
+        });
+    }
+
+    function syncRowStatus(row) {
+        if (!row) return;
+
+        const original = row.dataset.originalStatus || "";
+        if (original !== "error") {
+            setRowStatus(row, original);
+            return;
+        }
+
+        const cards = Array.from(
+            row.querySelectorAll(".resolution-card")
+        );
+
+        if (!cards.length) {
+            setRowStatus(row, "error");
+            return;
+        }
+
+        const complete = cards.every(resolutionComplete);
+        setRowStatus(
+            row,
+            complete
+                ? (row.dataset.readyStatus || "create")
+                : "error"
+        );
+    }
+
+    function syncAllCounts() {
+        const counts = {
+            total: 0,
+            create: 0,
+            update: 0,
+            skip: 0,
+            error: 0
+        };
+
+        form.querySelectorAll("[data-proposal-row]").forEach(function (row) {
+            counts.total += 1;
+            const status = (
+                row.dataset.currentStatus
+                || row.dataset.originalStatus
+                || "error"
+            );
+            if (Object.prototype.hasOwnProperty.call(counts, status)) {
+                counts[status] += 1;
+            }
+        });
+
+        Object.keys(counts).forEach(function (key) {
+            const node = document.querySelector(
+                '[data-live-count="' + key + '"]'
+            );
+            if (node) node.textContent = counts[key];
+        });
+    }
+
+    function syncRowsAndCounts() {
+        form.querySelectorAll("[data-proposal-row]").forEach(syncRowStatus);
+        syncAllCounts();
+    }
+
+    function cardValues(card) {
+        const values = {};
+        card.querySelectorAll(".js-resolution-value").forEach(function (field) {
+            if (!field.dataset.resolutionField) return;
+            values[field.dataset.resolutionField] = field.value;
+        });
+        return values;
+    }
+
+    function splitCountFromValues(values) {
+        const indexes = new Set();
+        Object.keys(values).forEach(function (key) {
+            const match = key.match(/^item_(\d+)_class_type_id$/);
+            if (match) indexes.add(parseInt(match[1], 10));
+        });
+        return indexes.size;
+    }
+
+    function setCardValues(card, values) {
+        if (card.dataset.resolutionKind === "split") {
+            const count = splitCountFromValues(values);
+            if (count >= 2) ensureSplitCount(card, count);
+        }
+
+        card.querySelectorAll(".js-resolution-value").forEach(function (field) {
+            const key = field.dataset.resolutionField;
+            if (!key) return;
+            field.value = Object.prototype.hasOwnProperty.call(values, key)
+                ? values[key]
+                : "";
+        });
+
+        syncResolutionPanel(card);
+        syncStandardNamePreviews(card);
+    }
+
+    function clearAppliedCard(card) {
+        card.querySelectorAll(".js-resolution-value").forEach(function (field) {
+            if (field.dataset.resolutionField) field.value = "";
+        });
+
+        if (card.dataset.resolutionKind === "split") {
+            ensureSplitCount(card, 2);
+        }
+
+        syncResolutionPanel(card);
+        delete card.dataset.appliedFrom;
+    }
+
+    function applyResolutionToGroup(sourceCard) {
+        const kind = sourceCard.dataset.resolutionKind;
+        const group = sourceCard.dataset.resolutionGroup;
+        const sourceId = sourceCard.dataset.resolutionId;
+        const values = cardValues(sourceCard);
+
+        form.querySelectorAll(
+            '.resolution-card[data-resolution-kind="' + kind + '"]'
+        ).forEach(function (targetCard) {
+            if (targetCard === sourceCard) return;
+            if (targetCard.dataset.resolutionGroup !== group) return;
+
+            setCardValues(targetCard, values);
+            targetCard.dataset.appliedFrom = sourceId;
+        });
+
+        syncRowsAndCounts();
+    }
+
+    function removeAppliedResolution(sourceCard) {
+        const kind = sourceCard.dataset.resolutionKind;
+        const group = sourceCard.dataset.resolutionGroup;
+        const sourceId = sourceCard.dataset.resolutionId;
+
+        form.querySelectorAll(
+            '.resolution-card[data-resolution-kind="' + kind + '"]'
+        ).forEach(function (targetCard) {
+            if (targetCard === sourceCard) return;
+            if (targetCard.dataset.resolutionGroup !== group) return;
+            if (targetCard.dataset.appliedFrom !== sourceId) return;
+
+            clearAppliedCard(targetCard);
+        });
+
+        syncRowsAndCounts();
+    }
+
+    form.querySelectorAll(".resolution-card").forEach(function (card) {
+        if (card.dataset.resolutionKind === "split") {
+            const addButton = card.querySelector(".js-add-split");
+            if (addButton) {
+                addButton.addEventListener("click", function () {
+                    addSplitRow(card);
+
+                    const applyAll = card.querySelector(".js-apply-resolution");
+                    if (applyAll && applyAll.checked) {
+                        applyResolutionToGroup(card);
+                    }
+
+                    syncRowsAndCounts();
+                });
+            }
+
+            card.querySelectorAll(".js-split-row").forEach(function (row) {
+                wireDynamicSplitRow(card, row);
+            });
+            renumberSplitRows(card);
+        }
+
+        const action = card.querySelector(".js-resolution-action");
+        if (action) {
+            action.addEventListener("change", function () {
+                syncResolutionPanel(card);
+
+                const applyAll = card.querySelector(".js-apply-resolution");
+                if (applyAll && applyAll.checked) {
+                    applyResolutionToGroup(card);
+                }
+
+                syncRowsAndCounts();
+            });
+        }
+
+        if (card.dataset.resolutionKind !== "split") {
+            card.querySelectorAll(".js-resolution-value").forEach(function (field) {
+                const eventName = (
+                    field.tagName === "SELECT"
+                    || field.type === "date"
+                    || field.type === "time"
+                ) ? "change" : "input";
+
+                field.addEventListener(eventName, function () {
+                    const applyAll = card.querySelector(".js-apply-resolution");
+                    if (applyAll && applyAll.checked) {
+                        applyResolutionToGroup(card);
+                    }
+                    syncRowsAndCounts();
+                });
+            });
+        } else {
+            card.querySelectorAll(
+                ".resolution-keep .js-resolution-value"
+            ).forEach(function (field) {
+                field.addEventListener("change", function () {
+                    syncStandardNamePreviews(card);
+
+                    const applyAll = card.querySelector(".js-apply-resolution");
+                    if (applyAll && applyAll.checked) {
+                        applyResolutionToGroup(card);
+                    }
+
+                    syncRowsAndCounts();
+                });
+            });
+        }
+
+        syncResolutionPanel(card);
+    });
+
+    form.querySelectorAll(".js-apply-resolution").forEach(function (checkbox) {
+        checkbox.addEventListener("change", function () {
+            const sourceCard = checkbox.closest(".resolution-card");
+            if (!sourceCard) return;
+
+            if (checkbox.checked) {
+                applyResolutionToGroup(sourceCard);
+            } else {
+                removeAppliedResolution(sourceCard);
+            }
+
+            syncRowsAndCounts();
+        });
+    });
+
+    // Saving a multi-style resolution refreshes its visible proposal only.
+    // The final import still validates and applies the posted resolution server-side.
+    const classNamePattern = "{{ class_name_template|default:''|escapejs }}";
+    function refreshResolvedClassName(row, card) {
+        if (!row || row.dataset.historical === "true") return;
+        const editing = row.querySelector('.class-inline-edit [data-resolution-field="enabled"]');
+        if (editing && editing.value === "true") return; // Never erase a manual class edit.
+        const action = card.querySelector('[data-resolution-field="action"]')?.value;
+        if (action !== "keep") return; // Split resolutions produce multiple records.
+        const type = card.querySelector('.js-keep-type');
+        const level = card.querySelector('.js-keep-level');
+        if (!type?.value || !level?.value) return;
+        const selectedType = type.selectedOptions[0];
+        const selectedLevel = level.selectedOptions[0];
+        const typeName = selectedType?.dataset.name || selectedType?.textContent.trim() || "";
+        const levelName = level.value === "none" ? "" : (selectedLevel?.dataset.name || "");
+        const levelLabel = level.value === "none" ? "" : selectedLevel?.textContent.trim().match(/^Level\s+(\d+)/i)?.[1] || selectedLevel?.textContent.trim().match(/^(\d+)/)?.[1] || "";
+        const minAge = row.dataset.previewMinAge;
+        const maxAge = row.dataset.previewMaxAge;
+        const age = minAge && maxAge ? `${Number(minAge)}–${Number(maxAge)}` : minAge ? `${Number(minAge)}+` : maxAge ? `Up to ${Number(maxAge)}` : "";
+        const tokens = {TYPE:typeName, LEVEL_NAME:levelName, LEVEL_NUMBER:levelLabel, AGE_GROUP:age, SOURCE_NAME:row.dataset.sourceName || ""};
+        const name = classNamePattern.replace(/\{(TYPE|LEVEL_NAME|LEVEL_NUMBER|AGE_GROUP|SOURCE_NAME)\}/g, (_, key) => tokens[key] || "")
+            .replace(/\s+/g, " ").replace(/^[\s\-/|_,]+|[\s\-/|_,]+$/g, "").trim() || row.dataset.sourceName || "";
+        const heading = row.querySelector('.class-name-result');
+        if (heading) heading.textContent = name;
+        const comparison = row.querySelector('.class-name-comparison span:last-child');
+        if (comparison) {
+            comparison.replaceChildren();
+            const label = document.createElement('b'); label.textContent = 'Proposed Encore name';
+            comparison.append(label, document.createTextNode(name));
+        }
+        const nameInput = row.querySelector('.js-edited-class-name');
+        if (nameInput) nameInput.value = name;
+    }
+    form.querySelectorAll('.js-save-split-resolution').forEach(button => {
+        button.addEventListener('click', () => {
+            const card = button.closest('.resolution-card');
+            if (!card) return;
+            if (!resolutionComplete(card)) {
+                window.alert('Finish the class type and level resolution before saving.');
+                return;
+            }
+            const checkbox = card.querySelector('.js-apply-resolution');
+            if (checkbox?.checked) applyResolutionToGroup(card);
+            const affected = checkbox?.checked
+                ? [...form.querySelectorAll('.resolution-card[data-resolution-kind="split"]')].filter(other => other.dataset.resolutionGroup === card.dataset.resolutionGroup)
+                : [card];
+            affected.forEach(target => refreshResolvedClassName(target.closest('[data-proposal-row]'), target));
+            syncRowsAndCounts();
+            syncResolutionPayload();
+            const info = card.querySelector('.js-split-save-result');
+            if (info) info.textContent = checkbox?.checked
+                ? `Refreshed ${affected.length} matching class reviews. Changes will be saved when you import.`
+                : 'Class review refreshed. Changes will be saved when you import.';
+        });
+    });
+
+    function syncResolutionPayload() {
+        const payload = {};
+
+        form.querySelectorAll(".resolution-card").forEach(function (card) {
+            const id = card.dataset.resolutionId;
+            const kind = card.dataset.resolutionKind;
+            const group = card.dataset.resolutionGroup || "";
+            if (!id || !kind) return;
+
+            if (!payload[id]) payload[id] = {};
+            const values = {
+                group: group,
+                apply_all: false
+            };
+
+            card.querySelectorAll(".js-resolution-value").forEach(function (field) {
+                const key = field.dataset.resolutionField;
+                if (!key) return;
+                values[key] = field.value;
+            });
+
+            const applyAll = card.querySelector(".js-apply-resolution");
+            if (applyAll) values.apply_all = applyAll.checked;
+
+            payload[id][kind] = values;
+        });
+
+        const resolutionHidden = document.getElementById("resolutions-json");
+        if (resolutionHidden) {
+            resolutionHidden.value = JSON.stringify(payload);
+        }
+    }
+
+    form.querySelectorAll(".js-toggle-class-edit").forEach(button => {
+        button.addEventListener("click", () => {
+            const row = button.closest("[data-proposal-row]");
+            const panel = row.querySelector(".class-inline-edit");
+            panel.hidden = !panel.hidden;
+            button.setAttribute("aria-expanded", String(!panel.hidden));
+        });
+    });
+    form.querySelectorAll(".class-inline-edit").forEach(panel => {
+        panel.querySelectorAll("input, select").forEach(field => {
+            if (field.dataset.resolutionField === "enabled") return;
+            field.addEventListener("change", () => {
+                panel.querySelector('[data-resolution-field="enabled"]').value = "true";
+                if (field.dataset.resolutionField === "name") {
+                    const row = panel.closest("[data-proposal-row]");
+                    row.querySelectorAll(".class-name-result").forEach(node => node.textContent = field.value);
+                    const comparison = row.querySelector(".class-name-comparison span:last-child");
+                    if (comparison) comparison.innerHTML = "<b>Proposed Encore name (edited)</b>" + field.value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                }
+            });
+        });
+        panel.querySelector(".js-finish-class-edit").addEventListener("click", () => {
+            panel.hidden = true;
+            panel.closest("[data-proposal-row]").querySelector(".js-toggle-class-edit").setAttribute("aria-expanded", "false");
+        });
+    });
+    form.addEventListener("submit", function () {
+        syncVendorSelections();
+        syncResolutionPayload();
+    });
+
+    syncVendorSelections();
+    syncRowsAndCounts();
+    syncResolutionPayload();
+});
+</script>
+{% endblock %}

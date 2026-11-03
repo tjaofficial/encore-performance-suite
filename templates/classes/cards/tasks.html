@@ -1,28 +1,27 @@
-<article class="class-dashboard-card task-card">
-    <div class="class-card-heading">
+<article class="class-dashboard-card task-card dashboard-task-card">
+    <div class="dashboard-task-heading">
         <div>
-            <span class="card-kicker">Reminders / To-Do</span>
+            <span class="dashboard-task-kicker">Reminders / To-Do</span>
             <h2>Class Tasks</h2>
         </div>
 
         <a
-            class="task-card-header-action"
+            class="dashboard-task-add"
             href="{% url 'tasks:task_create' studio.slug %}?class={{ class_instance.id }}"
         >
             + Add Task
         </a>
     </div>
 
-    <div class="class-task-list task-checklist">
+    <div class="dashboard-task-list">
         {% for task in class_tasks %}
-            <div class="class-task-row priority-{{ task.priority }}">
+            <div class="dashboard-task-row priority-{{ task.priority }}">
                 <form
-                    class="task-complete-form"
+                    class="dashboard-task-complete"
                     method="post"
                     action="{% url 'tasks:task_toggle_complete' studio.slug task.id %}"
                 >
                     {% csrf_token %}
-
                     <input
                         type="hidden"
                         name="next"
@@ -31,83 +30,44 @@
 
                     <button
                         type="submit"
-                        class="task-check-button compact-task-check"
+                        class="dashboard-task-check"
                         aria-label="Complete {{ task.title }}"
                         title="Mark complete"
-                    ><span aria-hidden="true"></span></button>
+                    >
+                        <span aria-hidden="true"></span>
+                    </button>
                 </form>
 
-                <div class="task-row-copy">
-                    <strong>{{ task.title }}</strong>
+                <a
+                    class="dashboard-task-row-link"
+                    href="{% url 'tasks:task_detail' studio.slug task.id %}"
+                    aria-label="Open task: {{ task.title }}"
+                >
+                    <span class="dashboard-task-copy">
+                        <strong>{{ task.title }}</strong>
+                    </span>
 
-                    {% if task.due_date %}
-                        <small>
-                            Due {{ task.due_date|date:"M j" }}
-                        </small>
-                    {% endif %}
-                </div>
-
-                <div class="task-row-end">
-                    {% if task.due_date %}
-                        <span class="class-task-date">
-                            {{ task.due_date|date:"M j" }}
-                        </span>
-                    {% endif %}
-
-                {% if task.created_by_id == request.user.id or role == "administrator" %}
-                    <div class="task-row-menu" data-task-menu>
-                        <button
-                            type="button"
-                            class="task-row-menu-button"
-                            aria-label="Options for {{ task.title }}"
-                            aria-expanded="false"
-                            data-task-menu-button
-                        >
-                            ⋯
-                        </button>
-
-                        <div
-                            class="task-row-menu-popover"
-                            data-task-menu-popover
-                            hidden
-                        >
-                            <a
-                                href="{% url 'tasks:task_edit' studio.slug task.id %}?next={{ request.get_full_path|urlencode }}"
-                            >
-                                Edit
-                            </a>
-
-                            <form
-                                method="post"
-                                action="{% url 'tasks:task_delete' studio.slug task.id %}"
-                                onsubmit="return confirm('Delete this reminder?');"
-                            >
-                                {% csrf_token %}
-                                <input
-                                    type="hidden"
-                                    name="next"
-                                    value="{{ request.get_full_path }}"
-                                >
-                                <button type="submit">
-                                    Delete
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                {% endif %}
-                </div>
+                    <span class="dashboard-task-end">
+                        {% if task.due_date %}
+                            <span class="dashboard-task-date">
+                                {{ task.due_date|date:"M j" }}
+                            </span>
+                        {% endif %}
+                        <span class="dashboard-task-arrow" aria-hidden="true">›</span>
+                    </span>
+                </a>
             </div>
         {% empty %}
-            <div class="compact-task-empty">
-                No open class reminders.
+            <div class="dashboard-task-empty">
+                No open class tasks.
             </div>
         {% endfor %}
     </div>
 
     <a
-        class="class-card-link"
+        class="dashboard-task-footer"
         href="{% url 'tasks:task_list' studio.slug %}"
     >
-        View All Reminders →
+        View All Tasks →
     </a>
 </article>

@@ -1,0 +1,81 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Import Results | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}">{% endblock %}
+{% block topbar_title %}Import Results{% endblock %}
+
+{% block content %}
+<div class="settings-workspace">
+    {% include "includes/settings_nav.html" %}
+    <main class="settings-workspace-content">
+        <section class="settings-heading">
+            <div>
+                <a class="back-link" href="{% url 'studios:data_transfer_home' studio.slug %}">← Back to Data Import &amp; Export</a>
+                <p class="eyebrow">Import · Complete</p>
+                <h1>Import Results</h1>
+                <p>{{ job.original_filename }} · {{ import_type.label }} · {{ job.get_status_display }}</p>
+            </div>
+        </section>
+
+        {% if messages %}
+            <div class="message-stack">
+                {% for message in messages %}<div class="message-banner {{ message.tags }}">{{ message }}</div>{% endfor %}
+            </div>
+        {% endif %}
+
+        <section class="import-review-summary">
+            <div class="import-review-stat"><span>Total</span><strong>{{ job.total_rows }}</strong><small>CSV rows</small></div>
+            <div class="import-review-stat create"><span>Created</span><strong>{{ job.created_count }}</strong><small>New records</small></div>
+            <div class="import-review-stat update"><span>Updated</span><strong>{{ job.updated_count }}</strong><small>Existing records</small></div>
+            <div class="import-review-stat skip"><span>Skipped</span><strong>{{ job.skipped_count }}</strong><small>No change / duplicate</small></div>
+            <div class="import-review-stat error"><span>Errors / Failed</span><strong>{{ job.error_count|add:job.failed_count }}</strong><small>Not imported</small></div>
+        </section>
+
+        {% if job.rejected_file %}
+            <section class="settings-section-block rejected-download-card">
+                <div class="settings-section-heading">
+                    <div>
+                        <span>Follow-up File</span>
+                        <h2>{{ job.not_imported_count }} row{{ job.not_imported_count|pluralize }} were not imported</h2>
+                        <p>Download the CSV to see the original row plus Encore's result, reason, and validation details. Fix the rows and import them again when ready.</p>
+                    </div>
+                    <a class="button primary" href="{% url 'studios:data_import_rejected_csv' studio.slug job.id %}">Download Not-Imported CSV</a>
+                </div>
+            </section>
+        {% endif %}
+
+        {% if job.failure_message %}
+            <div class="message-banner error">{{ job.failure_message }}</div>
+        {% endif %}
+
+        <section class="settings-panel import-review-table-panel">
+            <div class="import-review-table-wrap">
+                <table class="import-review-table">
+                    <thead>
+                        <tr><th>CSV Row</th><th>Record</th><th>Result</th><th>Reason</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for row in row_results %}
+                            <tr class="import-result-row result-{{ row.status }}">
+                                <td class="row-number">{{ row.row_number }}</td>
+                                <td><strong>{{ row.label }}</strong></td>
+                                <td><span class="import-status-badge {{ row.status }}">{{ row.get_status_display }}</span></td>
+                                <td>{{ row.reason }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="4" class="import-review-empty">No row results were recorded.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <div class="form-actions import-history-actions">
+            <a class="button secondary" href="{% url 'studios:data_transfer_home' studio.slug %}">Back to Data Import &amp; Export</a>
+            <a class="button secondary" href="{% url 'studios:data_import_history_detail' studio.slug job.id %}">View Import History</a>
+            <a class="button primary" href="{% url 'studios:data_import_upload' studio.slug %}">Start Another Import</a>
+        </div>
+    </main>
+</div>
+{% endblock %}

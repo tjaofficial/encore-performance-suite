@@ -2,13 +2,13 @@
     <div class="class-card-heading">
         <div>
             <span class="card-kicker">Dances</span>
-            <h2>Choreography & Staging</h2>
+            <h2>Dances</h2>
         </div>
-        <span class="class-card-icon">◇</span>
+        <a href="{% url 'performance:plan_list' studio.slug %}?class={{ class_instance.id }}">View All →</a>
     </div>
 
     {% if performance_plan %}
-        <div class="performance-plan-summary">
+        <a class="performance-plan-summary class-dance-clickable" href="{% url 'performance:plan_detail' studio.slug performance_plan.id %}">
             <strong>{{ performance_plan.title }}</strong>
             {% if performance_plan.song_title %}
                 <span>
@@ -18,13 +18,6 @@
                     {% endif %}
                 </span>
             {% endif %}
-        </div>
-
-        <a
-            class="class-card-button"
-            href="{% url 'performance:plan_detail' studio.slug performance_plan.id %}"
-        >
-            Open Dance
         </a>
     {% else %}
         <p class="class-card-description">
@@ -33,7 +26,7 @@
 
         <a
             class="class-card-button"
-            href="{% url 'performance:plan_list' studio.slug %}"
+            href="{% url 'performance:plan_list' studio.slug %}?class={{ class_instance.id }}"
         >
             Open Dances
         </a>

@@ -1,1 +1,17 @@
-<article class="admin-dashboard-card"><div class="card-heading"><div><span class="card-kicker">Next 30 Days</span><h2>Upcoming Events</h2></div></div>{% if upcoming_events %}<div class="timeline-list admin-card-scroll">{% for event in upcoming_events %}<div class="timeline-item"><div class="timeline-date"><strong>{{ event.start_at|date:"M" }}</strong><span>{{ event.start_at|date:"j" }}</span></div><div><strong>{{ event.title }}</strong><span>{{ event.start_at|date:"g:i A" }}{% if event.location %} · {{ event.location }}{% endif %}</span></div></div>{% endfor %}</div>{% else %}<div class="empty-state">No upcoming studio events.</div>{% endif %}</article>
+<article class="admin-dashboard-card admin-standard-card card-tone-cyan">
+    <div class="card-heading"><h2>Upcoming Events</h2><a class="event-calendar-link" href="{% url 'scheduling:calendar' studio.slug %}">See Calendar →</a></div>
+    {% if upcoming_events %}
+        <div class="timeline-list admin-card-scroll">
+            {% for event in upcoming_events %}
+                <details class="timeline-item encore-event-preview"><summary>
+                    <div class="timeline-date"><strong>{{ event.start_at|date:"M" }}</strong><span>{{ event.start_at|date:"j" }}</span></div>
+                    <div><strong>{{ event.title }}</strong><span>{{ event.start_at|date:"g:i A" }}{% if event.location %} · {{ event.location }}{% endif %}</span></div>
+                </summary>
+                {% include "dashboard/includes/event_preview_detail.html" %}
+                </details>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state"><span class="empty-state-icon">□</span><strong>Calendar is clear</strong><span>No upcoming studio events in the next 30 days.</span></div>
+    {% endif %}
+</article>

@@ -1,0 +1,19 @@
+.notification-settings-form { display:grid; gap:14px; }
+.notification-settings-card { border:1px solid color-mix(in srgb,var(--encore-primary) 18%,var(--encore-border)); border-radius:14px; background:var(--encore-surface); padding:18px; box-shadow:0 8px 22px rgba(15,23,42,.04); }
+.notification-settings-card-heading { padding-bottom:12px; border-bottom:1px solid var(--encore-border); }
+.notification-settings-card-heading > span { color:var(--encore-primary); font-size:.58rem; font-weight:900; letter-spacing:.08em; text-transform:uppercase; }
+.notification-settings-card-heading h2 { margin:4px 0; }
+.notification-settings-card-heading p,.notification-settings-note { margin:0; color:var(--encore-muted); font-size:.72rem; }
+.notification-setting-list { display:grid; }
+.notification-setting-row { display:flex; align-items:center; justify-content:space-between; gap:18px; padding:14px 2px; border-bottom:1px solid var(--encore-border); }
+.notification-setting-row:last-child { border-bottom:0; }
+.notification-setting-row > span,.notification-setting-reminder > label > span { display:grid; gap:3px; }
+.notification-setting-row strong { font-size:.72rem; }
+.notification-setting-row small { color:var(--encore-muted); font-size:.63rem; }
+.notification-setting-row input[type="checkbox"] { width:18px; height:18px; accent-color:var(--encore-primary); flex:0 0 auto; }
+.notification-setting-reminder { display:grid; grid-template-columns:minmax(0,1fr) auto; }
+.notification-setting-reminder > label { display:flex; align-items:center; justify-content:space-between; gap:18px; }
+.notification-days-control { display:flex; align-items:center; gap:7px; color:var(--encore-muted); font-size:.64rem; }
+.notification-days-control input { width:68px; min-height:36px; border:1px solid var(--encore-border); border-radius:8px; padding:0 8px; }
+.notification-settings-actions { display:flex; justify-content:flex-end; }
+@media (max-width:760px) { .notification-setting-row,.notification-setting-reminder { grid-template-columns:1fr; align-items:flex-start; } .notification-setting-row { flex-direction:column; } }

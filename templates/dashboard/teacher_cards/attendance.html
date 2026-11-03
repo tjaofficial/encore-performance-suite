@@ -1,0 +1,22 @@
+<article class="dashboard-widget teacher-card-shell teacher-attendance-widget">
+  <div class="widget-heading">
+    <div class="widget-title-group"><span class="widget-icon">◉</span><div><span class="widget-kicker">Attendance</span><h2>Attendance Overview</h2></div></div>
+  </div>
+  <div class="teacher-attendance-layout"><div class="teacher-attendance-body">
+    <div class="teacher-attendance-meter" style="--progress: {{ teacher_attendance_percent|default:0 }}%;">
+      <div class="teacher-attendance-meter-inner"><strong>{% if teacher_attendance_percent is not None %}{{ teacher_attendance_percent }}%{% else %}—{% endif %}</strong><small>PRESENT</small></div>
+    </div>
+    <div class="teacher-attendance-summary"><strong>{{ teacher_attendance_present }} of {{ teacher_attendance_total }}</strong><span>attendance records marked present, late or left early</span><small>Last 60 days · assigned classes</small></div>
+  </div>
+  <div class="teacher-attendance-right"><div class="teacher-attendance-recent-title">Recent Absences</div>
+  <div class="teacher-attendance-absences">
+    {% for record in teacher_recent_absences %}
+      <div class="teacher-attendance-row">
+        <div><strong>{{ record.student.first_name }} {{ record.student.last_name }}</strong><small>{{ record.session.class_instance.name }} · {{ record.session.session_date|date:"M j" }}</small></div>
+        <span class="teacher-absence-pill">Absent</span>
+      </div>
+    {% empty %}
+      <p class="teacher-attendance-empty">No absences recorded in the last 60 days.</p>
+    {% endfor %}
+  </div></div></div>
+</article>

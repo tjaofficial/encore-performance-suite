@@ -1,3 +1,5 @@
+{% load dashboard_quick_links %}
+{% dashboard_icon_choices as quick_link_icon_choices %}
 <input
     type="hidden"
     id="quick-links-json"
@@ -40,28 +42,74 @@
 
     <div class="dashboard-custom-shortcuts">
         <div class="custom-shortcuts-heading">
-            <strong>Custom Shortcuts</strong>
-            <small>Optional external or internal links.</small>
+            <div class="custom-shortcuts-title-line">
+                <strong>Custom Shortcuts</strong>
+
+                {% include "includes/info_bubble.html" with text="Add shortcuts to pages you use often. External example: https://www.studiodirector.com. Internal Encore example: /tasks/your-studio-slug/. Enter both a label and a URL. Two shortcut slots show by default; use + Add Link to add up to four." %}
+            </div>
+
+            <small>
+                Optional external or internal links.
+                Two shortcut slots are shown by default.
+            </small>
         </div>
 
+        <div class="custom-shortcuts-list">
         {% for custom in quick_links_custom %}
-            <div class="custom-shortcut-row">
-                <input
-                    type="text"
-                    value="{{ custom.label }}"
-                    maxlength="80"
-                    placeholder="Label"
-                    data-custom-quick-link-label
-                >
-
-                <input
-                    type="url"
-                    value="{{ custom.url }}"
-                    maxlength="1000"
-                    placeholder="https://..."
-                    data-custom-quick-link-url
-                >
+            <div class="custom-shortcut-row" data-custom-quick-link-row
+                 {% if forloop.counter > 2 and not custom.label and not custom.url %}hidden{% endif %}>
+                <div class="custom-shortcut-row-heading">
+                    <div class="custom-shortcut-row-number">{{ forloop.counter|stringformat:"02d" }}</div>
+                    <div class="custom-shortcut-row-title">
+                        <strong>Shortcut {{ forloop.counter }}</strong>
+                        <small>Set its name, destination, and appearance.</small>
+                    </div>
+                    <div class="custom-shortcut-row-actions">
+                        <div class="custom-shortcut-preview" aria-live="polite">
+                            <span class="custom-shortcut-preview-icon" data-custom-quick-link-preview-icon>↗</span>
+                            <span data-custom-quick-link-preview-label>{{ custom.label|default:"New shortcut" }}</span>
+                        </div>
+                        <button type="button" class="custom-shortcut-clear" data-custom-quick-link-clear
+                            aria-label="Clear shortcut {{ forloop.counter }}">Clear</button>
+                    </div>
+                </div>
+                <div class="custom-shortcut-fields">
+                    <label class="custom-shortcut-field custom-shortcut-field-name">
+                        <span class="custom-shortcut-field-label">Shortcut name</span>
+                        <input type="text" value="{{ custom.label }}" maxlength="80"
+                            placeholder="e.g. Studio Director" autocomplete="off"
+                            data-custom-quick-link-label>
+                    </label>
+                    <label class="custom-shortcut-field custom-shortcut-field-url">
+                        <span class="custom-shortcut-field-label">Destination URL</span>
+                        <input type="text" value="{{ custom.url }}" maxlength="1000"
+                            placeholder="https://example.com or /internal/path/"
+                            data-custom-quick-link-url>
+                        <small>External links or internal Encore paths are supported.</small>
+                    </label>
+                    <label class="custom-shortcut-field custom-shortcut-field-icon">
+                        <span class="custom-shortcut-field-label">Icon</span>
+                        <select data-custom-quick-link-icon>
+                            {% for icon_value, icon_label in quick_link_icon_choices %}
+                                <option value="{{ icon_value }}" {% if custom.icon == icon_value %}selected{% endif %}>{{ icon_label }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                </div>
             </div>
         {% endfor %}
+        </div>
+
+        <button
+            class="button secondary custom-shortcut-add"
+            type="button"
+            data-add-custom-quick-link
+        >
+            + Add Link
+        </button>
+
+        <small class="custom-shortcut-limit-note">
+            Up to 4 custom shortcuts can be added to this dashboard.
+        </small>
     </div>
 </section>

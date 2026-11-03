@@ -18,13 +18,13 @@
     <div>
         <a
             class="back-link"
-            href="{% url 'resources:resource_list' studio.slug %}"
+            href="{% if is_video_create %}{{ video_return_url }}{% elif dance_context %}{% url 'performance:plan_detail' studio.slug dance_context.id %}{% else %}{% url 'resources:resource_list' studio.slug %}{% endif %}"
         >
-            ← Back to Class Resources
+            {% if is_video_create %}← Back to Video Manager{% elif dance_context %}← Back to Dance Resources{% else %}← Back to Class Resources{% endif %}
         </a>
 
         <p class="eyebrow">
-            Class Resources
+            {% if dance_media_type == "music" %}MUSIC SUBMISSION{% elif dance_media_type == "video" %}REHEARSAL VIDEO{% else %}CLASS RESOURCES{% endif %}
         </p>
 
         <h1>
@@ -32,19 +32,19 @@
         </h1>
 
         <p>
-            Upload music/documents or connect an external video/resource.
+            {% if dance_media_type == "music" %}Submit music for this dance. Teacher submissions require administrator approval before families can hear them.{% elif dance_media_type == "video" %}Add a YouTube link and title to this dance’s rehearsal library.{% else %}Add a resource to the class or dance.{% endif %}
         </p>
     </div>
 </section>
 
-<div class="resource-tip">
+{% if not dance_media_type %}<div class="resource-tip">
     <strong>For class videos:</strong>
 
     <span>
         use a YouTube/Vimeo/external URL instead of uploading the video file.
         Music and documents can be uploaded directly to Encore.
     </span>
-</div>
+</div>{% endif %}
 
 <form
     method="post"
@@ -62,35 +62,19 @@
     <section class="resource-form-card">
         <div class="form-grid">
             {% for field in form %}
-                <div
-                    class="field-group
-                    {% if field.name == 'description' %}full{% endif %}"
-                >
+                {% if field.name == "resource_type" and dance_media_type %}
+                    <div hidden>{{ field }}</div>
+                {% else %}
+                    <div class="field-group {% if field.name == 'description' %}full{% endif %}">
                     {% if field.field.widget.input_type == "checkbox" %}
-                        <label class="checkbox-line">
-                            {{ field }}
-
-                            <span>
-                                {{ field.label }}
-                            </span>
-                        </label>
+                        <label class="checkbox-line">{{ field }} <span>{{ field.label }}</span></label>
                     {% else %}
-                        {{ field.label_tag }}
-                        {{ field }}
+                        {{ field.label_tag }} {{ field }}
                     {% endif %}
-
-                    {% if field.help_text %}
-                        <small>
-                            {{ field.help_text }}
-                        </small>
-                    {% endif %}
-
-                    {% for error in field.errors %}
-                        <small class="field-error">
-                            {{ error }}
-                        </small>
-                    {% endfor %}
-                </div>
+                    {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                    {% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+                    </div>
+                {% endif %}
             {% endfor %}
         </div>
     </section>
@@ -98,7 +82,7 @@
     <div class="form-actions">
         <a
             class="button secondary"
-            href="{% url 'resources:resource_list' studio.slug %}"
+            href="{% if is_video_create %}{{ video_return_url }}{% elif dance_context %}{% url 'performance:plan_detail' studio.slug dance_context.id %}{% else %}{% url 'resources:resource_list' studio.slug %}{% endif %}"
         >
             Cancel
         </a>

@@ -1,0 +1,14 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+{% block title %}Email Details | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_communications.css' %}">{% endblock %}
+{% block content %}
+<div class="email-activity-shell">
+<header class="email-activity-heading"><div><p class="eyebrow">EMAIL MANAGER / EMAIL ACTIVITY</p><h1>{{ record.subject }}</h1><p>Sending and delivery evidence. Delivery does not confirm the message was opened or read.</p></div><a class="email-activity-action" href="{% url 'communications:email_activity' studio.slug %}">← Activity Log</a></header>
+<section class="email-activity-panel email-activity-detail">
+<div><span class="email-activity-status email-activity-status--{{ record.status }}">{{ record.status|title }}</span></div>
+<dl class="email-activity-meta"><div><dt>To</dt><dd>{{ record.to_addresses|join:', ' }}</dd></div><div><dt>From</dt><dd>{{ record.sender }}</dd></div><div><dt>CC</dt><dd>{{ record.cc_addresses|join:', '|default:'—' }}</dd></div><div><dt>BCC</dt><dd>{{ record.bcc_addresses|join:', '|default:'—' }}</dd></div><div><dt>Reply-To</dt><dd>{{ record.reply_to_addresses|join:', '|default:'—' }}</dd></div><div><dt>Category</dt><dd>{{ record.category|default:'General' }}</dd></div><div><dt>Created</dt><dd>{{ record.created_at|date:'M j, Y g:i:s A' }}</dd></div><div><dt>SES accepted</dt><dd>{{ record.accepted_at|date:'M j, Y g:i:s A'|default:'Not recorded' }}</dd></div><div><dt>Delivered</dt><dd>{{ record.delivered_at|date:'M j, Y g:i:s A'|default:'Not confirmed' }}</dd></div><div><dt>SES Message ID</dt><dd>{{ record.provider_message_id|default:'—' }}</dd></div></dl>
+{% if record.error %}<section><h2>Delivery error</h2><div class="email-activity-message">{{ record.error }}</div></section>{% endif %}
+<section><h2>Original email content</h2><div class="email-activity-message">{{ record.text_body|default:'No plain-text body stored.' }}</div><details><summary>View escaped HTML source</summary><pre>{{ record.html_body }}</pre></details></section>
+<section><h2>Delivery timeline</h2><ul class="email-activity-events">{% for event in record.delivery_events.all %}<li><strong>{{ event.event_type|title }}</strong> · {{ event.occurred_at|date:'M j, Y g:i:s A' }}</li>{% empty %}<li>No independent delivery events recorded yet.</li>{% endfor %}</ul></section>
+</section></div>{% endblock %}

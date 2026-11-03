@@ -16,6 +16,16 @@ urlpatterns = [
         name="registration_success",
     ),
     path(
+        "register/verify/<uuid:token>/",
+        views.verify_registration_email,
+        name="verify_registration_email",
+    ),
+    path(
+        "register/resend-verification/",
+        views.resend_registration_verification,
+        name="resend_registration_verification",
+    ),
+    path(
         "login/",
         views.login_view,
         name="login",

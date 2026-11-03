@@ -1,0 +1,40 @@
+{% extends "dashboard/parent_portal_base.html" %}
+{% load static %}
+{% block title %}My Account | {{ studio.name }}{% endblock %}
+{% block parent_portal_heading %}My Account{% endblock %}
+{% block parent_extra_css %}<link rel="stylesheet" href="{% static 'css/encore_parent_account_redesign.css' %}">{% endblock %}
+{% block parent_content %}
+<div class="pa-account-shell">
+  <header class="pa-account-intro">
+    <div class="pa-account-avatar" aria-hidden="true">{{ profile_guardian.first_name|first }}{{ profile_guardian.last_name|first }}</div>
+    <div class="pa-account-intro-copy"><span class="pa-kicker">ACCOUNT SETTINGS</span>
+      <h2>{{ profile_guardian.first_name }} {{ profile_guardian.last_name }}</h2>
+      <p>Update your account details and manage who can access your family.</p>
+    </div>
+  </header>
+  <div class="pa-account-layout">
+    <section class="pa-account-panel pa-account-edit">
+      <div class="pa-panel-head"><div><span class="pa-kicker">PERSONAL INFORMATION</span><h3>Contact Details</h3><p>The details associated with your Encore login.</p></div></div>
+      <form method="post" class="pa-account-form">
+        {% csrf_token %}
+        <div class="pa-account-form-grid">
+          <label><span>First Name</span><input type="text" name="first_name" autocomplete="given-name" value="{{ request.user.first_name }}" required></label>
+          <label><span>Last Name</span><input type="text" name="last_name" autocomplete="family-name" value="{{ request.user.last_name }}" required></label>
+          <label><span>Login Email</span><input type="email" value="{{ request.user.email }}" disabled><small>Your sign-in email is managed separately.</small></label>
+          <label><span>Phone Number</span><input type="tel" name="phone" autocomplete="tel" value="{{ profile_guardian.phone }}"></label>
+        </div>
+        <div class="pa-account-save"><span>Keep your contact information up to date so the studio can reach you.</span><button type="submit">Save Changes</button></div>
+      </form>
+    </section>
+    <aside class="pa-account-side">
+      <section class="pa-account-panel pa-family-panel"><span class="pa-kicker">FAMILY CONNECTION</span><h3>{{ family.family_name|default:"Family Account" }}</h3>
+        <p class="pa-family-relation">{{ profile_guardian.get_relationship_display|default:profile_guardian.relationship }}</p>
+        <div class="pa-family-flags">{% if profile_guardian.is_primary %}<span>Primary Guardian</span>{% endif %}{% if profile_guardian.is_financially_responsible %}<span>Financially Responsible</span>{% endif %}</div>
+      </section>
+      <section class="pa-account-panel pa-manage-panel"><span class="pa-kicker">GUARDIANS & ACCESS</span><h3>Manage Your Family</h3><p>Update guardian profiles, pickup permissions, and separate portal logins in one place.</p>
+        <a class="pa-manage-link" href="{% url 'families:parent_family_detail' studio.slug %}">Manage Family <span aria-hidden="true">→</span></a>
+      </section>
+    </aside>
+  </div>
+</div>
+{% endblock %}

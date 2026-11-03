@@ -11,6 +11,7 @@ class ClassResourceForm(forms.ModelForm):
         model = ClassResource
         fields = [
             "class_instance",
+            "dance",
             "resource_type",
             "title",
             "artist",
@@ -57,6 +58,23 @@ class ClassResourceForm(forms.ModelForm):
                 .select_related("season")
                 .order_by("name")
             )
+
+        from performance.models import ChoreographyPlan
+        dances = ChoreographyPlan.objects.none()
+        if studio is not None:
+            dances = ChoreographyPlan.objects.filter(studio=studio)
+            if teacher_mode and instructor is not None:
+                dances = dances.filter(
+                    Q(class_instance__instructor=instructor)
+                    | Q(class_instance__assistant_instructor=instructor)
+                ).distinct()
+        self.fields["dance"].queryset = dances.select_related("class_instance").order_by("class_instance__name", "title")
+        self.fields["dance"].required = False
+        self.fields["dance"].label = "Dance (optional)"
+
+        # Dance resources cannot silently be assigned to another class.
+        if self.instance.pk and self.instance.dance_id:
+            self.fields["class_instance"].help_text = "Must match the selected dance's class."
 
         for field in self.fields.values():
             if isinstance(field.widget, forms.CheckboxInput):

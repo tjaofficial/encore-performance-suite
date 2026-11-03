@@ -54,6 +54,10 @@
         rel="stylesheet"
         href="{% static 'css/encore_subscription.css' %}"
     >
+    <link
+        rel="stylesheet"
+        href="{% static 'css/encore_tour.css' %}"
+    >
     {% include "includes/studio_brand_vars.html" %}
     {% block extra_css %}{% endblock %}
 </head>
@@ -97,6 +101,10 @@
 
     <script
         src="{% static 'js/encore_app.js' %}"
+        defer
+    ></script>
+    <script
+        src="{% static 'js/encore_tour.js' %}"
         defer
     ></script>
 

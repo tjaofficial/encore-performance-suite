@@ -1,1 +1,15 @@
-<article class="admin-dashboard-card"><div class="card-heading"><div><span class="card-kicker">Student Community</span><h2>Upcoming Birthdays</h2></div></div>{% if upcoming_birthdays %}<div class="birthday-list admin-card-scroll">{% for item in upcoming_birthdays %}<div class="birthday-item"><div class="student-avatar">{{ item.student.first_name|slice:":1"|upper }}</div><div><strong>{{ item.student.first_name }} {{ item.student.last_name }}</strong><span>{{ item.date|date:"M j" }} · {% if item.days_until == 0 %}Today{% else %}{{ item.days_until }} days{% endif %}</span></div></div>{% endfor %}</div>{% else %}<div class="empty-state">No student birthdays in the next 30 days.</div>{% endif %}</article>
+<article class="admin-dashboard-card admin-standard-card card-tone-purple">
+    <div class="card-heading"><h2>Upcoming Birthdays</h2></div>
+    {% if upcoming_birthdays %}
+        <div class="birthday-list admin-card-scroll">
+            {% for item in upcoming_birthdays %}
+                <div class="birthday-item">
+                    <div class="student-avatar">{{ item.student.first_name|slice:":1"|upper }}</div>
+                    <div><strong>{{ item.student.first_name }} {{ item.student.last_name }}</strong><span>{{ item.date|date:"M j" }} · {% if item.days_until == 0 %}Today{% else %}{{ item.days_until }} days{% endif %}</span></div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state"><span class="empty-state-icon">✦</span><strong>No birthdays coming up</strong><span>No student birthdays in the next 30 days.</span></div>
+    {% endif %}
+</article>

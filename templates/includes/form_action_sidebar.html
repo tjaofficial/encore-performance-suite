@@ -1,0 +1,41 @@
+<aside class="encore-form-action-sidebar">
+    <section class="encore-form-save-card">
+        <span class="encore-form-sidebar-kicker">
+            {{ action_kicker }}
+        </span>
+
+        <h2>{{ action_title }}</h2>
+
+        <p>
+            {{ action_description }}
+        </p>
+
+        <button
+            class="button primary encore-form-sidebar-submit"
+            type="submit"
+        >
+            {{ submit_label }}
+        </button>
+
+        <a
+            class="button secondary encore-form-sidebar-cancel"
+            href="{{ cancel_url }}"
+        >
+            Cancel
+        </a>
+    </section>
+
+    {% if tip_title or tip_text %}
+        <section class="encore-form-tip-card">
+            <span>ENCORE TIP</span>
+
+            {% if tip_title %}
+                <strong>{{ tip_title }}</strong>
+            {% endif %}
+
+            {% if tip_text %}
+                <p>{{ tip_text }}</p>
+            {% endif %}
+        </section>
+    {% endif %}
+</aside>

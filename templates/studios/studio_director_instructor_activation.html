@@ -1,0 +1,203 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Instructor Activation | Studio Director Onboarding{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_instructor_onboarding.css' %}">
+{% endblock %}
+{% block topbar_title %}Instructor Activation{% endblock %}
+
+{% block content %}
+<div class="settings-workspace">
+    {% include "includes/settings_nav.html" %}
+    <main class="settings-workspace-content">
+        <section class="settings-heading">
+            <div>
+                <a class="back-link" href="{% url 'studios:studio_director_onboarding' studio.slug %}">
+                    ← Back to Studio Director Playbook
+                </a>
+                <p class="eyebrow">Studio Director · Instructor Accounts</p>
+                <h1>Activate Instructors</h1>
+                <p>
+                    Choose the imported instructors who should receive Encore access.
+                    Activation sends a secure profile-claim email and asks each teacher
+                    to verify their information and submit weekly availability.
+                </p>
+            </div>
+        </section>
+
+        {% if messages %}
+            <div class="message-stack">
+                {% for message in messages %}
+                    <div class="message-banner {{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post" data-activation-form>
+            {% csrf_token %}
+            <section class="settings-section-block">
+                <div class="settings-section-heading">
+                    <div>
+                        <span>Imported Instructor Review</span>
+                        <h2>Select instructors to activate</h2>
+                        <p>
+                            Instructors without an email cannot be activated until their
+                            profile has a valid email address.
+                        </p>
+                    </div>
+                    <button type="button" class="button secondary" data-select-eligible>
+                        Select Eligible
+                    </button>
+                </div>
+
+                <div class="import-preview-table-wrap">
+                    <table class="instructor-activation-table">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>Instructor</th>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th>Last Invite</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for instructor in instructors %}
+                                <tr>
+                                    <td>
+                                        <input
+                                            type="checkbox"
+                                            name="instructor_ids"
+                                            value="{{ instructor.id }}"
+                                            data-activation-checkbox
+                                            {% if not instructor.email or instructor.activation_status == "claimed" %}disabled{% endif %}
+                                        >
+                                    </td>
+                                    <td><strong>{{ instructor.full_name }}</strong></td>
+                                    <td>{{ instructor.email|default:"—" }}</td>
+                                    <td>
+                                        <span class="activation-status {{ instructor.activation_status }}">
+                                            {% if instructor.activation_status == "claimed" %}
+                                                Claimed
+                                            {% elif instructor.activation_status == "invite_sent" %}
+                                                Invite Sent
+                                            {% elif instructor.activation_status == "missing_email" %}
+                                                Missing Email
+                                            {% elif instructor.activation_status == "active_unclaimed" %}
+                                                Active · Unclaimed
+                                            {% else %}
+                                                Needs Activation
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if instructor.activation_sent_at %}
+                                            {{ instructor.activation_sent_at|date:"M j, Y g:i A" }}
+                                        {% else %}
+                                            —
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="5">No instructors have been imported yet.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="form-actions">
+                    <button
+                        type="button"
+                        class="button primary"
+                        data-open-activation-confirm
+                    >
+                        Activate Selected Instructors
+                    </button>
+                </div>
+            </section>
+
+            <dialog class="time-off-detail-dialog" data-activation-confirm>
+                <div class="time-off-modal-body">
+                    <div class="time-off-modal-header">
+                        <div>
+                            <span class="card-kicker">Confirm Activation</span>
+                            <h2>Send instructor claim emails?</h2>
+                        </div>
+                        <button
+                            type="button"
+                            class="button secondary"
+                            data-close-activation-confirm
+                        >
+                            Close
+                        </button>
+                    </div>
+
+                    <p>
+                        By activating these instructors, Encore will turn on their
+                        instructor profile and email each selected teacher a secure
+                        link to claim their profile, verify their information, and
+                        submit their weekly availability.
+                    </p>
+
+                    <p>
+                        <strong><span data-activation-count>0</span> instructor(s) selected.</strong>
+                    </p>
+
+                    <div class="time-off-modal-actions">
+                        <button
+                            type="button"
+                            class="button secondary"
+                            data-close-activation-confirm
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            class="button primary"
+                        >
+                            Activate & Send Emails
+                        </button>
+                    </div>
+                </div>
+            </dialog>
+        </form>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.querySelector("[data-activation-form]");
+    const dialog = document.querySelector("[data-activation-confirm]");
+    const boxes = Array.from(document.querySelectorAll("[data-activation-checkbox]"));
+    const count = document.querySelector("[data-activation-count]");
+
+    const selected = () => boxes.filter((box) => box.checked && !box.disabled);
+
+    document.querySelector("[data-select-eligible]")?.addEventListener("click", () => {
+        const eligible = boxes.filter((box) => !box.disabled);
+        const allSelected = eligible.length && eligible.every((box) => box.checked);
+        eligible.forEach((box) => box.checked = !allSelected);
+    });
+
+    document.querySelector("[data-open-activation-confirm]")?.addEventListener("click", () => {
+        const total = selected().length;
+        if (!total) {
+            alert("Choose at least one instructor to activate.");
+            return;
+        }
+        if (count) count.textContent = total;
+        dialog?.showModal();
+    });
+
+    document.querySelectorAll("[data-close-activation-confirm]").forEach((button) => {
+        button.addEventListener("click", () => dialog?.close());
+    });
+});
+</script>
+{% endblock %}

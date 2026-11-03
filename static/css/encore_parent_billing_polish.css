@@ -1,0 +1,174 @@
+/* Family billing visual hierarchy, scoped so admin and teacher views remain unchanged. */
+.parent-portal-content:has(.parent-billing-overview) { max-width: 1420px; }
+.parent-billing-overview {
+  background: linear-gradient(115deg,#ffffff 52%,#eef4ff 100%);
+  border: 1px solid #bdcfee; border-radius: 20px; padding: 30px 34px;
+  box-shadow: 0 10px 28px rgba(29,52,99,.055);
+}
+.parent-billing-balance-copy > strong { color: #152344; letter-spacing: -.045em; }
+.parent-billing-overview-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 9px; }
+.parent-billing-overview-actions small { color: #667997; line-height: 1.5; max-width: 350px; text-align: right; }
+.parent-billing-pay-button {
+  background: linear-gradient(110deg,#2857f2,#168df4); color: white;
+  border: none; border-radius: 11px; box-shadow: 0 7px 16px rgba(32,99,226,.17);
+  font-weight: 800; padding: 13px 21px; transition: transform .16s ease, box-shadow .16s ease;
+}
+.parent-billing-pay-button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(32,99,226,.25); }
+.encore-balance-paid { font-weight: 800; color: #11714b; background: #e8f8ef; padding: 11px 16px; border-radius: 12px; }
+.parent-billing-unavailable { font-weight: 750; background: #fff4e5; color: #8b571c; padding: 10px 14px; border-radius: 10px; }
+.encore-autopay-highlight {
+  margin: 22px 0; overflow: hidden; border: 1px solid #a8baf5;
+  border-radius: 20px; background: white; box-shadow: 0 10px 24px rgba(68,84,151,.07);
+}
+.encore-autopay-top {
+  display: flex; gap: 18px; align-items: flex-start;
+  padding: 25px 28px 23px;
+  background: linear-gradient(108deg,#e9efff,#f3f0ff 70%,#f8fbff);
+  border-bottom: 1px solid #ccd5ff;
+}
+.encore-autopay-symbol { flex: none; width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: 800; background: white; color:#3158e6; box-shadow: 0 5px 12px rgba(52,78,172,.10); }
+.encore-autopay-heading { flex: 1; min-width: 0; }
+.encore-autopay-eyebrow { font-size: .7rem; font-weight: 900; letter-spacing: .09em; color: #2859dd; }
+.encore-autopay-heading h2 { margin: 4px 0 6px; font-size: 1.38rem; font-weight: 850; color: #17213d; }
+.encore-autopay-heading p { margin: 0; color:#4b5f84; line-height:1.55; }
+.encore-autopay-state { flex: none; background: white; border: 1px solid #cbd7fb; color: #3d56a5; font-size: .74rem; font-weight: 800; padding: 8px 13px; border-radius: 30px; }
+.encore-autopay-state.is-active { border-color: #9bd8ba; background: #e5f8ed; color: #137a49; }
+.encore-autopay-bottom { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 22px; padding: 24px 28px 28px; }
+.encore-autopay-details { flex: 1 1 320px; }
+.encore-autopay-details strong { font-size: 1.06rem; color: #192848; }
+.encore-autopay-details p { color: #596a87; line-height: 1.6; margin: 7px 0 0; }
+.encore-autopay-method { display: inline-block; margin-top:12px; background:#f1f5fc; border-radius: 9px; padding: 8px 12px; color:#193768; font-weight:750; }
+.encore-autopay-enroll { flex: 1 1 350px; max-width: 470px; }
+.encore-autopay-consent { display: flex; align-items: flex-start; gap: 10px; font-size: .84rem; line-height: 1.55; color:#344767; margin-bottom:13px; cursor: pointer; }
+.encore-autopay-consent input { margin: 4px 0 0; accent-color:#2c65f5; }
+.encore-autopay-notice { background:#fff8e9; color:#795621; border:1px solid #f5dfae; border-radius: 11px; padding: 12px 15px; max-width: 380px; font-size: .84rem; line-height:1.5; }
+#autopay-error:not([hidden]) { color: #ac2121; background: #fff0f0; border-radius: 9px; padding: 10px; margin: 10px 0; }
+#autopay-card-form:not([hidden]) { background:#f7f9ff; border:1px solid #dbe4ff; border-radius:12px; padding: 14px; margin-bottom:15px; }
+.parent-billing-section { border: 1px solid #d6deef; background: #fff; border-radius: 17px; box-shadow: 0 4px 14px rgba(27,43,85,.035); }
+.parent-billing-section-header { background: #f3f6fc; border-bottom: 1px solid #d7dff0; }
+.parent-billing-section-header h2 { color: #192744; }
+.parent-billing-table thead { background: #eaf0fa; }
+.parent-billing-table tbody tr:nth-child(even) { background: #fbfcff; }
+.parent-billing-grid { margin-top: 20px; gap: 20px; }
+.parent-billing-settings-line { margin-top:24px; background: #f7f9fe; border: 1px solid #d5e0f1; border-radius: 14px; }
+@media (max-width:720px) {
+  .parent-billing-overview { padding:23px 20px; }
+  .parent-billing-overview-actions { align-items: flex-start; }
+  .parent-billing-overview-actions small { text-align:left; }
+  .encore-autopay-top { padding: 20px; gap: 12px; flex-wrap:wrap; }
+  .encore-autopay-symbol { width:42px; height:42px; }
+  .encore-autopay-bottom { padding: 19px 20px; }
+}
+
+/* Bank payment encouragement; both ACH and cards remain equally accessible in Stripe. */
+.encore-autopay-method-options {
+  border: 1px solid #c8d8ff;
+  background: #f1f6ff;
+  border-radius: 12px;
+  padding: 13px 15px;
+  margin: 0 0 14px;
+  color: #253958;
+}
+.encore-autopay-method-options strong { display: block; font-size: .92rem; margin-bottom: 7px; }
+.encore-autopay-method-options p { margin: 5px 0; font-size: .85rem; line-height: 1.45; }
+.encore-autopay-method-options p:first-of-type b { color: #2053b4; }
+#autopay-payment-form { min-height: 60px; margin: 14px 0; }
+
+/* ACH + card onboarding layout: keep explanatory text aligned with the Stripe form. */
+.encore-autopay-highlight .encore-autopay-bottom {
+  display: grid;
+  grid-template-columns: minmax(240px, .9fr) minmax(340px, 1.1fr);
+  align-items: start;
+  justify-content: stretch;
+  gap: clamp(22px, 3vw, 42px);
+  padding: 26px 28px 30px;
+}
+.encore-autopay-highlight .encore-autopay-details {
+  min-width: 0;
+  align-self: start;
+  padding-top: 4px;
+}
+.encore-autopay-highlight .encore-autopay-details > strong {
+  display: block;
+  font-size: 1.12rem;
+  line-height: 1.4;
+}
+.encore-autopay-highlight .encore-autopay-details > p {
+  max-width: 42ch;
+  line-height: 1.65;
+}
+.encore-autopay-highlight .encore-autopay-enroll {
+  max-width: none;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  align-self: start;
+}
+.encore-autopay-highlight .encore-autopay-method-options {
+  background: #f4f7ff;
+  border: 1px solid #d2defb;
+  padding: 14px 17px;
+  margin: 0 0 15px;
+  border-radius: 13px;
+}
+.encore-autopay-highlight .encore-autopay-method-options p { margin: 8px 0 0; }
+.encore-autopay-highlight .encore-autopay-method-options strong { color:#152950; }
+.encore-autopay-highlight #autopay-payment-form:not([hidden]) {
+  min-height: 0;
+  margin: 0 0 16px;
+  padding: 14px;
+  border: 1px solid #e0e7f4;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 3px 14px rgba(35,57,113,.035);
+}
+.encore-autopay-highlight .encore-autopay-consent {
+  padding: 12px 13px;
+  background: #f5f8ff;
+  border: 1px solid #e1e8fa;
+  border-radius: 11px;
+  margin: 0 0 14px;
+}
+.encore-autopay-highlight #autopay-enable { width: 100%; min-height: 44px; }
+@media (max-width: 880px) {
+  .encore-autopay-highlight .encore-autopay-bottom {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+  .encore-autopay-highlight .encore-autopay-details > p { max-width: none; }
+}
+@media (max-width: 540px) {
+  .encore-autopay-highlight .encore-autopay-bottom { padding: 18px 16px 22px; }
+  .encore-autopay-highlight .encore-autopay-top { padding: 18px 16px; }
+  .encore-autopay-highlight .encore-autopay-state { padding: 6px 9px; }
+  .encore-autopay-highlight #autopay-payment-form:not([hidden]) { padding: 9px; }
+}
+
+/* Functional bank/card selector: unlike the previous static paragraphs these are real buttons. */
+.encore-autopay-method-options { min-width: 0; }
+.encore-autopay-method-options legend { font-weight: 800; padding: 0 5px; color: #192c55; }
+.encore-autopay-choice-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+.encore-autopay-choice {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 9px;
+  text-align: left; padding: 14px 13px; border: 2px solid #dce4f4;
+  border-radius: 12px; background: #fff; color: #1c2d50; cursor: pointer;
+  font: inherit; width: 100%; transition: background .15s, border-color .15s, box-shadow .15s;
+}
+.encore-autopay-choice:hover { background: #f2f6ff; border-color: #a8befa; }
+.encore-autopay-choice:focus-visible { outline: 3px solid #3268f5; outline-offset: 2px; }
+.encore-autopay-choice.is-selected { border-color: #2869ef; background: #eff5ff; box-shadow: 0 0 0 2px rgba(40,105,239,.10); }
+.encore-autopay-choice:disabled { cursor: wait; opacity: .75; }
+.encore-autopay-choice-heading { font-size: .86rem; font-weight: 800; line-height: 1.4; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.encore-autopay-choice-description { font-size: .79rem; color: #526481; line-height: 1.45; }
+.encore-autopay-recommended { font-size: .67rem; background: #dff6e8; color: #147349; padding: 3px 7px; border-radius: 20px; }
+.encore-autopay-choice-hint { font-size: .78rem !important; color: #556786; line-height: 1.5; margin: 10px 0 0 !important; }
+@media(max-width:610px) { .encore-autopay-choice-grid { grid-template-columns: 1fr; } }
+
+.encore-autopay-balance-consent { background:#eff7ff;border:1px solid #bed7fb;padding:14px 16px;border-radius:12px;margin:12px 0;line-height:1.5;color:#1c3459 }
+.encore-autopay-balance-consent p { margin:7px 0 10px;font-size:.86rem }
+.encore-autopay-balance-consent label { display:flex;gap:9px;align-items:flex-start;font-size:.85rem;font-weight:700 }
+.encore-autopay-balance-consent label input { flex:0 0 auto;margin-top:3px }
+.encore-autopay-balance-consent small { display:block;margin-top:9px;color:#526583 }
+.encore-autopay-collection-badge {display:inline-flex;padding:9px 14px;background:#e3f8ec;border:1px solid #9bd9b1;color:#116239;border-radius:11px;font-weight:800}
+.encore-next-billing {display:flex;flex-wrap:wrap;align-items:center;gap:7px 15px;padding:15px 20px;background:#f5f8ff;border-bottom:1px solid #d5e2fb;color:#1e3559}
+.encore-next-billing strong {color:#1957b8}.encore-next-billing small {margin-left:auto;color:#667a99}

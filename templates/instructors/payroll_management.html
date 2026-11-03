@@ -1,0 +1,657 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Payroll Management | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_payroll.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Payroll Management{% endblock %}
+
+{% block content %}
+<section class="payroll-heading">
+    <div>
+        <p class="eyebrow">Compensation & Payroll</p>
+        <h1>Payroll Management</h1>
+        <p>
+            Configure the rules Encore will use to calculate teaching,
+            time-off, substitute, and extra-work compensation.
+        </p>
+    </div>
+
+    <a
+        class="button secondary"
+        href="{% url 'instructors:payroll_lock' studio.slug %}"
+    >
+        Lock Payroll
+    </a>
+</section>
+
+{% if messages %}
+    <div class="message-stack">
+        {% for message in messages %}
+            <div class="message-banner {{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<section class="payroll-security-banner">
+    <div>
+        <strong>Protected Session</strong>
+        <span>
+            Compensation access automatically locks after
+            {{ unlock_minutes }} minutes.
+        </span>
+    </div>
+    <span class="payroll-security-dot"></span>
+</section>
+
+<div class="payroll-management-grid">
+    <section class="payroll-card">
+        <div class="payroll-card-heading">
+            <div>
+                <span>Studio Rules</span>
+                <h2>Payroll Settings</h2>
+            </div>
+        </div>
+
+        <form method="post" class="payroll-settings-form">
+            {% csrf_token %}
+            <input
+                type="hidden"
+                name="action"
+                value="save_settings"
+            >
+
+            <div class="payroll-form-grid">
+                <div class="payroll-field">
+                    {{ settings_form.pay_period_frequency.label_tag }}
+                    {{ settings_form.pay_period_frequency }}
+                    <small>
+                        {{ settings_form.pay_period_frequency.help_text }}
+                    </small>
+                </div>
+
+                <div class="payroll-field">
+                    {{ settings_form.pay_period_anchor_date.label_tag }}
+                    {{ settings_form.pay_period_anchor_date }}
+                    <small>
+                        {{ settings_form.pay_period_anchor_date.help_text }}
+                    </small>
+                </div>
+
+                <div class="payroll-field">
+                    {{ settings_form.minimum_session_minutes.label_tag }}
+                    <div class="payroll-input-suffix">
+                        {{ settings_form.minimum_session_minutes }}
+                        <span>minutes</span>
+                    </div>
+                    <small>
+                        {{ settings_form.minimum_session_minutes.help_text }}
+                    </small>
+                </div>
+
+                <div class="payroll-field">
+                    {{ settings_form.rounding_minutes.label_tag }}
+                    {{ settings_form.rounding_minutes }}
+                    <small>
+                        {{ settings_form.rounding_minutes.help_text }}
+                    </small>
+                </div>
+
+                <label class="payroll-checkbox-row">
+                    {{ settings_form.extra_work_uses_regular_rate }}
+                    <span>
+                        <strong>
+                            {{ settings_form.extra_work_uses_regular_rate.label }}
+                        </strong>
+                        <small>
+                            A staff-specific extra-work rate can still override
+                            the regular rate.
+                        </small>
+                    </span>
+                </label>
+            </div>
+
+            {% if settings_form.errors %}
+                <div class="message-banner error">
+                    Please correct the payroll settings above.
+                </div>
+            {% endif %}
+
+            <div class="payroll-card-actions">
+                <button class="button primary" type="submit">
+                    Save Payroll Settings
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <section class="payroll-card payroll-foundation-card">
+        <div class="payroll-card-heading">
+            <div>
+                <span>Calculation Foundation</span>
+                <h2>Payroll Calculation Rules</h2>
+            </div>
+        </div>
+
+        <div class="payroll-foundation-list">
+            <div>
+                <strong>Scheduled Teaching</strong>
+                <span>Class meeting duration + minimum paid session.</span>
+            </div>
+            <div>
+                <strong>Approved Time Off</strong>
+                <span>Will remove payable occurrences when applicable.</span>
+            </div>
+            <div>
+                <strong>Substitute Coverage</strong>
+                <span>Will move payable time to the instructor who covered.</span>
+            </div>
+            <div>
+                <strong>Extra Work</strong>
+                <span>Will add logged work using the applicable rate.</span>
+            </div>
+        </div>
+
+        <p class="payroll-foundation-note">
+            These rules now feed Encore's live payroll calculation engine.
+            Rate history keeps past seasons tied to the compensation that
+            was actually effective on each work date.
+        </p>
+    </section>
+</div>
+
+<section class="payroll-card payroll-preview-card">
+    <div class="payroll-card-heading">
+        <div>
+            <span>Payroll Overview</span>
+            <h2>Payroll Preview</h2>
+            <p>
+                Live calculation from scheduled classes, approved time off,
+                substitute coverage, extra work, and the rate effective on each date.
+            </p>
+        </div>
+    </div>
+
+    <form method="get" class="payroll-preview-filter">
+        <div class="payroll-field">
+            <label for="payroll-preview-start">Start Date</label>
+            <input
+                id="payroll-preview-start"
+                class="encore-input"
+                type="date"
+                name="start"
+                value="{{ preview_start|date:'Y-m-d' }}"
+            >
+        </div>
+
+        <div class="payroll-field">
+            <label for="payroll-preview-end">End Date</label>
+            <input
+                id="payroll-preview-end"
+                class="encore-input"
+                type="date"
+                name="end"
+                value="{{ preview_end|date:'Y-m-d' }}"
+            >
+        </div>
+
+        <button class="button secondary" type="submit">
+            Recalculate
+        </button>
+    </form>
+
+    <div class="payroll-preview-summary">
+        <div>
+            <span>Net Payable Hours</span>
+            <strong>{{ payroll_preview.net_hours_total }}</strong>
+        </div>
+        <div>
+            <span>Known Payout</span>
+            <strong>${{ payroll_preview.known_pay_total|floatformat:2 }}</strong>
+        </div>
+        <div>
+            <span>Unresolved Items</span>
+            <strong>{{ payroll_preview.unresolved_total }}</strong>
+        </div>
+    </div>
+
+    {% if payroll_preview.unresolved_total %}
+        <div class="message-banner warning">
+            {{ payroll_preview.unresolved_total }} payroll item{{ payroll_preview.unresolved_total|pluralize }}
+            cannot be priced yet. This usually means a missing rate or a salaried
+            record that needs a salary-pay policy. Encore does not guess those amounts.
+        </div>
+    {% endif %}
+
+    <div class="payroll-preview-view-toggle" data-payroll-view-toggle>
+        <button
+            type="button"
+            class="active"
+            data-payroll-view="tree"
+        >
+            Breakdown
+        </button>
+        <button
+            type="button"
+            data-payroll-view="table"
+        >
+            Table
+        </button>
+    </div>
+
+    <div data-payroll-panel="tree">
+        <section class="admin-payroll-tree">
+            <details class="admin-payroll-root">
+                <summary>
+                    <div class="admin-payroll-tree-label">
+                        <span class="admin-payroll-chevron">›</span>
+                        <div>
+                            <strong>{{ studio.name }} Payroll</strong>
+                            <small>
+                                {{ preview_start|date:"M j, Y" }}
+                                –
+                                {{ preview_end|date:"M j, Y" }}
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="admin-payroll-tree-total">
+                        <span>{{ payroll_tree.hours }} hrs</span>
+                        <strong class="admin-payroll-collapsed-total">
+                            ${{ payroll_tree.known_pay|floatformat:2 }}
+                        </strong>
+                        {% if payroll_tree.unresolved_count %}
+                            <em>
+                                {{ payroll_tree.unresolved_count }} unresolved
+                            </em>
+                        {% endif %}
+                    </div>
+                </summary>
+
+                <div class="admin-payroll-root-body">
+                    {% for teacher in payroll_tree.teachers %}
+                        <details class="admin-payroll-teacher">
+                            <summary>
+                                <div class="admin-payroll-tree-label">
+                                    <span class="admin-payroll-chevron">›</span>
+                                    <div>
+                                        <strong>
+                                            {{ teacher.instructor.full_name }}
+                                        </strong>
+                                        <small>
+                                            {{ teacher.hours }} hrs in selected dates
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <div class="admin-payroll-tree-total">
+                                    <strong class="admin-payroll-collapsed-total">
+                                        ${{ teacher.known_pay|floatformat:2 }}
+                                    </strong>
+                                    {% if teacher.unresolved_count %}
+                                        <em>
+                                            {{ teacher.unresolved_count }} unresolved
+                                        </em>
+                                    {% endif %}
+                                </div>
+                            </summary>
+
+                            <div class="admin-payroll-teacher-body">
+                                {% for season_row in teacher.seasons %}
+                                    <details class="admin-payroll-season">
+                                        <summary>
+                                            <div class="admin-payroll-tree-label">
+                                                <span class="admin-payroll-chevron">›</span>
+                                                <div>
+                                                    <strong>
+                                                        {{ season_row.season.name }}
+                                                    </strong>
+                                                    <small>
+                                                        {{ season_row.hours }} hrs
+                                                    </small>
+                                                </div>
+                                            </div>
+
+                                            <div class="admin-payroll-tree-total">
+                                                <strong class="admin-payroll-collapsed-total">
+                                                    ${{ season_row.known_pay|floatformat:2 }}
+                                                </strong>
+                                                {% if season_row.unresolved_count %}
+                                                    <em>
+                                                        {{ season_row.unresolved_count }} unresolved
+                                                    </em>
+                                                {% endif %}
+                                            </div>
+                                        </summary>
+
+                                        <div class="admin-payroll-class-list">
+                                            {% for class_row in season_row.classes %}
+                                                <div class="admin-payroll-class-row">
+                                                    <div>
+                                                        <strong>
+                                                            {{ class_row.class_instance.name }}
+                                                        </strong>
+                                                        <small>
+                                                            {{ class_row.hours }} hrs
+                                                        </small>
+                                                    </div>
+
+                                                    <div class="admin-payroll-class-total">
+                                                        <strong>
+                                                            ${{ class_row.known_pay|floatformat:2 }}
+                                                        </strong>
+                                                        {% if class_row.unresolved_count %}
+                                                            <span>
+                                                                {{ class_row.unresolved_count }} unresolved
+                                                            </span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            {% empty %}
+                                                <div class="payroll-empty-state">
+                                                    No class activity in the selected dates.
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </details>
+                                {% empty %}
+                                    <div class="payroll-empty-state">
+                                        No class activity in the selected dates.
+                                    </div>
+                                {% endfor %}
+
+                                {% if teacher.extra_work.has_activity %}
+                                    <div class="admin-payroll-extra-work-row">
+                                        <div>
+                                            <strong>Extra Work</strong>
+                                            <small>
+                                                {{ teacher.extra_work.hours }} hrs
+                                            </small>
+                                        </div>
+
+                                        <div class="admin-payroll-class-total">
+                                            <strong>
+                                                ${{ teacher.extra_work.known_pay|floatformat:2 }}
+                                            </strong>
+                                            {% if teacher.extra_work.unresolved_count %}
+                                                <span>
+                                                    {{ teacher.extra_work.unresolved_count }}
+                                                    unresolved
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </details>
+                    {% empty %}
+                        <div class="payroll-empty-state">
+                            No active instructors are available.
+                        </div>
+                    {% endfor %}
+                </div>
+            </details>
+        </section>
+    </div>
+
+    <div data-payroll-panel="table" hidden>
+        <div class="payroll-table-wrap">
+        <table class="payroll-table">
+            <thead>
+                <tr>
+                    <th>Instructor</th>
+                    <th>Regular</th>
+                    <th>Time Off</th>
+                    <th>Substitute</th>
+                    <th>Extra Work</th>
+                    <th>Net Hours</th>
+                    <th>Known Pay</th>
+                    <th>Issues</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in payroll_preview.staff_rows %}
+                    <tr>
+                        <td>
+                            <strong>{{ row.instructor.full_name }}</strong>
+                        </td>
+                        <td>{{ row.regular_hours }}h</td>
+                        <td>{{ row.time_off_hours }}h</td>
+                        <td>{{ row.substitute_hours }}h</td>
+                        <td>{{ row.extra_work_hours }}h</td>
+                        <td><strong>{{ row.net_hours }}h</strong></td>
+                        <td><strong>${{ row.total_pay|floatformat:2 }}</strong></td>
+                        <td>
+                            {% if row.unresolved_count %}
+                                <span class="payroll-status missing">
+                                    {{ row.unresolved_count }} unresolved
+                                </span>
+                            {% else %}
+                                <span class="payroll-status ready">
+                                    Ready
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="8">
+                            No payable activity exists in this date range.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </div>
+
+    <div class="payroll-engine-note">
+        <strong>Calculation rules:</strong>
+        scheduled classes use the studio minimum paid-session rule;
+        approved time off removes affected scheduled hours from the absent
+        teacher; active substitute coverage moves those hours to the substitute;
+        and extra work uses the applicable configured hourly rate.
+        Encore leaves unsupported salary calculations unresolved rather than
+        guessing at a payroll policy.
+    </div>
+</section>
+
+<section class="payroll-card payroll-staff-card">
+    <div class="payroll-card-heading">
+        <div>
+            <span>Staff Compensation</span>
+            <h2>Active Instructors</h2>
+            <p>
+                Rates are stored with effective dates so historical seasons
+                continue using the rate that was active at that time.
+            </p>
+        </div>
+    </div>
+
+    <div class="payroll-staff-search">
+        <label for="payroll-staff-search-input">
+            Search Instructors
+        </label>
+        <input
+            id="payroll-staff-search-input"
+            class="encore-input"
+            type="search"
+            placeholder="Start typing a name, email, or rate..."
+            autocomplete="off"
+            data-payroll-staff-search
+        >
+        <span data-payroll-staff-count>
+            {{ staff_rows|length }} instructor{{ staff_rows|length|pluralize }}
+        </span>
+    </div>
+
+    <div class="payroll-table-wrap">
+        <table class="payroll-table" data-payroll-staff-table>
+            <thead>
+                <tr>
+                    <th>Instructor</th>
+                    <th>Compensation</th>
+                    <th>Effective</th>
+                    <th>Extra Work</th>
+                    <th>History</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in staff_rows %}
+                    <tr
+                        data-payroll-staff-row
+                        data-search="{{ row.instructor.full_name|lower }} {{ row.instructor.email|default:''|lower }} {% if row.current_compensation %}{{ row.current_compensation.rate_display|lower }} {{ row.current_compensation.get_compensation_type_display|lower }}{% endif %}"
+                    >
+                        <td>
+                            <strong>{{ row.instructor.full_name }}</strong>
+                            <small>{{ row.instructor.email|default:"No email" }}</small>
+                        </td>
+
+                        <td>
+                            {% if row.current_compensation %}
+                                <strong>
+                                    {{ row.current_compensation.rate_display }}
+                                </strong>
+                                <small>
+                                    {{ row.current_compensation.get_compensation_type_display }}
+                                </small>
+                            {% else %}
+                                <span class="payroll-status missing">
+                                    Rate Not Set
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if row.current_compensation %}
+                                <strong>
+                                    {{ row.current_compensation.effective_start|date:"M j, Y" }}
+                                </strong>
+                                <small>
+                                    {% if row.current_compensation.effective_end %}
+                                        through {{ row.current_compensation.effective_end|date:"M j, Y" }}
+                                    {% else %}
+                                        Current
+                                    {% endif %}
+                                </small>
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if row.current_compensation.extra_work_hourly_rate %}
+                                ${{ row.current_compensation.extra_work_hourly_rate|floatformat:2 }}/hr
+                            {% elif payroll_settings.extra_work_uses_regular_rate and row.current_compensation.compensation_type == "hourly" %}
+                                Regular Rate
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {{ row.history_count }}
+                            record{{ row.history_count|pluralize }}
+                        </td>
+
+                        <td class="payroll-table-action">
+                            <a
+                                class="button secondary"
+                                href="{% url 'instructors:payroll_compensation' studio.slug row.instructor.id %}"
+                            >
+                                Manage Rate
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6">
+                            No active instructors are available.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const viewButtons = Array.from(
+        document.querySelectorAll("[data-payroll-view]")
+    );
+    const panels = Array.from(
+        document.querySelectorAll("[data-payroll-panel]")
+    );
+
+    const setView = (view) => {
+        viewButtons.forEach((button) => {
+            button.classList.toggle(
+                "active",
+                button.dataset.payrollView === view
+            );
+        });
+
+        panels.forEach((panel) => {
+            panel.hidden =
+                panel.dataset.payrollPanel !== view;
+        });
+    };
+
+    viewButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+            setView(button.dataset.payrollView);
+        });
+    });
+
+    const search = document.querySelector(
+        "[data-payroll-staff-search]"
+    );
+    const rows = Array.from(
+        document.querySelectorAll(
+            "[data-payroll-staff-row]"
+        )
+    );
+    const count = document.querySelector(
+        "[data-payroll-staff-count]"
+    );
+
+    const filterStaff = () => {
+        const query = (
+            search?.value || ""
+        ).trim().toLowerCase();
+
+        let visible = 0;
+
+        rows.forEach((row) => {
+            const matches =
+                !query
+                || row.dataset.search.includes(query);
+
+            row.hidden = !matches;
+
+            if (matches) {
+                visible += 1;
+            }
+        });
+
+        if (count) {
+            count.textContent =
+                `${visible} instructor${visible === 1 ? "" : "s"}`;
+        }
+    };
+
+    search?.addEventListener(
+        "input",
+        filterStaff
+    );
+});
+</script>
+
+{% endblock %}

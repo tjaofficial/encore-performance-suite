@@ -1,10 +1,10 @@
-from datetime import date
+from datetime import date, timedelta
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -12,6 +12,9 @@ from django.utils import timezone
 from django.utils.dateparse import parse_date, parse_datetime
 
 from instructors.models import Instructor
+from attendance.models import MakeupAssignment
+from students.models import Student
+from enrollments.models import Enrollment
 from studios.models import Studio
 
 from .calendar_services import (
@@ -34,6 +37,7 @@ from .calendar_services import (
     time_off_calendar_items,
     time_off_has_complete_coverage,
     visible_calendar_events,
+    family_calendar_class_and_makeup_items,
 )
 from .forms import (
     CalendarCategoryForm,
@@ -103,6 +107,75 @@ def _csv_ids(value):
     }
 
 
+def _normalized_event_post(request):
+    data = request.POST.copy()
+    # A one-day all-day event only needs an Event Date from the editor.
+    # Keep stored timestamps for compatibility with recurrence and calendars.
+    if data.get("all_day") in {"1", "true", "on", "yes"}:
+        day = parse_date(data.get("event_date", ""))
+        if day is None:
+            original = parse_datetime(data.get("start_at", ""))
+            day = original.date() if original else None
+        if day is not None:
+            data["start_at"] = f"{day.isoformat()}T00:00"
+            data["end_at"] = f"{day.isoformat()}T23:59"
+
+    start_raw = data.get("start_at")
+    end_raw = data.get("end_at")
+
+    start_at = parse_datetime(start_raw) if start_raw else None
+    end_at = parse_datetime(end_raw) if end_raw else None
+
+    if start_at and end_at and end_at <= start_at:
+        safe_end = start_at + timedelta(hours=1)
+        data["end_at"] = safe_end.strftime("%Y-%m-%dT%H:%M")
+
+    return data
+
+
+def _calendar_season_groups(visible_classes):
+    groups = {}
+
+    for class_instance in visible_classes:
+        season = getattr(class_instance, "season", None)
+        if season is None:
+            continue
+
+        payload = groups.setdefault(
+            season.pk,
+            {
+                "season": season,
+                "classes": [],
+                "instructors": {},
+            },
+        )
+        payload["classes"].append(class_instance)
+
+        for instructor in [
+            class_instance.instructor,
+            class_instance.assistant_instructor,
+        ]:
+            if instructor is not None:
+                payload["instructors"][instructor.pk] = instructor
+
+    rows = []
+    for payload in groups.values():
+        payload["classes"].sort(key=lambda item: item.name.lower())
+        payload["instructors"] = sorted(
+            payload["instructors"].values(),
+            key=lambda item: (item.last_name.lower(), item.first_name.lower()),
+        )
+        rows.append(payload)
+
+    rows.sort(
+        key=lambda item: (
+            getattr(item["season"], "start_date", None) or date.min,
+            item["season"].name.lower(),
+        )
+    )
+    return rows
+
+
 @login_required
 def calendar_page(request, studio_slug):
     studio = get_object_or_404(
@@ -138,6 +211,7 @@ def calendar_page(request, studio_slug):
             studio,
         )
         .select_related(
+            "season",
             "instructor",
             "instructor__user",
             "assistant_instructor",
@@ -203,6 +277,32 @@ def calendar_page(request, studio_slug):
             )
         )
 
+    family_calendar_students = []
+    if role == "family":
+        family_student_qs = (
+            Student.objects.filter(
+                studio=studio,
+                family__guardians__user=request.user,
+                family__guardians__is_active=True,
+                is_active=True,
+            )
+            .distinct()
+            .order_by("first_name", "last_name", "pk")
+        )
+        for student in family_student_qs:
+            active_classes = list(
+                visible_classes.filter(
+                    enrollments__student=student,
+                    enrollments__status=Enrollment.Status.ACTIVE,
+                ).distinct()
+            )
+            family_calendar_students.append({
+                "student": student,
+                "classes": active_classes,
+            })
+
+    calendar_seasons = _calendar_season_groups(visible_classes)
+
     pending_time_off_count = 0
 
     if role == "administrator":
@@ -224,6 +324,8 @@ def calendar_page(request, studio_slug):
             "role": role,
             "preference": preference,
             "visible_classes": visible_classes,
+            "calendar_seasons": calendar_seasons,
+            "family_calendar_students": family_calendar_students,
             "main_categories": main_categories,
             "personal_categories": personal_categories,
             "instructors": instructors,
@@ -282,6 +384,10 @@ def calendar_feed(request, studio_slug):
         request.GET.get("instructor_ids")
     )
 
+    selected_season_ids = _csv_ids(
+        request.GET.get("season_ids")
+    )
+
     hidden_category_ids = _csv_ids(
         request.GET.get("hidden_category_ids")
     )
@@ -293,11 +399,58 @@ def calendar_feed(request, studio_slug):
 
     events = []
 
+    if role == "family":
+        events.extend(family_calendar_class_and_makeup_items(
+            user=request.user,
+            studio=studio,
+            start_date=start_date,
+            end_date=end_date,
+            regular_pairs=request.GET.get("family_regular_pairs", ""),
+            makeup_pairs=request.GET.get("family_makeup_pairs", ""),
+            include_regular="classes" in source_groups,
+        ))
+        # The family events have student-specific identities, so never
+        # also return the generic shared class occurrences.
+        source_groups.discard("classes")
+
     if "classes" in source_groups:
-        visible_classes = get_visible_classes_for_user(
-            request.user,
-            studio,
+        visible_classes = (
+            get_visible_classes_for_user(
+                request.user,
+                studio,
+            )
+            .select_related(
+                "season",
+                "class_type",
+                "instructor",
+                "default_location",
+            )
+            .prefetch_related(
+                "meeting_times__room__location",
+                "meeting_times__location",
+            )
+            .annotate(
+                active_enrollment_count=Count(
+                    "enrollments",
+                    filter=Q(
+                        enrollments__status=Enrollment.Status.ACTIVE,
+                    ),
+                    distinct=True,
+                ),
+                waitlist_count=Count(
+                    "enrollments",
+                    filter=Q(
+                        enrollments__status=Enrollment.Status.WAITLISTED,
+                    ),
+                    distinct=True,
+                ),
+            )
         )
+
+        if selected_season_ids:
+            visible_classes = visible_classes.filter(
+                season_id__in=selected_season_ids,
+            )
 
         if selected_class_ids:
             visible_classes = visible_classes.filter(
@@ -332,6 +485,56 @@ def calendar_feed(request, studio_slug):
                 ):
                     continue
 
+                occurrence_local_start = timezone.localtime(
+                    occurrence.start_at
+                )
+
+                occurrence_meeting = next(
+                    (
+                        meeting
+                        for meeting
+                        in class_instance.meeting_times.all()
+                        if (
+                            meeting.is_active
+                            and meeting.day_of_week
+                            == occurrence_local_start.weekday()
+                            and meeting.start_time.hour
+                            == occurrence_local_start.hour
+                            and meeting.start_time.minute
+                            == occurrence_local_start.minute
+                        )
+                    ),
+                    None,
+                )
+
+                room_name = ""
+                location_name = ""
+
+                if occurrence_meeting is not None:
+                    if occurrence_meeting.room_id:
+                        room_name = occurrence_meeting.room.name
+
+                        if occurrence_meeting.room.location_id:
+                            location_name = (
+                                occurrence_meeting.room.location.name
+                            )
+
+                    if (
+                        not location_name
+                        and occurrence_meeting.location_id
+                    ):
+                        location_name = (
+                            occurrence_meeting.location.name
+                        )
+
+                if (
+                    not location_name
+                    and class_instance.default_location_id
+                ):
+                    location_name = (
+                        class_instance.default_location.name
+                    )
+
                 events.append(
                     {
                         "id": (
@@ -348,6 +551,7 @@ def calendar_feed(request, studio_slug):
                             "sourceType": "class",
                             "sourceGroup": "classes",
                             "classId": class_instance.pk,
+                            "seasonId": class_instance.season_id,
                             "classCode": occurrence.class_code,
                             "eventType": "Class",
                             "instructor": occurrence.instructor_name,
@@ -357,7 +561,58 @@ def calendar_feed(request, studio_slug):
                             "assistantInstructorId": (
                                 class_instance.assistant_instructor_id
                             ),
-                            "location": occurrence.location_name,
+                            "location": location_name,
+                            "room": room_name,
+                            "dressCode": (
+                                class_instance.dress_code
+                                or ""
+                            ),
+                            "classType": (
+                                class_instance.class_type.name
+                                if class_instance.class_type_id
+                                else ""
+                            ),
+                            "seasonName": (
+                                class_instance.season.name
+                                if class_instance.season_id
+                                else ""
+                            ),
+                            "statusLabel": (
+                                "Active"
+                                if class_instance.is_active
+                                else "Inactive"
+                            ),
+                            "capacity": (
+                                class_instance.capacity
+                                or 0
+                            ),
+                            "currentSize": (
+                                class_instance.active_enrollment_count
+                            ),
+                            "openings": (
+                                max(
+                                    (
+                                        class_instance.capacity
+                                        or 0
+                                    )
+                                    - class_instance.active_enrollment_count,
+                                    0,
+                                )
+                                if class_instance.capacity
+                                else None
+                            ),
+                            "waitlistCount": (
+                                class_instance.waitlist_count
+                            ),
+                            "fee": (
+                                f"{class_instance.tuition_amount:.2f}"
+                                if getattr(
+                                    class_instance,
+                                    "tuition_amount",
+                                    None,
+                                ) is not None
+                                else ""
+                            ),
                             "editable": False,
                             "deletable": False,
                             "detailUrl": reverse(
@@ -526,7 +781,7 @@ def event_create(request, studio_slug):
         )
 
     form = CalendarEventForm(
-        request.POST,
+        _normalized_event_post(request),
         studio=studio,
         user=request.user,
         role=role,
@@ -727,7 +982,7 @@ def event_update(request, studio_slug, event_id):
         )
 
     form = CalendarEventForm(
-        request.POST,
+        _normalized_event_post(request),
         instance=event,
         studio=studio,
         user=request.user,
@@ -1045,6 +1300,39 @@ def preference_update(request, studio_slug):
         if value.strip().isdigit()
     ]
 
+    source_visibility[
+        "selected_season_ids"
+    ] = [
+        int(value)
+        for value
+        in request.POST.get(
+            "selected_season_ids",
+            "",
+        ).split(",")
+        if value.strip().isdigit()
+    ]
+
+    if role == "administrator":
+        main_categories = CalendarCategory.objects.filter(
+            studio=studio,
+            scope=CalendarCategory.Scope.MAIN,
+            owner__isnull=True,
+            is_active=True,
+        )
+        for category in main_categories:
+            value = (
+                request.POST.get(f"category_color_{category.pk}")
+                or ""
+            ).strip()
+            if (
+                len(value) == 7
+                and value.startswith("#")
+                and all(ch in "0123456789abcdefABCDEF" for ch in value[1:])
+                and value != category.color
+            ):
+                category.color = value.upper()
+                category.save(update_fields=["color"])
+
     preference.source_visibility = (
         source_visibility
     )
@@ -1183,6 +1471,67 @@ def time_off_request_create(
 
 
 @login_required
+def time_off_my_requests(request, studio_slug):
+    studio = get_object_or_404(Studio, slug=studio_slug, is_active=True)
+    if get_user_role_for_studio(request.user, studio) != "teacher":
+        return _access_denied(request, studio)
+    instructor = _teacher_instructor_for_request(request, studio)
+    if instructor is None:
+        return _access_denied(request, studio)
+    requests = (TeacherTimeOffRequest.objects.filter(studio=studio, instructor=instructor)
+                .prefetch_related("dates").order_by("-created_at")[:100])
+    for item in requests:
+        item.can_change = (item.status == TeacherTimeOffRequest.Status.PENDING
+                           and item.dates.exists()
+                           and all(d.status == TeacherTimeOffDate.Status.PENDING for d in item.dates.all()))
+    return render(request, "scheduling/time_off_my_requests.html", {"studio": studio, "role": "teacher", "requests": requests})
+
+
+@login_required
+@transaction.atomic
+def time_off_request_change(request, studio_slug, request_id):
+    studio = get_object_or_404(Studio, slug=studio_slug, is_active=True)
+    if get_user_role_for_studio(request.user, studio) != "teacher":
+        return _access_denied(request, studio)
+    instructor = _teacher_instructor_for_request(request, studio)
+    if instructor is None:
+        return _access_denied(request, studio)
+    item = get_object_or_404(TeacherTimeOffRequest.objects.select_for_update(),
+                             pk=request_id, studio=studio, instructor=instructor)
+    dates = list(item.dates.select_for_update())
+    if item.status != TeacherTimeOffRequest.Status.PENDING or not dates or any(
+            d.status != TeacherTimeOffDate.Status.PENDING for d in dates):
+        messages.error(request, "This request has entered review and can no longer be changed. Contact the studio.")
+        return redirect("scheduling:time_off_my_requests", studio_slug=studio.slug)
+    if request.method == "POST" and request.POST.get("action") == "cancel":
+        item.status = TeacherTimeOffRequest.Status.CANCELLED
+        item.save(update_fields=["status", "updated_at"])
+        if item.admin_task_id:
+            item.admin_task.assignments.filter(completed_at__isnull=True).update(completed_at=timezone.now(), completed_by=request.user)
+        # Keep date rows intact for administrative history; cancelled requests are excluded from review.
+        messages.success(request, "Time off request cancelled.")
+        return redirect("scheduling:time_off_my_requests", studio_slug=studio.slug)
+    initial_dates = ",".join(d.date.isoformat() for d in dates)
+    form = TeacherTimeOffRequestForm(request.POST or None, instance=item,
+                                      initial={"dates": initial_dates})
+    if request.method == "POST" and form.is_valid():
+        item.reason = form.cleaned_data["reason"]
+        item.notes = form.cleaned_data["notes"]
+        item.save(update_fields=["reason", "notes", "updated_at"])
+        item.dates.all().delete()
+        TeacherTimeOffDate.objects.bulk_create([
+            TeacherTimeOffDate(request=item, date=d) for d in form.cleaned_data["dates"]
+        ])
+        messages.success(request, "Pending time off request updated.")
+        return redirect("scheduling:time_off_my_requests", studio_slug=studio.slug)
+    return render(request, "scheduling/time_off_request_form.html", {
+        "studio": studio, "role": "teacher", "instructor": instructor,
+        "form": form, "editing": True, "request_item": item,
+        "initial_selected_dates": initial_dates,
+    })
+
+
+@login_required
 def time_off_admin_list(
     request,
     studio_slug,
@@ -1206,9 +1555,8 @@ def time_off_admin_list(
 
     requests = (
         TeacherTimeOffRequest.objects
-        .filter(
-            studio=studio,
-        )
+        .filter(studio=studio)
+        .exclude(status=TeacherTimeOffRequest.Status.CANCELLED)
         .select_related(
             "instructor",
             "created_by",
@@ -1244,6 +1592,32 @@ def time_off_admin_list(
             status=status_filter,
         )
 
+    # Distinct approved calendar dates per instructor, not request count.
+    today = timezone.localdate()
+    from classes.models import Class
+    season_id = (request.GET.get("season") or "").strip()
+    search = (request.GET.get("teacher") or "").strip()[:100]
+    active_classes = Class.objects.filter(studio=studio, season__end_date__gte=today, season__is_active=True)
+    if season_id.isdigit():
+        active_classes = Class.objects.filter(studio=studio, season_id=int(season_id))
+    teacher_ids = set(active_classes.values_list("instructor_id", flat=True)) | set(
+        active_classes.exclude(assistant_instructor__isnull=True).values_list("assistant_instructor_id", flat=True))
+    teachers = Instructor.objects.filter(studio=studio, is_active=True, pk__in=teacher_ids).order_by("last_name", "first_name")
+    if search:
+        teachers = teachers.filter(Q(first_name__icontains=search) | Q(last_name__icontains=search))
+    approved_rows = TeacherTimeOffDate.objects.filter(
+        request__studio=studio, request__instructor__in=teachers,
+        request__status__in=[TeacherTimeOffRequest.Status.APPROVED, TeacherTimeOffRequest.Status.PARTIAL],
+        status=TeacherTimeOffDate.Status.APPROVED,
+    ).values_list("request__instructor_id", "date")
+    approved_by_teacher = {}
+    for teacher_id, day in approved_rows:
+        approved_by_teacher.setdefault(teacher_id, set()).add(day)
+    teacher_summary = [{"instructor": teacher, "approved_days": len(approved_by_teacher.get(teacher.pk, set()))}
+                       for teacher in teachers]
+    from classes.models import Season
+    seasons = Season.objects.filter(studio=studio).order_by("-start_date")
+
     return render(
         request,
         "scheduling/time_off_admin_list.html",
@@ -1252,6 +1626,8 @@ def time_off_admin_list(
             "role": role,
             "requests": requests,
             "status_filter": status_filter,
+            "teacher_summary": teacher_summary, "seasons": seasons,
+            "selected_season": season_id, "teacher_search": search,
         },
     )
 

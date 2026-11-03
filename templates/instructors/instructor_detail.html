@@ -5,6 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/encore_staff_enrollment.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_instructor_onboarding.css' %}">
 {% endblock %}
 
 {% block topbar_title %}Instructor Details{% endblock %}
@@ -151,6 +152,120 @@
     <article class="manager-card">
         <div class="card-heading">
             <div>
+                <span class="card-kicker">Operations</span>
+                <h2>Requested Time Off</h2>
+            </div>
+            <a href="{% url 'scheduling:time_off_admin_list' studio.slug %}">
+                View All
+                {% if pending_time_off_count %}
+                    ({{ pending_time_off_count }})
+                {% endif %}
+                →
+            </a>
+        </div>
+
+        <div class="time-off-request-list">
+            {% for time_off in recent_time_off_requests %}
+                <button
+                    type="button"
+                    class="time-off-request-row"
+                    data-open-time-off="{{ time_off.id }}"
+                >
+                    <div>
+                        <strong>{{ time_off.reason }}</strong>
+                        <small>
+                            {% for date_record in time_off.dates.all %}
+                                {{ date_record.date|date:"M j" }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </small>
+                    </div>
+                    <span class="status-pill {% if time_off.status == 'approved' %}active{% elif time_off.status == 'denied' %}inactive{% else %}registration{% endif %}">
+                        {{ time_off.get_status_display }}
+                    </span>
+                </button>
+
+                <dialog
+                    class="time-off-detail-dialog"
+                    data-time-off-dialog="{{ time_off.id }}"
+                >
+                    <div class="time-off-modal-body">
+                        <div class="time-off-modal-header">
+                            <div>
+                                <span class="card-kicker">Time Off Request</span>
+                                <h2>{{ time_off.reason }}</h2>
+                            </div>
+                            <button
+                                type="button"
+                                class="button secondary"
+                                data-close-time-off
+                            >Close</button>
+                        </div>
+
+                        {% if time_off.notes %}
+                            <p>{{ time_off.notes|linebreaksbr }}</p>
+                        {% endif %}
+
+                        <div class="time-off-modal-dates">
+                            {% for date_record in time_off.dates.all %}
+                                <div class="time-off-modal-date">
+                                    <strong>{{ date_record.date|date:"l, F j, Y" }}</strong>
+                                    <span>{{ date_record.get_status_display }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        {% if time_off.status == "pending" or time_off.status == "partial" %}
+                            <form
+                                method="post"
+                                action="{% url 'instructors:instructor_time_off_decision' studio.slug instructor.id time_off.id %}"
+                                data-time-off-form
+                            >
+                                {% csrf_token %}
+                                <div class="claim-field denial-note" data-denial-note hidden>
+                                    <label>Denial Reason <small>(Optional)</small></label>
+                                    <textarea
+                                        class="encore-input"
+                                        name="decision_note"
+                                        rows="3"
+                                        placeholder="Optional reason for denying this request."
+                                    ></textarea>
+                                </div>
+
+                                <div class="time-off-modal-actions">
+                                    <button
+                                        type="submit"
+                                        class="button secondary"
+                                        name="action"
+                                        value="deny"
+                                        data-deny-time-off
+                                    >
+                                        Deny
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        class="button primary"
+                                        name="action"
+                                        value="approve"
+                                    >
+                                        Approve
+                                    </button>
+                                </div>
+                            </form>
+                        {% endif %}
+                    </div>
+                </dialog>
+            {% empty %}
+                <div class="empty-state">
+                    No time off requests for this instructor.
+                </div>
+            {% endfor %}
+        </div>
+    </article>
+
+
+    <article class="manager-card">
+        <div class="card-heading">
+            <div>
                 <span class="card-kicker">Teaching</span>
                 <h2>Primary Classes</h2>
             </div>
@@ -229,4 +344,35 @@
     </article>
     {% endif %}
 </section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll("[data-open-time-off]").forEach((button) => {
+        button.addEventListener("click", () => {
+            document
+                .querySelector(`[data-time-off-dialog="${button.dataset.openTimeOff}"]`)
+                ?.showModal();
+        });
+    });
+
+    document.querySelectorAll("[data-close-time-off]").forEach((button) => {
+        button.addEventListener("click", () => button.closest("dialog")?.close());
+    });
+
+    document.querySelectorAll("[data-time-off-form]").forEach((form) => {
+        const note = form.querySelector("[data-denial-note]");
+        const deny = form.querySelector("[data-deny-time-off]");
+
+        deny?.addEventListener("click", (event) => {
+            if (note?.hidden) {
+                event.preventDefault();
+                note.hidden = false;
+                note.querySelector("textarea")?.focus();
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

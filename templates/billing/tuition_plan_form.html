@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="{% static 'css/encore_billing.css' %}">
 <link rel="stylesheet" href="{% static 'css/encore_recurring_tuition.css' %}">
 <link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_overdue_settings.css' %}">
 {% endblock %}
 
 {% block topbar_title %}{{ page_title }}{% endblock %}
@@ -33,28 +34,90 @@
     <section class="billing-card">
         <div class="form-grid">
             {% for field in form %}
-                <div class="field-group {% if field.name == 'description' %}full{% endif %}">
-                    {% if field.field.widget.input_type == "checkbox" %}
-                        <label class="checkbox-line">
-                            {{ field }}
-                            <span>{{ field.label }}</span>
-                        </label>
-                    {% else %}
-                        {{ field.label_tag }}
-                        {{ field }}
-                    {% endif %}
-
-                    {% if field.help_text %}
-                        <small>{{ field.help_text }}</small>
-                    {% endif %}
-
-                    {% for error in field.errors %}
-                        <small class="field-error">{{ error }}</small>
-                    {% endfor %}
-                </div>
+                {% if field.name == 'name' or field.name == 'description' or field.name == 'frequency' or field.name == 'registration_fee' or field.name == 'late_fee' or field.name == 'is_active' %}
+                    <div class="field-group {% if field.name == 'description' %}full{% endif %}">
+                        {% if field.field.widget.input_type == "checkbox" %}<label class="checkbox-line">{{ field }}<span>{{ field.label }}</span></label>
+                        {% else %}{{ field.label_tag }}{{ field }}{% endif %}
+                        {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                        {% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+                    </div>
+                {% endif %}
             {% endfor %}
         </div>
     </section>
+    <section class="billing-card overdue-settings-card" aria-labelledby="policy-overdue-title">
+        <div class="overdue-section-heading">
+            <div>
+                <span class="card-kicker">Past-due tuition</span>
+                <h2 id="policy-overdue-title">Grace period &amp; notifications</h2>
+                <p>This policy controls its grace period and messages. When the deadline passes, Encore flags the family for administrator review. Only an administrator may remove a student.</p>
+            </div>
+            <a class="button secondary overdue-review-link" href="{% url 'billing:studio_billing_reviews' studio.slug %}">Review overdue accounts &amp; withdrawals →</a>
+        </div>
+        <div class="overdue-policy-note">
+            <strong>Administrator approval always required.</strong>
+            <span>Unpaid tuition never automatically removes a student or deletes financial, attendance, or Drawing Board history.</span>
+        </div>
+        <div class="policy-grace-control">
+            <label class="overdue-toggle policy-grace-toggle">{{ form.grace_period_enabled }}<span><strong>Enable a grace period before overdue review</strong><small>Uncheck to flag an unpaid account as soon as the payment is overdue.</small></span></label>
+        </div>
+        <div class="field-group" id="policy-grace-days-wrap">
+            {{ form.grace_period_days.label_tag }}{{ form.grace_period_days }}
+            <small>Calendar days after the charge due date. Administrator review begins after this deadline.</small>
+            {% for error in form.grace_period_days.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+        </div>
+        <div class="overdue-subheading"><h3>Email notifications</h3><p>Each optional email has its own switch and template. Important review and removal notifications are always sent, even if optional messages are disabled.</p></div>
+        <div class="overdue-template-grid policy-notice-grid">
+            <div class="policy-notice-card">
+                <label class="overdue-toggle">{{ form.overdue_notice_enabled }}<span><strong>Payment overdue email</strong><small>Optional reminder after the charge due date.</small></span></label>
+                <div class="field-group">{{ form.overdue_template_id.label_tag }}{{ form.overdue_template_id }}{% for error in form.overdue_template_id.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div>
+            </div>
+            <div class="policy-notice-card" id="policy-grace-warning-wrap">
+                <label class="overdue-toggle">{{ form.grace_warning_notice_enabled }}<span><strong>Grace period ending email</strong><small>Optional notice when the deadline approaches. Only applies when grace is enabled.</small></span></label>
+                <div class="field-group">{{ form.grace_warning_template_id.label_tag }}{{ form.grace_warning_template_id }}{% for error in form.grace_warning_template_id.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div>
+            </div>
+            <div class="policy-notice-card">
+                <div class="policy-required-label"><strong>Grace expired / account flagged for review</strong><small>Required email — cannot be disabled. With no grace period, sent once the charge is overdue.</small></div>
+                <div class="field-group">{{ form.grace_expired_template_id.label_tag }}{{ form.grace_expired_template_id }}{% for error in form.grace_expired_template_id.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div>
+            </div>
+            <div class="policy-notice-card">
+                <label class="overdue-toggle">{{ form.resolved_notice_enabled }}<span><strong>Payment resolved email</strong><small>Optional confirmation after an overdue charge is paid.</small></span></label>
+                <div class="field-group">{{ form.resolved_template_id.label_tag }}{{ form.resolved_template_id }}{% for error in form.resolved_template_id.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div>
+            </div>
+        </div>
+        <div class="overdue-policy-note"><strong>Administrator-approved removal</strong><span>Required family and teacher notifications are handled by the administrator removal workflow; no optional switch here.</span></div>
+        <p class="overdue-variables">Template variables: <code>{amount}</code>, <code>{due_date}</code>, <code>{grace_end}</code>, <code>{grace_days}</code>, <code>{family_name}</code>, <code>{studio_name}</code>, <code>{charge_description}</code>.</p>
+        {% if form.non_field_errors %}<div class="field-error">{{ form.non_field_errors }}</div>{% endif %}
+    </section>
+
+    <style>
+      .policy-grace-control {margin: 1.1rem 0 .7rem;}
+      .policy-grace-toggle {display:flex;align-items:center;gap:12px;}
+      .policy-grace-toggle input[type="checkbox"] {width:18px;height:18px;min-width:18px;flex:none;accent-color:#1663ff;}
+      #policy-grace-days-wrap[hidden], #policy-grace-warning-wrap[hidden] {display:none !important;}
+      .policy-notice-grid {align-items:stretch;}
+      .policy-notice-card {background:#f7f9fe;border:1px solid #dce4f5;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:14px;}
+      .policy-notice-card .field-group {margin-top:auto;}
+      .policy-notice-card .overdue-toggle {margin:0;}
+      .policy-required-label {display:flex;flex-direction:column;gap:5px;font-size:14px;color:#112049;}
+      .policy-required-label small {font-weight:400;color:#63718e;font-size:12px;line-height:1.5;}
+    </style>
+    <script>
+    (function () {
+      const enabled = document.getElementById('id_grace_period_enabled');
+      const daysWrap = document.getElementById('policy-grace-days-wrap');
+      const days = document.getElementById('id_grace_period_days');
+      const warningWrap = document.getElementById('policy-grace-warning-wrap');
+      if (!enabled || !daysWrap || !days) return;
+      function sync() {
+        daysWrap.hidden = !enabled.checked;
+        days.readOnly = !enabled.checked;
+        if (warningWrap) warningWrap.hidden = !enabled.checked;
+      }
+      enabled.addEventListener('change', sync);
+      sync();
+    })();
+    </script>
 
     <div class="form-actions">
         <a

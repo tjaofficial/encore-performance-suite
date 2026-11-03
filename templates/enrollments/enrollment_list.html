@@ -5,6 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/encore_staff_enrollment.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_list_views.css' %}">
 {% endblock %}
 
 {% block topbar_title %}Enrollment Manager{% endblock %}
@@ -30,6 +31,7 @@
 </section>
 
 <form method="get" class="filter-panel enrollment-filters">
+    <input type="hidden" name="page_size" value="{{ page_size }}">
     <div class="wide-filter">
         <label>Search</label>
         <input
@@ -58,7 +60,8 @@
     <div>
         <label>Season</label>
         <select name="season">
-            <option value="">All Seasons</option>
+            <option value="current" {% if filters.season == "current" %}selected{% endif %}>Current / Upcoming Seasons</option>
+            <option value="all" {% if filters.season == "all" %}selected{% endif %}>All Seasons</option>
             {% for season in seasons %}
                 <option
                     value="{{ season.id }}"
@@ -121,12 +124,24 @@
         <table class="manager-table">
             <thead>
                 <tr>
-                    <th>Student</th>
-                    <th>Class</th>
-                    <th>Season</th>
-                    <th>Status</th>
-                    <th>Source</th>
-                    <th>Tuition</th>
+                    <th><a class="encore-sort-heading{% if sort_columns.student.active %} active{% endif %}" href="{{ sort_columns.student.url }}">
+<span>Student</span><span class="sort-indicator">{% if sort_columns.student.active %}{% if sort_columns.student.direction == "asc" %}↑{% else %}↓{% endif %}{% else %}↕{% endif %}</span>
+</a></th>
+                    <th><a class="encore-sort-heading{% if sort_columns.class.active %} active{% endif %}" href="{{ sort_columns.class.url }}">
+<span>Class</span><span class="sort-indicator">{% if sort_columns.class.active %}{% if sort_columns.class.direction == "asc" %}↑{% else %}↓{% endif %}{% else %}↕{% endif %}</span>
+</a></th>
+                    <th><a class="encore-sort-heading{% if sort_columns.season.active %} active{% endif %}" href="{{ sort_columns.season.url }}">
+<span>Season</span><span class="sort-indicator">{% if sort_columns.season.active %}{% if sort_columns.season.direction == "asc" %}↑{% else %}↓{% endif %}{% else %}↕{% endif %}</span>
+</a></th>
+                    <th><a class="encore-sort-heading{% if sort_columns.status.active %} active{% endif %}" href="{{ sort_columns.status.url }}">
+<span>Status</span><span class="sort-indicator">{% if sort_columns.status.active %}{% if sort_columns.status.direction == "asc" %}↑{% else %}↓{% endif %}{% else %}↕{% endif %}</span>
+</a></th>
+                    <th><a class="encore-sort-heading{% if sort_columns.source.active %} active{% endif %}" href="{{ sort_columns.source.url }}">
+<span>Source</span><span class="sort-indicator">{% if sort_columns.source.active %}{% if sort_columns.source.direction == "asc" %}↑{% else %}↓{% endif %}{% else %}↕{% endif %}</span>
+</a></th>
+                    <th><a class="encore-sort-heading{% if sort_columns.tuition.active %} active{% endif %}" href="{{ sort_columns.tuition.url }}">
+<span>Tuition</span><span class="sort-indicator">{% if sort_columns.tuition.active %}{% if sort_columns.tuition.direction == "asc" %}↑{% else %}↓{% endif %}{% else %}↕{% endif %}</span>
+</a></th>
                     <th></th>
                 </tr>
             </thead>
@@ -194,4 +209,6 @@
         </table>
     </div>
 </section>
+
+{% include "includes/list_pagination.html" with pagination_label="Enrollment pages" %}
 {% endblock %}

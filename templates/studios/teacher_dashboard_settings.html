@@ -4,6 +4,7 @@
 {% block title %}Teacher Dashboard Settings | Encore{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/components/dashboard_quick_links_settings.css' %}">
 <link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}">
 <link rel="stylesheet" href="{% static 'css/encore_dashboard_layout_editor.css' %}">
 {% endblock %}
@@ -85,6 +86,7 @@
                         <h2>Arrange Your Dashboard</h2>
                         <p>
                             Drag cards to move them. Select a card to change its size.
+                            Fixed cards keep the size required by their dashboard design.
                         </p>
                     </div>
                 </div>
@@ -102,6 +104,8 @@
                                 data-layout-card="{{ card.key }}"
                                 data-width="{{ card.width }}"
                                 data-height="{{ card.height }}"
+                                data-min-height="{% if card.key == 'stopwatch' %}2{% else %}1{% endif %}"
+                                data-locked="{% if card.locked %}true{% else %}false{% endif %}"
                                 {% if not card.enabled %}hidden{% endif %}
                             >
                                 <div class="preview-card-top">
@@ -111,7 +115,7 @@
 
                                     <span class="preview-card-size">
                                         {% if card.locked %}
-                                            Fixed · Full · 2 rows
+                                            Fixed · {{ card.width }} · {{ card.height }} row{% if card.height == 2 %}s{% endif %}
                                         {% else %}
                                             {{ card.width }}
                                             ·
@@ -163,6 +167,19 @@
                         >
                             <span>Selected Card</span>
                             <h3 data-selected-card-name>Card</h3>
+
+                            <div
+                                class="layout-fixed-size-note"
+                                data-fixed-size-note
+                                hidden
+                            >
+                                <strong>Fixed Size</strong>
+                                <p>
+                                    This card's size is locked because its internal
+                                    dashboard layout depends on these dimensions.
+                                    You can still move it or turn it on and off.
+                                </p>
+                            </div>
 
                             <div class="visual-size-setting" data-size-setting>
                                 <strong>Width</strong>

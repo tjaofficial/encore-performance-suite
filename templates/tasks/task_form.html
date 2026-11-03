@@ -5,6 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/encore_tasks.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/info_bubble.css' %}">
 {% endblock %}
 
 {% block topbar_title %}Task Management{% endblock %}
@@ -37,11 +38,17 @@
         <div class="task-form-section-heading">
             <span>Task</span>
             <strong>What needs to happen?</strong>
+            <small>Describe the work, set its importance, and optionally add a deadline.</small>
         </div>
 
         <div class="task-form-grid">
             <div class="task-form-field full">
-                {{ form.title.label_tag }}
+                <div class="task-field-label-row">
+                    <label for="{{ form.title.id_for_label }}">{{ form.title.label }}</label>
+                    <span class="task-field-status {% if form.title.field.required %}required{% else %}optional{% endif %}">
+                        {% if form.title.field.required %}Required{% else %}Optional{% endif %}
+                    </span>
+                </div>
                 {{ form.title }}
                 {% for error in form.title.errors %}
                     <small class="task-field-error">{{ error }}</small>
@@ -49,18 +56,43 @@
             </div>
 
             <div class="task-form-field full">
-                {{ form.description.label_tag }}
+                <div class="task-field-label-row">
+                    <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+                    <span class="task-field-status {% if form.description.field.required %}required{% else %}optional{% endif %}">
+                        {% if form.description.field.required %}Required{% else %}Optional{% endif %}
+                    </span>
+                </div>
                 {{ form.description }}
+                {% for error in form.description.errors %}
+                    <small class="task-field-error">{{ error }}</small>
+                {% endfor %}
             </div>
 
             <div class="task-form-field">
-                {{ form.priority.label_tag }}
+                <div class="task-field-label-row">
+                    <label for="{{ form.priority.id_for_label }}">{{ form.priority.label }}</label>
+                    {% include "includes/info_bubble.html" with text="Priority tells Encore how important the task is. Use higher priorities for work that needs attention sooner; it does not change who is assigned to the task." %}
+                    <span class="task-field-status {% if form.priority.field.required %}required{% else %}optional{% endif %}">
+                        {% if form.priority.field.required %}Required{% else %}Optional{% endif %}
+                    </span>
+                </div>
                 {{ form.priority }}
+                {% for error in form.priority.errors %}
+                    <small class="task-field-error">{{ error }}</small>
+                {% endfor %}
             </div>
 
             <div class="task-form-field">
-                {{ form.due_date.label_tag }}
+                <div class="task-field-label-row">
+                    <label for="{{ form.due_date.id_for_label }}">{{ form.due_date.label }}</label>
+                    <span class="task-field-status {% if form.due_date.field.required %}required{% else %}optional{% endif %}">
+                        {% if form.due_date.field.required %}Required{% else %}Optional{% endif %}
+                    </span>
+                </div>
                 {{ form.due_date }}
+                {% for error in form.due_date.errors %}
+                    <small class="task-field-error">{{ error }}</small>
+                {% endfor %}
             </div>
         </div>
     </section>
@@ -69,16 +101,32 @@
         <div class="task-form-section-heading">
             <span>Context</span>
             <strong>What does this task belong to?</strong>
+            <small>Context links the task to the right part of the studio. It is separate from assignment.</small>
         </div>
 
         <div class="task-form-grid">
             <div class="task-form-field">
-                {{ form.context_type.label_tag }}
+                <div class="task-field-label-row">
+                    <label for="{{ form.context_type.id_for_label }}">{{ form.context_type.label }}</label>
+                    {% include "includes/info_bubble.html" with text="Context Type tells Encore what the task is about: for example, a personal task, a class-related task, or a student-related task. This does not decide who must complete it." %}
+                    <span class="task-field-status {% if form.context_type.field.required %}required{% else %}optional{% endif %}">
+                        {% if form.context_type.field.required %}Required{% else %}Optional{% endif %}
+                    </span>
+                </div>
                 {{ form.context_type }}
+                {% for error in form.context_type.errors %}
+                    <small class="task-field-error">{{ error }}</small>
+                {% endfor %}
             </div>
 
             <div class="task-form-field">
-                {{ form.class_instance.label_tag }}
+                <div class="task-field-label-row">
+                    <label for="{{ form.class_instance.id_for_label }}">{{ form.class_instance.label }}</label>
+                    {% include "includes/info_bubble.html" with text="Related Class links this task to a class so the task can be understood and found in that class's context. Linking a class does not automatically assign the task to the class staff." %}
+                    <span class="task-field-status {% if form.class_instance.field.required %}required{% else %}optional{% endif %}">
+                        {% if form.class_instance.field.required %}Required{% else %}Optional{% endif %}
+                    </span>
+                </div>
                 {{ form.class_instance }}
                 {% for error in form.class_instance.errors %}
                     <small class="task-field-error">{{ error }}</small>
@@ -86,9 +134,17 @@
             </div>
 
             <div class="task-form-field">
-                {{ form.student.label_tag }}
+                <div class="task-field-label-row">
+                    <label for="{{ form.student.id_for_label }}">{{ form.student.label }}</label>
+                    {% include "includes/info_bubble.html" with text="Related Student links this task to a student's record for context and history. It does not assign the task to that student or their family." %}
+                    <span class="task-field-status {% if form.student.field.required %}required{% else %}optional{% endif %}">
+                        {% if form.student.field.required %}Required{% else %}Optional{% endif %}
+                    </span>
+                </div>
                 {{ form.student }}
-                <small>This links the task to a student record. It does not assign the task to that student.</small>
+                {% for error in form.student.errors %}
+                    <small class="task-field-error">{{ error }}</small>
+                {% endfor %}
             </div>
         </div>
     </section>
@@ -97,16 +153,29 @@
         <div class="task-form-section-heading">
             <span>Assignment</span>
             <strong>Who needs to complete it?</strong>
+            <small>Assignment controls responsibility. It can be different from the class or student the task is about.</small>
         </div>
 
         <div class="task-form-grid">
             <div class="task-form-field">
-                {{ form.audience_type.label_tag }}
+                <div class="task-field-label-row">
+                    <label for="{{ form.audience_type.id_for_label }}">{{ form.audience_type.label }}</label>
+                    {% include "includes/info_bubble.html" with text="Assign To determines who is responsible for completing this task. Choose yourself, another person, or the appropriate group. This is separate from the task's Context." %}
+                    <span class="task-field-status {% if form.audience_type.field.required %}required{% else %}optional{% endif %}">
+                        {% if form.audience_type.field.required %}Required{% else %}Optional{% endif %}
+                    </span>
+                </div>
                 {{ form.audience_type }}
+                {% for error in form.audience_type.errors %}
+                    <small class="task-field-error">{{ error }}</small>
+                {% endfor %}
             </div>
 
             <div class="task-form-field full" data-selected-teachers hidden>
-                {{ form.selected_teachers.label_tag }}
+                <div class="task-field-label-row">
+                    <label for="{{ form.selected_teachers.id_for_label }}">{{ form.selected_teachers.label }}</label>
+                    <span class="task-field-status context-required">Required when shown</span>
+                </div>
                 {{ form.selected_teachers }}
                 {% for error in form.selected_teachers.errors %}
                     <small class="task-field-error">{{ error }}</small>
@@ -114,7 +183,10 @@
             </div>
 
             <div class="task-form-field full" data-selected-students hidden>
-                {{ form.selected_students.label_tag }}
+                <div class="task-field-label-row">
+                    <label for="{{ form.selected_students.id_for_label }}">{{ form.selected_students.label }}</label>
+                    <span class="task-field-status context-required">Required when shown</span>
+                </div>
                 <div data-student-options>{{ form.selected_students }}</div>
                 {% for error in form.selected_students.errors %}
                     <small class="task-field-error">{{ error }}</small>
@@ -128,6 +200,7 @@
                         <strong>Notify Assignees</strong>
                         <small>Send an Encore notification when the task is assigned.</small>
                     </span>
+                    <span class="task-field-status optional">Optional</span>
                 </label>
             </div>
         </div>

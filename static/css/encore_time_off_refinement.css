@@ -1,0 +1,26 @@
+/* Targeted admin review and substitute coverage refinement. */
+.time-off-page{max-width:1160px;padding:28px clamp(16px,3vw,38px) 48px}
+.time-off-page-header{margin-bottom:24px;padding:24px 28px;background:radial-gradient(circle at 97% 3%,#dce5ff 0 72px,transparent 73px),radial-gradient(circle at 92% 100%,#efe6ff 0 55px,transparent 56px),#fff;border:1px solid #b8c9eb;border-radius:18px;box-shadow:0 10px 30px rgba(22,42,88,.055)}
+.time-off-page-header .eyebrow{font-size:.7rem;letter-spacing:.13em}
+.time-off-page-header h1{font-size:clamp(1.65rem,3vw,2.45rem);line-height:1.16;margin:5px 0 9px}
+.time-off-page-header p:last-child{font-size:.85rem;max-width:850px}
+.time-off-back-link{font-size:.79rem;margin-bottom:13px}
+.time-off-form-card{gap:18px}
+.time-off-form-section,.coverage-date-group{padding:23px 25px;border:1px solid #b9cbea;border-radius:16px;box-shadow:0 12px 32px rgba(26,48,91,.055);position:relative;overflow:hidden}
+.time-off-form-section:before,.coverage-date-group:before{content:"";position:absolute;right:-31px;top:-42px;width:110px;height:110px;border-radius:50%;background:#e5eaff;pointer-events:none}
+.time-off-section-heading,.coverage-date-group>header{position:relative;border-color:#d7e1f2;padding-bottom:15px;margin-bottom:18px}
+.time-off-section-heading>span{width:36px;height:36px;background:#e7edff;color:#1754eb;font-size:.77rem;border-radius:10px}
+.time-off-section-heading strong,.coverage-date-group h2{font-size:1rem}
+.time-off-section-heading small{font-size:.76rem;line-height:1.45}
+.time-off-bulk-actions{gap:10px;margin-bottom:14px}
+.time-off-bulk-actions button{padding:10px 16px;font-size:.78rem;border-radius:9px;min-height:40px}
+.time-off-decision-list,.coverage-occurrence-list{gap:9px}
+.time-off-decision-row,.coverage-occurrence-row{background:#f5f7fd;border:1px solid #d7e1f2;border-radius:11px;padding:13px 16px;gap:16px}
+.time-off-decision-row>span,.coverage-occurrence-row strong{font-size:.85rem}
+.coverage-occurrence-row span,.coverage-occurrence-row small,.coverage-occurrence-row label>span{font-size:.74rem;line-height:1.4}
+.time-off-decision-row select,.coverage-occurrence-row select{width:100%;min-height:42px;padding:9px 12px;border-radius:9px;border:1px solid #b9cbea;background:white;color:#15264b;font-size:.8rem}
+.time-off-field textarea{min-height:115px!important;width:100%;box-sizing:border-box;font-size:.86rem;padding:13px;border:1px solid #b9cbea;border-radius:10px}
+.time-off-review-warning,.coverage-required-note{padding:15px 18px;font-size:.8rem;line-height:1.55;border-radius:11px}
+.time-off-form-actions{padding:2px 0;gap:10px}
+.time-off-form-actions .button{min-height:43px;padding:11px 20px;border-radius:10px;font-size:.85rem}
+@media(max-width:760px){.time-off-page-header{padding:20px}.time-off-form-section,.coverage-date-group{padding:18px}.time-off-decision-row,.coverage-occurrence-row{grid-template-columns:1fr;gap:8px}.time-off-form-actions{flex-wrap:wrap}.time-off-form-actions .button{flex:1;text-align:center}}

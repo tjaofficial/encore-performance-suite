@@ -196,9 +196,33 @@
                         </div>
                         <b>→</b>
                     </a>
+
+                    <a class="settings-feature-row" data-encore-tour-target="data-transfer" href="{% url 'studios:data_transfer_home' studio.slug %}">
+                        <span class="settings-icon">⇄</span>
+                        <div>
+                            <strong>Data Import &amp; Export</strong>
+                            <p>Move studio records into Encore or download a portable copy of your data.</p>
+                        </div>
+                        <b>→</b>
+                    </a>
                 </div>
             </section>
         {% endif %}
     </main>
 </div>
+
+{% if encore_tour_active %}
+<div
+    id="encore-tour-config"
+    hidden
+    data-tour-page="settings"
+    data-tour-status="{{ encore_tour_status }}"
+    data-tour-step="{{ encore_tour_step }}"
+    data-tour-update-url="{% url 'studios:onboarding_tour_update' studio.slug %}"
+    data-tour-data-url="{% url 'studios:data_transfer_home' studio.slug %}"
+    data-tour-meeting-url="{% url 'studios:onboarding_meeting_request' studio.slug %}"
+    data-tour-support-url="{% url 'support_center:home' %}"
+></div>
+{% endif %}
+
 {% endblock %}

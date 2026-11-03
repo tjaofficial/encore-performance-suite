@@ -1,8 +1,11 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db.models import DecimalField, Q
+from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
+from accounts.list_preferences import list_sort_url, paginate_list, resolve_list_sort
 from classes.models import Class, Season
 from students.models import Student
 from studios.models import Studio
@@ -50,14 +53,11 @@ def enrollment_list(request, studio_slug):
             "class_instance__season",
             "class_instance__instructor",
         )
-        .order_by(
-            "-created_at",
-        )
-    )
+            )
 
     search = request.GET.get("q", "").strip()
     status = request.GET.get("status", "").strip()
-    season_id = request.GET.get("season", "").strip()
+    season_id = request.GET.get("season", "current").strip()
     class_id = request.GET.get("class", "").strip()
     source = request.GET.get("source", "").strip()
 
@@ -74,10 +74,23 @@ def enrollment_list(request, studio_slug):
             status=status
         )
 
-    if season_id:
+    # Default to active and upcoming seasons, not historical imports.
+    # "all" is an explicit opt-out; numeric values select one season.
+    if season_id == "current" or season_id == "":
+        season_id = "current"
         enrollments = enrollments.filter(
-            class_instance__season_id=season_id
+            class_instance__season__end_date__gte=timezone.localdate()
         )
+    elif season_id != "all":
+        if season_id.isdigit():
+            enrollments = enrollments.filter(
+                class_instance__season_id=int(season_id)
+            )
+        else:
+            season_id = "current"
+            enrollments = enrollments.filter(
+                class_instance__season__end_date__gte=timezone.localdate()
+            )
 
     if class_id:
         enrollments = enrollments.filter(
@@ -88,6 +101,51 @@ def enrollment_list(request, studio_slug):
         enrollments = enrollments.filter(
             source=source
         )
+
+    enrollments = enrollments.annotate(
+        effective_tuition=Coalesce(
+            "tuition_override",
+            "class_instance__tuition_amount",
+            output_field=DecimalField(
+                max_digits=10,
+                decimal_places=2,
+            ),
+        )
+    )
+
+    sort_fields = {
+        "student": ("student__last_name", "student__first_name", "id"),
+        "class": ("class_instance__name", "class_instance__class_id", "id"),
+        "season": ("class_instance__season__name", "student__last_name", "student__first_name"),
+        "status": ("status", "student__last_name", "student__first_name"),
+        "source": ("source", "student__last_name", "student__first_name"),
+        "tuition": ("effective_tuition", "student__last_name", "student__first_name"),
+    }
+    sort_key, sort_direction = resolve_list_sort(
+        request, studio, "enrollments", sort_fields.keys(),
+        default_sort="student", default_direction="asc",
+    )
+    order_fields = list(sort_fields[sort_key])
+    if sort_direction == "desc":
+        order_fields = [f"-{field}" for field in order_fields]
+    enrollments = enrollments.order_by(*order_fields)
+    sort_columns = {
+        key: {
+            "url": list_sort_url(request, key, sort_key, sort_direction),
+            "active": sort_key == key,
+            "direction": sort_direction if sort_key == key else "",
+        }
+        for key in sort_fields
+    }
+
+    page_obj, pagination_context = paginate_list(
+        request,
+        studio,
+        "enrollments",
+        enrollments,
+        default_page_size=50,
+    )
+    enrollments = page_obj.object_list
 
     seasons = Season.objects.filter(
         studio=studio,
@@ -108,6 +166,9 @@ def enrollment_list(request, studio_slug):
             "classes": classes,
             "status_choices": Enrollment.Status.choices,
             "source_choices": Enrollment.Source.choices,
+            "sort_columns": sort_columns,
+            "sort_key": sort_key,
+            "sort_direction": sort_direction,
             "filters": {
                 "q": search,
                 "status": status,
@@ -115,6 +176,7 @@ def enrollment_list(request, studio_slug):
                 "class": class_id,
                 "source": source,
             },
+            **pagination_context,
         },
     )
 

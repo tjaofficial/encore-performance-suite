@@ -1,0 +1,39 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+{% block title %}Video Manager — Encore{% endblock %}
+{% block topbar_title %}Video Manager{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_video_manager.css' %}">
+{% endblock %}
+{% block content %}
+<div class="evm-page">
+  <a href="{{ back_url }}" class="evm-back">← Back</a>
+  <header class="evm-header">
+    <div class="evm-heading"><span class="evm-overline">DANCE & CLASS RESOURCES</span><h1>Video Manager</h1><p>Find and manage rehearsal videos across your accessible classes.</p></div>
+    <a class="evm-button evm-button-primary" href="{% url 'resources:resource_create' studio.slug %}?type=video{% if selected_class %}&amp;class={{ selected_class }}{% endif %}">+ Add Video</a>
+  </header>
+  <form method="get" class="evm-filters">
+    <input type="hidden" name="next" value="{{ back_url }}">
+    <label>Class
+      <select name="class"><option value="">All accessible classes</option>{% for cls in classes %}<option value="{{ cls.pk }}" {% if selected_class == cls.pk|stringformat:'s' %}selected{% endif %}>{{ cls.name }}</option>{% endfor %}</select>
+    </label>
+    <label>Search videos
+      <input type="search" name="q" value="{{ query }}" placeholder="Search video titles or classes…">
+    </label>
+    <button class="evm-button evm-button-primary" type="submit">Apply Filters</button>
+    {% if query or selected_class %}<a class="evm-reset" href="?next={{ back_url|urlencode }}">Clear</a>{% endif %}
+  </form>
+  <section class="evm-results">
+    <div class="evm-results-head"><div><span class="evm-overline">VIDEO LIBRARY</span><h2>Rehearsal Videos</h2></div><span class="evm-count">{{ videos|length }} videos</span></div>
+    {% if videos %}
+    <div class="evm-list">
+      {% for video in videos %}
+      <article class="evm-item"><div class="evm-thumb" aria-hidden="true">▶</div><div class="evm-item-text"><strong>{{ video.title }}</strong><span>{{ video.class_instance.name }}{% if video.dance %} · {{ video.dance.title }}{% endif %}</span></div><div class="evm-actions">{% if video.external_url %}<a class="evm-button evm-button-secondary" href="{{ video.external_url }}" target="_blank" rel="noopener noreferrer">Watch ↗</a>{% endif %}{% if video.dance_id %}<a class="evm-button evm-button-secondary" href="{% url 'resources:dance_video_manager' studio.slug video.dance_id %}">Manage</a>{% endif %}</div></article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="evm-empty"><div class="evm-empty-icon" aria-hidden="true">▶</div><h3>No videos match your selection</h3><p>{% if query or selected_class %}Try another class or clear the search, or add your first video.{% else %}Add a rehearsal video to start building your class library.{% endif %}</p><a class="evm-button evm-button-primary" href="{% url 'resources:resource_create' studio.slug %}?type=video{% if selected_class %}&amp;class={{ selected_class }}{% endif %}">+ Add Video</a></div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

@@ -6,6 +6,9 @@
     <a href="{% url 'communications:email_compose' studio.slug %}">
         Compose
     </a>
+    {% if role == "administrator" %}
+        <a href="{% url 'communications:email_activity' studio.slug %}">Email Activity</a>
+    {% endif %}
     <a href="{% url 'communications:email_campaign_list' studio.slug %}">
         Campaigns
     </a>

@@ -1,0 +1,66 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Claim Instructor Profile | {{ studio.name }}</title>
+    <link rel="stylesheet" href="{% static 'css/encore_base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/encore_instructor_onboarding.css' %}">
+</head>
+<body>
+<main class="claim-shell">
+    <section class="claim-card">
+        <div class="claim-heading">
+            <p class="eyebrow">{{ studio.name }} · Encore Instructor Setup</p>
+            <h1>Verify Your Profile</h1>
+            <p>
+                Review the information provided by your studio and correct anything
+                that is out of date before you continue.
+            </p>
+        </div>
+
+        <div class="claim-field" style="margin-bottom:14px;">
+            <label>Email</label>
+            <input class="encore-input" value="{{ instructor.email }}" disabled>
+            <small>This verified invitation is tied to this email address.</small>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+                <div class="message-banner error">{{ form.non_field_errors }}</div>
+            {% endif %}
+
+            <div class="claim-form-grid">
+                {% for field in form %}
+                    {% if not field.is_hidden %}
+                        <div class="claim-field {% if field.name == 'bio' %}full{% endif %}">
+                            {{ field.label_tag }}
+                            {{ field }}
+                            {% for error in field.errors %}
+                                <small class="field-error">{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            {% if existing_user %}
+                <div class="message-banner info" style="margin-top:16px;">
+                    An Encore account already exists for this email. Your instructor
+                    profile will be connected to that account instead of creating
+                    another login.
+                </div>
+            {% endif %}
+
+            <div class="claim-actions">
+                <button class="button primary" type="submit">
+                    Verify Profile & Continue →
+                </button>
+            </div>
+        </form>
+    </section>
+</main>
+</body>
+</html>

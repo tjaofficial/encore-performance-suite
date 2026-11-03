@@ -1,0 +1,106 @@
+/* Encore reusable info bubble component */
+
+.encore-info-bubble {
+    position: relative;
+    display: inline-grid;
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+    place-items: center;
+    vertical-align: middle;
+    cursor: help;
+    outline: 0;
+}
+
+.encore-info-bubble-icon {
+    display: grid;
+    width: 16px;
+    height: 16px;
+    place-items: center;
+    box-sizing: border-box;
+    border: 1px solid
+        color-mix(
+            in srgb,
+            var(--encore-primary) 42%,
+            var(--encore-border)
+        );
+    border-radius: 50%;
+    background:
+        color-mix(
+            in srgb,
+            var(--encore-primary) 6%,
+            #fff
+        );
+    color: var(--encore-primary);
+    font-size: .52rem;
+    font-weight: 950;
+    line-height: 1;
+    transition:
+        background .14s ease,
+        border-color .14s ease,
+        color .14s ease,
+        box-shadow .14s ease;
+}
+
+.encore-info-bubble:hover .encore-info-bubble-icon,
+.encore-info-bubble:focus .encore-info-bubble-icon,
+.encore-info-bubble:focus-visible .encore-info-bubble-icon {
+    border-color: var(--encore-primary);
+    background: var(--encore-primary);
+    color: #fff;
+    box-shadow:
+        0 0 0 3px
+        color-mix(
+            in srgb,
+            var(--encore-primary) 10%,
+            transparent
+        );
+}
+
+.encore-info-bubble-tooltip {
+    position: absolute;
+    z-index: 100;
+    left: 50%;
+    bottom: calc(100% + 8px);
+    width: max-content;
+    max-width: min(280px, 70vw);
+    padding: 8px 10px;
+    border: 1px solid
+        color-mix(
+            in srgb,
+            var(--encore-primary) 28%,
+            var(--encore-border)
+        );
+    border-radius: 8px;
+    background: var(--encore-primary-deep);
+    box-shadow: 0 8px 22px rgba(0, 2, 78, .18);
+    color: #fff;
+    font-size: .55rem;
+    font-weight: 650;
+    line-height: 1.4;
+    text-align: left;
+    white-space: normal;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, 4px);
+    transition:
+        opacity .14s ease,
+        transform .14s ease;
+}
+
+.encore-info-bubble-tooltip::after {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    border: 5px solid transparent;
+    border-top-color: var(--encore-primary-deep);
+    content: "";
+    transform: translateX(-50%);
+}
+
+.encore-info-bubble:hover .encore-info-bubble-tooltip,
+.encore-info-bubble:focus .encore-info-bubble-tooltip,
+.encore-info-bubble:focus-visible .encore-info-bubble-tooltip {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}

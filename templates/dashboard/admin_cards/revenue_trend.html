@@ -1,0 +1,29 @@
+<article class="admin-dashboard-card admin-analytics-card analytics-chart-card analytics-revenue-trend-card card-tone-blue">
+    <div class="card-heading"><h2>Revenue Trend</h2><span class="analytics-change is-{{ admin_analytics.revenue_trend.change.direction }}">{% if admin_analytics.revenue_trend.change.direction == "up" %}↑{% elif admin_analytics.revenue_trend.change.direction == "down" %}↓{% else %}—{% endif %} {{ admin_analytics.revenue_trend.change.label }}</span></div>
+    <div class="analytics-chart-summary"><div><span>This month</span><strong>${{ admin_analytics.revenue_trend.current_total|floatformat:2 }}</strong></div><small>Successful payments · last 6 months</small></div>
+    <div class="analytics-chart-shell" data-analytics-chart>
+        <div class="analytics-y-axis" aria-hidden="true">{% for tick in admin_analytics.revenue_trend.y_ticks %}<span>{{ tick.label }}</span>{% endfor %}</div>
+        <div class="analytics-chart-main">
+            <div class="analytics-line-chart analytics-line-chart-revenue" role="img" aria-label="Revenue trend for the last six months">
+                <svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">
+                    <line x1="0" y1="4" x2="100" y2="4" class="analytics-grid-line"></line><line x1="0" y1="12" x2="100" y2="12" class="analytics-grid-line"></line><line x1="0" y1="20" x2="100" y2="20" class="analytics-grid-line"></line><line x1="0" y1="28" x2="100" y2="28" class="analytics-grid-line"></line><line x1="0" y1="36" x2="100" y2="36" class="analytics-grid-line"></line>
+                    <polygon points="{{ admin_analytics.revenue_trend.area_points }}" class="analytics-area"></polygon><polyline points="{{ admin_analytics.revenue_trend.points }}" class="analytics-line"></polyline>
+                </svg>
+                <div class="analytics-point-layer" aria-hidden="false">
+                    {% for item in admin_analytics.revenue_trend.rows %}
+                        <button
+                            type="button"
+                            class="analytics-data-point"
+                            style="--point-x: {{ item.x_pct }}%; --point-y: {{ item.y_pct }}%;"
+                            data-label="{{ item.label }}"
+                            data-value="{{ item.display_value }}"
+                            aria-label="{{ item.label }}: {{ item.display_value }}"
+                        ></button>
+                    {% endfor %}
+                </div>
+                <div class="analytics-tooltip" role="status" hidden></div>
+            </div>
+            <div class="analytics-axis-labels">{% for item in admin_analytics.revenue_trend.rows %}<span>{{ item.label }}</span>{% endfor %}</div>
+        </div>
+    </div>
+</article>

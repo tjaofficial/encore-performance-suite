@@ -1,7 +1,7 @@
 {% extends "dashboard/base_dashboard.html" %}
 {% load static %}
 
-{% block title %}Add Costume · {{ class_instance.name }} | Encore{% endblock %}
+{% block title %}{% if is_edit %}Edit{% else %}Add{% endif %} Costume · {{ class_instance.name }} | Encore{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/encore_costumes_measurements.css' %}">
@@ -21,7 +21,7 @@
 
         <p class="eyebrow">Costumes</p>
 
-        <h1>Add Costume</h1>
+        <h1>{% if is_edit %}Edit Costume{% else %}Add Costume{% endif %}</h1>
 
         <p>
             Connect the costume to a Dance, add visual references,
@@ -37,7 +37,16 @@
 >
     {% csrf_token %}
 
-    <section class="wardrobe-form-card">
+    {% if form.errors or link_formset.errors or link_formset.non_form_errors %}
+<div id="costume-form-errors" class="wardrobe-validation-summary" role="alert" tabindex="-1">
+  <strong>Costume not saved — please correct the highlighted fields.</strong>
+  {% for field in form %}{% for error in field.errors %}<p><b>{{ field.label }}:</b> {{ error }}</p>{% endfor %}{% endfor %}
+  {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+  {% for errors in link_formset.errors %}{% for field, messages in errors.items %}{% for error in messages %}<p><b>Costume link / {{ field }}:</b> {{ error }}</p>{% endfor %}{% endfor %}{% endfor %}
+  {% for error in link_formset.non_form_errors %}<p>{{ error }}</p>{% endfor %}
+</div>{% endif %}
+<p class="wardrobe-required-hint"><strong>*</strong> indicates a required field. Vendor, photos, links and notes are optional.</p>
+<section class="wardrobe-form-card">
         <div class="wardrobe-section-heading">
             <span>Costume</span>
             <strong>Costume Information</strong>
@@ -45,13 +54,19 @@
 
         <div class="wardrobe-form-grid">
             <label>
-                <span>{{ form.dance.label }}</span>
+                <span>{{ form.dance.label }}{% if form.dance.field.required %} <b class="wardrobe-required-mark" aria-label="required">*</b>{% endif %}</span>
                 {{ form.dance }}
             </label>
 
             <label>
-                <span>{{ form.name.label }}</span>
+                <span>{{ form.name.label }}{% if form.name.field.required %} <b class="wardrobe-required-mark" aria-label="required">*</b>{% endif %}</span>
                 {{ form.name }}
+            </label>
+
+            <label>
+                <span>{{ form.gender_scope.label }}{% if form.gender_scope.field.required %} <b class="wardrobe-required-mark" aria-label="required">*</b>{% endif %}</span>
+                {{ form.gender_scope }}
+                <small>Controls which students this costume is assigned to and shown to.</small>
             </label>
 
             <label class="full">
@@ -69,6 +84,35 @@
                     Staff only.
                 </small>
             </label>
+        </div>
+    </section>
+
+    <section class="wardrobe-form-card vendor-attach-card" data-vendor-attach-card>
+        <div class="wardrobe-section-heading">
+            <span>Vendor</span>
+            <strong>Attach a Vendor</strong>
+            <p>Connect this costume to a saved vendor so Encore can show store information and size recommendations.</p>
+        </div>
+        <button type="button" class="button secondary" data-attach-vendor {% if form.vendor.value %}hidden{% endif %}>Attach a Vendor</button>
+        <div class="vendor-attach-fields" data-vendor-fields {% if not form.vendor.value %}hidden{% endif %}>
+            <label><span>{{ form.vendor.label }}</span>{{ form.vendor }}</label>
+            <label><span>{{ form.vendor_size_chart.label }}</span>{{ form.vendor_size_chart }}<small>Choose the chart that applies to this costume. The Measurements page will still compare every chart for the selected vendor.</small></label>
+            <div class="vendor-attached-preview" data-vendor-preview></div>
+
+            <div class="vendor-preview-source" hidden>
+                {% for vendor in vendors %}
+                    <div
+                        data-vendor-info-id="{{ vendor.id }}"
+                        data-vendor-name="{{ vendor.name }}"
+                        data-vendor-contact="{{ vendor.contact_name }}"
+                        data-vendor-phone="{{ vendor.phone }}"
+                        data-vendor-email="{{ vendor.email }}"
+                        data-vendor-website="{{ vendor.website }}"
+                        data-vendor-customer-number="{{ vendor.customer_number }}"
+                        data-vendor-address="{{ vendor.address_line_1 }}{% if vendor.address_line_2 %}, {{ vendor.address_line_2 }}{% endif %}{% if vendor.city %}, {{ vendor.city }}{% endif %}{% if vendor.state %}, {{ vendor.state }}{% endif %} {{ vendor.postal_code }}"
+                    ></div>
+                {% endfor %}
+            </div>
         </div>
     </section>
 
@@ -281,5 +325,6 @@
 {% endblock %}
 
 {% block extra_js %}
+{% if form.errors or link_formset.errors %}<script>document.addEventListener("DOMContentLoaded",()=>document.getElementById("costume-form-errors")?.scrollIntoView({behavior:"smooth",block:"center"}));</script>{% endif %}
 <script src="{% static 'js/encore_costume_form.js' %}" defer></script>
 {% endblock %}

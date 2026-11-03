@@ -1,0 +1,337 @@
+{% extends "dashboard/parent_portal_base.html" %}
+{% load static %}
+
+{% block title %}Billing | {{ studio.name }}{% endblock %}
+{% block parent_portal_heading %}Billing{% endblock %}
+
+{% block parent_extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_parent_billing_polish.css' %}?v=20261021-2">
+{% endblock %}
+
+{% block parent_content %}
+{% if account %}
+<section class="parent-billing-overview">
+    <div class="parent-billing-balance-copy">
+        <span class="parent-billing-label">Current Balance</span>
+        <strong>${{ amount_due|floatformat:2 }}</strong>
+        <p>
+            {% if open_charge_count %}
+                {{ open_charge_count }} open charge{{ open_charge_count|pluralize }} on this family account.
+            {% else %}
+                Your family account is current.
+            {% endif %}
+        </p>
+    </div>
+
+    <div class="parent-billing-overview-actions">
+        {% if can_pay_online and not autopay_profile.is_enabled %}
+            <button
+                type="button"
+                class="parent-billing-pay-button"
+                data-parent-modal-open="family-payment-modal"
+            >
+                Pay Balance
+            </button>
+            <small>Secure checkout through {{ studio.name }}'s payment account.</small>
+        {% elif autopay_profile.is_enabled and amount_due > 0 %}
+            <span class="encore-autopay-collection-badge">AutoPay enabled</span>
+            <small>AutoPay is enabled for future tuition. An outstanding balance is not proof that a payment has been initiated. If an initial collection failed, contact the studio before retrying to avoid duplicate bank debits.</small>
+        {% elif online_payments_enabled and amount_due <= 0 %}
+            <span class="encore-balance-paid">✓ Balance Paid</span>
+            <small>No payment is currently due.</small>
+        {% else %}
+            <span class="parent-billing-unavailable">Online payment unavailable</span>
+            <small>{% if payment_setup_message %}{{ payment_setup_message }}{% else %}Contact {{ studio.name }} for payment instructions.{% endif %}</small>
+        {% endif %}
+    </div>
+</section>
+
+<section class="encore-autopay-highlight" id="autopay" aria-labelledby="encore-autopay-title">
+  <div class="encore-autopay-top">
+    <span class="encore-autopay-symbol" aria-hidden="true">↻</span>
+    <div class="encore-autopay-heading">
+      <span class="encore-autopay-eyebrow">STRESS-FREE TUITION</span>
+      <h2 id="encore-autopay-title">Automatic Payments</h2>
+      <p>Spend less time managing bills and more time enjoying dance. Secure monthly payments through {{ studio.name }}.</p>
+    </div>
+    <span class="encore-autopay-state {% if autopay_profile.is_enabled %}is-active{% endif %}">{% if autopay_profile.is_enabled %}Enabled{% else %}Not enabled{% endif %}</span>
+  </div>
+  {% if autopay_profile.is_enabled %}
+    <div class="encore-autopay-bottom">
+      <div class="encore-autopay-details"><strong>You're all set!</strong><p>New recurring tuition charges are initiated automatically on their due dates. Bank debits can remain processing for several business days.</p>
+        <span class="encore-autopay-method">{{ autopay_profile.card_brand|title }} ending in {{ autopay_profile.card_last4 }}</span>
+        {% if amount_due > 0 %}<p><strong>Outstanding balance: ${{ amount_due|floatformat:2 }}</strong>. A saved payment method does not confirm payment. If Stripe is processing an ACH debit, allow several business days for settlement; if setup reported an error, ask the studio to review the payment before retrying.</p>{% endif %}
+      </div>
+      {% if guardian.is_primary %}
+        <form method="post" action="{% url 'billing:family_autopay_disable' studio.slug %}">{% csrf_token %}
+          <button type="submit" class="parent-outline-button">Disable AutoPay</button>
+        </form>
+      {% endif %}
+    </div>
+  {% else %}
+    <div class="encore-autopay-bottom">
+      <div class="encore-autopay-details">
+        <strong>Set it once. Tuition takes care of itself.</strong>
+        <p>Securely connect a bank account or save a card with Stripe. After authorization, recurring tuition is collected on its scheduled due dates.</p>
+      </div>
+      {% if guardian.is_primary and online_payments_enabled %}
+        <div class="encore-autopay-enroll">
+          <form id="autopay-csrf" hidden>{% csrf_token %}</form>
+          <fieldset class="encore-autopay-method-options" id="autopay-method-choices">
+            <legend>Choose your preferred method</legend>
+            <div class="encore-autopay-choice-grid" role="group" aria-label="Payment method preference">
+              <button type="button" class="encore-autopay-choice" data-autopay-method="us_bank_account" aria-pressed="false" aria-controls="autopay-payment-form">
+                <span class="encore-autopay-choice-heading"><span aria-hidden="true">▣</span> Bank account (ACH) <span class="encore-autopay-recommended">Recommended</span></span>
+                <span class="encore-autopay-choice-description">Secure bank connection. Payments usually take several business days to clear.</span>
+              </button>
+              <button type="button" class="encore-autopay-choice" data-autopay-method="card" aria-pressed="false" aria-controls="autopay-payment-form">
+                <span class="encore-autopay-choice-heading"><span aria-hidden="true">▤</span> Credit or debit card</span>
+                <span class="encore-autopay-choice-description">Save a card securely for automatic monthly tuition payments.</span>
+              </button>
+            </div>
+            <p class="encore-autopay-choice-hint" id="autopay-method-hint">Select a method above to open Stripe's secure form. You can still change methods in the Stripe form.</p>
+          </fieldset>
+          <div id="autopay-payment-form" hidden></div>
+          <div id="autopay-error" role="alert" hidden></div>
+          {% if amount_due > 0 %}
+          <div class="encore-autopay-balance-consent">
+            <strong>Outstanding balance: ${{ amount_due|floatformat:2 }}</strong>
+            <p>By activating AutoPay, you can authorize a separate payment of up to this amount using your new method. It may be initiated immediately after setup. ACH debits can remain pending for several business days.</p>
+            <label><input type="checkbox" id="autopay-balance-consent" checked> I authorize {{ studio.name }} to collect my existing balance of up to ${{ amount_due|floatformat:2 }} when AutoPay is enabled.</label>
+            <small>To pay with another card instead, uncheck this box and use Pay Balance first.</small>
+          </div>
+          {% endif %}
+          <label class="encore-autopay-consent"><input type="checkbox" id="autopay-consent">
+            <span>I authorize {{ studio.name }} to automatically debit my chosen bank account or charge my saved card for new recurring tuition on its due dates until I disable AutoPay.</span></label>
+          <button type="button" id="autopay-enable" class="parent-billing-pay-button"
+            data-publishable="{{ stripe_publishable_key }}" data-account="{{ stripe_connected_account_id }}"
+            data-setup-url="{% url 'billing:family_autopay_setup' studio.slug %}"
+            data-confirm-url="{% url 'billing:family_autopay_confirm' studio.slug %}">Set Up AutoPay →</button>
+        </div>
+      {% elif guardian.is_primary %}
+        <div class="encore-autopay-notice">AutoPay will be available after your studio finishes its {% if stripe_mode == 'test' %}test{% endif %} Stripe payment setup.</div>
+      {% else %}
+        <div class="encore-autopay-notice">A primary guardian can enable AutoPay for your family.</div>
+      {% endif %}
+    </div>
+  {% endif %}
+</section>
+
+<section class="parent-billing-section">
+    {% if next_billing_date %}<div class="encore-next-billing"><span>Next scheduled tuition billing</span><strong>{{ next_billing_date|date:"F j, Y" }}</strong><small>The amount depends on active class enrollments and studio pricing.</small></div>{% endif %}
+    <header class="parent-billing-section-header">
+        <div>
+            <h2>Charges</h2>
+            <p>Open charges and recent billing activity for your family.</p>
+        </div>
+    </header>
+
+    <div class="parent-billing-table-wrap">
+        <table class="parent-billing-table">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Student</th>
+                    <th>Due</th>
+                    <th>Status</th>
+                    <th class="money-column">Balance</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for charge in charges %}
+                    <tr>
+                        <td>
+                            <strong>{{ charge.description }}</strong>
+                            <small>
+                                {{ charge.get_charge_type_display }}
+                                {% if charge.class_instance %} · {{ charge.class_instance.name }}{% endif %}
+                            </small>
+                        </td>
+                        <td>
+                            {% if charge.student %}
+                                {{ charge.student.first_name }} {{ charge.student.last_name }}
+                            {% else %}
+                                Family
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if charge.due_date %}
+                                {{ charge.due_date|date:"M j, Y" }}
+                            {% else %}
+                                {{ charge.created_at|date:"M j, Y" }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="parent-billing-status status-{{ charge.status }}">
+                                {{ charge.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="money-column">
+                            <strong>${{ charge.balance_remaining|floatformat:2 }}</strong>
+                            {% if charge.balance_remaining != charge.amount %}
+                                <small>of ${{ charge.amount|floatformat:2 }}</small>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5" class="parent-billing-empty-row">No charges have been posted yet.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="parent-billing-grid">
+    <article class="parent-billing-section">
+        <header class="parent-billing-section-header">
+            <div>
+                <h2>Payment History</h2>
+                <p>Payments recorded on this family account.</p>
+            </div>
+        </header>
+
+        <div class="parent-billing-history-list">
+            {% for payment in payments %}
+                <div class="parent-billing-history-row">
+                    <div>
+                        <strong>{{ payment.paid_at|date:"M j, Y" }}</strong>
+                        <small>{{ payment.get_method_display }}</small>
+                    </div>
+                    <span class="parent-billing-status status-{{ payment.status }}">
+                        {{ payment.get_status_display }}
+                    </span>
+                    <strong>${{ payment.amount|floatformat:2 }}</strong>
+                </div>
+            {% empty %}
+                <div class="parent-billing-empty-state">No payments recorded yet.</div>
+            {% endfor %}
+        </div>
+    </article>
+
+    <article class="parent-billing-section">
+        <header class="parent-billing-section-header">
+            <div>
+                <h2>Credits</h2>
+                <p>Available credits are applied to family charges before payment.</p>
+            </div>
+        </header>
+
+        <div class="parent-billing-history-list">
+            {% for credit in credits %}
+                <div class="parent-billing-history-row credit-row">
+                    <div>
+                        <strong>{{ credit.description }}</strong>
+                        <small>{{ credit.created_at|date:"M j, Y" }}</small>
+                    </div>
+                    <span></span>
+                    <strong>${{ credit.remaining_amount|floatformat:2 }}</strong>
+                </div>
+            {% empty %}
+                <div class="parent-billing-empty-state">No available credits.</div>
+            {% endfor %}
+        </div>
+    </article>
+</section>
+
+{% if guardian.is_primary %}
+<section class="parent-billing-settings-line">
+    <div>
+        <strong>Withdraw from Classes &amp; Stop Future Tuition</strong>
+        <span>
+            {% if active_recurring_count %}
+                {{ active_recurring_count }} active recurring billing schedule{{ active_recurring_count|pluralize }}.
+            {% else %}
+                No active recurring billing schedules.
+            {% endif %}
+        </span>
+    </div>
+    <button type="button" data-parent-modal-open="cancel-family-billing-modal">Class Withdrawal Information</button>
+</section>
+{% endif %}
+
+{% if can_pay_online %}
+<form id="parent-billing-csrf" hidden>{% csrf_token %}</form>
+<div
+    id="parent-billing-config"
+    data-publishable-key="{{ stripe_publishable_key }}"
+    data-connected-account="{{ stripe_connected_account_id }}"
+    data-intent-url="{% url 'billing:family_payment_intent' studio.slug %}"
+    data-return-url="{% url 'billing:family_payment_return' studio.slug %}"
+    data-amount="{{ amount_due|floatformat:2 }}"
+></div>
+
+<div class="parent-modal" id="family-payment-modal" data-parent-modal hidden>
+    <div class="parent-modal-backdrop" data-parent-modal-close></div>
+    <section class="parent-modal-dialog parent-billing-payment-dialog" role="dialog" aria-modal="true" aria-labelledby="family-payment-title">
+        <header class="parent-modal-header">
+            <div>
+                <h2 id="family-payment-title">Pay Family Balance</h2>
+                <p>Payment is processed securely through {{ studio.name }}.</p>
+            </div>
+            <button type="button" class="parent-modal-close" data-parent-modal-close aria-label="Close">×</button>
+        </header>
+
+        <div class="parent-modal-body">
+            <div class="parent-billing-payment-total">
+                <span>Amount due</span>
+                <strong>${{ amount_due|floatformat:2 }}</strong>
+            </div>
+
+            <div id="parent-payment-element" class="parent-payment-element">
+                <div class="parent-billing-loading">Loading secure payment form…</div>
+            </div>
+
+            <div id="parent-payment-error" class="parent-payment-error" hidden></div>
+
+            <div class="parent-billing-modal-actions">
+                <button type="button" class="parent-outline-button" data-parent-modal-close>Cancel</button>
+                <button type="button" class="parent-primary-button" id="parent-payment-submit" disabled>
+                    Pay ${{ amount_due|floatformat:2 }}
+                </button>
+            </div>
+        </div>
+    </section>
+</div>
+{% endif %}
+
+{% if guardian.is_primary %}
+<div class="parent-modal" id="cancel-family-billing-modal" data-parent-modal hidden>
+    <div class="parent-modal-backdrop" data-parent-modal-close></div>
+    <section class="parent-modal-dialog parent-billing-cancel-dialog" role="dialog" aria-modal="true" aria-labelledby="cancel-family-billing-title">
+        <header class="parent-modal-header">
+            <div>
+                <h2 id="cancel-family-billing-title">Withdrawing from Classes</h2>
+                <p>This is separate from deleting your Encore family account.</p>
+            </div>
+            <button type="button" class="parent-modal-close" data-parent-modal-close aria-label="Close">×</button>
+        </header>
+
+        <div class="parent-modal-body">
+            <div class="parent-billing-warning">
+                <strong>What this does</strong>
+                <p>Withdrawing from classes must be coordinated with the studio. It can change future tuition, but it does not erase existing balances or your family account.</p>
+                <p>Contact {{ studio.name }} to request a class withdrawal. You can separately disable AutoPay above without ending enrollment.</p>
+            </div>
+
+            <form method="post" action="{% url 'billing:cancel_family_billing' studio.slug %}" class="parent-billing-cancel-form">
+                {% csrf_token %}
+                <button type="button" class="parent-outline-button" data-parent-modal-close>Keep Billing Active</button>
+                <button type="submit" class="parent-danger-button">Acknowledge &amp; Return to Billing</button>
+            </form>
+        </div>
+    </section>
+</div>
+{% endif %}
+{% else %}
+<div class="parent-billing-section">
+    <div class="parent-billing-empty-state">This family does not have an active billing account yet.</div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block parent_extra_js %}
+<script src="https://js.stripe.com/v3/"></script>
+<script src="{% static 'js/encore_parent_billing.js' %}" defer></script>
+{% endblock %}

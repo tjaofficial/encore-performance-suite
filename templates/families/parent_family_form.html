@@ -1,0 +1,38 @@
+{% extends "dashboard/parent_portal_base.html" %}
+
+{% block title %}Edit Family | {{ studio.name }}{% endblock %}
+{% block parent_portal_heading %}Edit Family{% endblock %}
+
+{% block parent_content %}
+<a class="parent-back-link" href="{% url 'families:parent_family_detail' studio.slug %}">
+    ← Back to My Family
+</a>
+
+<form method="post" class="parent-form-card">
+    {% csrf_token %}
+
+    <div class="parent-page-heading compact-heading">
+        <div class="parent-page-icon parent-card-icon-family">⌂</div>
+        <div>
+            <span class="parent-eyebrow">Household Information</span>
+            <h2>Edit Family Details</h2>
+            <p>Keep the studio's household, contact, and emergency information current.</p>
+        </div>
+    </div>
+
+    <div class="parent-form-grid">
+        {% for field in form %}
+            <label class="{% if field.name == 'address_line_1' or field.name == 'address_line_2' %}span-2{% endif %}">
+                <span>{{ field.label }}</span>
+                {{ field }}
+                {% for error in field.errors %}<small class="parent-field-error">{{ error }}</small>{% endfor %}
+            </label>
+        {% endfor %}
+    </div>
+
+    <div class="parent-form-actions">
+        <a href="{% url 'families:parent_family_detail' studio.slug %}">Cancel</a>
+        <button type="submit">Save Family</button>
+    </div>
+</form>
+{% endblock %}

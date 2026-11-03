@@ -715,3 +715,7 @@
 .field-help-tooltip:focus-within .field-help-popup {
     display: block;
 }
+
+
+/* Studio-wide tuition inheritance */
+.studio-tuition-inheritance{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:11px;padding:12px;border:1px solid color-mix(in srgb,var(--encore-primary) 18%,var(--encore-border));border-radius:10px;background:var(--encore-primary-soft)}.studio-tuition-inheritance>div{display:grid;gap:3px}.studio-tuition-inheritance span{color:var(--encore-primary);font-size:.5rem;font-weight:900;letter-spacing:.06em}.studio-tuition-inheritance strong{font-size:.66rem;color:var(--encore-primary-deep)}.studio-tuition-inheritance p{margin:0;color:var(--encore-muted);font-size:.54rem;line-height:1.45}.tuition-override-toggle{margin-top:8px}.custom-tuition-fields{display:none;margin-top:10px;padding:11px;border:1px dashed color-mix(in srgb,var(--encore-primary) 24%,var(--encore-border));border-radius:10px}.custom-tuition-fields.visible{display:block}@media(max-width:760px){.studio-tuition-inheritance{flex-direction:column}}

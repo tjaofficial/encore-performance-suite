@@ -1,0 +1,58 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Export Studio Data | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}">{% endblock %}
+{% block topbar_title %}Export Studio Data{% endblock %}
+
+{% block content %}
+<div class="settings-workspace">
+    {% include "includes/settings_nav.html" %}
+    <main class="settings-workspace-content">
+        <section class="settings-heading">
+            <div>
+                <a class="back-link" href="{% url 'studios:data_transfer_home' studio.slug %}">← Back to Data Import &amp; Export</a>
+                <p class="eyebrow">Studio Data</p>
+                <h1>Export {{ studio.name }}</h1>
+                <p>Download selected records as a ZIP of CSV files. Relationship IDs are preserved so the files can be connected outside Encore.</p>
+            </div>
+        </section>
+
+        {% if messages %}
+            <div class="message-stack">
+                {% for message in messages %}<div class="message-banner {{ message.tags }}">{{ message }}</div>{% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post" class="settings-form">
+            {% csrf_token %}
+            <section class="settings-panel export-selection-panel">
+                <div class="settings-section-heading">
+                    <div>
+                        <span>Portable Export</span>
+                        <h2>Choose data sets</h2>
+                        <p>Each selection becomes its own CSV inside one ZIP download.</p>
+                    </div>
+                </div>
+
+                <div class="export-choice-grid">
+                    {% for key, label in export_choices %}
+                        <label class="export-choice">
+                            <input type="checkbox" name="datasets" value="{{ key }}" checked>
+                            <span>
+                                <strong>{{ label }}</strong>
+                                <small>Include {{ label|lower }} in this export.</small>
+                            </span>
+                        </label>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <div class="form-actions">
+                <a class="button secondary" href="{% url 'studios:data_transfer_home' studio.slug %}">Cancel</a>
+                <button class="button primary" type="submit">Download ZIP Export</button>
+            </div>
+        </form>
+    </main>
+</div>
+{% endblock %}

@@ -14,6 +14,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
+# Allow large internal Studio Director onboarding review submissions while
+# keeping a finite ceiling. Can be overridden per environment if needed.
+DATA_UPLOAD_MAX_NUMBER_FIELDS = int(
+    os.getenv(
+        "DATA_UPLOAD_MAX_NUMBER_FIELDS",
+        "20000",
+    )
+)
+
 def env_list(name, default=""):
     return [
         value.strip()
@@ -64,6 +73,7 @@ INSTALLED_APPS = [
     "tasks.apps.TasksConfig",
     "timekeeping.apps.TimekeepingConfig",
     "costumes.apps.CostumesConfig",
+    "support_center.apps.SupportCenterConfig",
 ]
 
 MIDDLEWARE = [
@@ -176,7 +186,27 @@ LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/accounts/login/"
 LOGOUT_REDIRECT_URL = "/accounts/login/"
 
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+EMAIL_BACKEND = os.getenv(
+    "EMAIL_BACKEND",
+    (
+        "django.core.mail.backends.console.EmailBackend"
+        if DEBUG
+        else "config.email_backend.SESEmailBackend"
+    ),
+)
+
+REGISTRATION_START_LIMIT_PER_HOUR = int(
+    os.getenv("REGISTRATION_START_LIMIT_PER_HOUR", "20")
+)
+REGISTRATION_EMAIL_SESSION_LIMIT_PER_HOUR = int(
+    os.getenv("REGISTRATION_EMAIL_SESSION_LIMIT_PER_HOUR", "5")
+)
+REGISTRATION_VERIFICATION_EMAIL_LIMIT_PER_HOUR = int(
+    os.getenv("REGISTRATION_VERIFICATION_EMAIL_LIMIT_PER_HOUR", "4")
+)
+REGISTRATION_EMAIL_VERIFICATION_MAX_AGE_SECONDS = int(
+    os.getenv("REGISTRATION_EMAIL_VERIFICATION_MAX_AGE_SECONDS", "3600")
+)
 
 AWS_SES_REGION = os.getenv(
     "AWS_SES_REGION",
@@ -217,6 +247,12 @@ EMAIL_REPLY_TO = os.getenv(
 
 DEFAULT_FROM_EMAIL = (
     f"{EMAIL_FROM_NAME} <{EMAIL_FROM_ADDRESS}>"
+)
+
+
+ENCORE_ONBOARDING_EMAIL = os.getenv(
+    "ENCORE_ONBOARDING_EMAIL",
+    "info@encoreperformancesuite.com",
 )
 
 STRIPE_SECRET_KEY = os.getenv(
@@ -282,3 +318,24 @@ CSRF_COOKIE_SECURE = (
     )
     == "True"
 )
+
+
+ENCORE_PUBLIC_BASE_URL = os.getenv(
+    "ENCORE_PUBLIC_BASE_URL",
+    "http://127.0.0.1:8000" if DEBUG else "https://encoreperformancesuite.com",
+).rstrip("/")
+
+ENCORE_OWNER_EMAIL_VERIFICATION_MAX_AGE_SECONDS = int(
+    os.getenv("ENCORE_OWNER_EMAIL_VERIFICATION_MAX_AGE_SECONDS", "86400")
+)
+
+ENCORE_OWNER_VERIFICATION_RESEND_COOLDOWN_SECONDS = int(
+    os.getenv("ENCORE_OWNER_VERIFICATION_RESEND_COOLDOWN_SECONDS", "60")
+)
+
+
+# Test-mode Connect accounts must be explicitly paired to each studio.
+# Example .env: STRIPE_TEST_CONNECTED_ACCOUNTS={"pizza-moves":"acct_TEST_ACCOUNT_ID"}
+# This is ignored whenever a live Stripe secret key is configured.
+STRIPE_TEST_CONNECTED_ACCOUNTS = os.getenv("STRIPE_TEST_CONNECTED_ACCOUNTS", "{}")
+SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"

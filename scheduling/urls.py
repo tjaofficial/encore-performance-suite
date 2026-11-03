@@ -5,6 +5,8 @@ from . import views
 app_name = "scheduling"
 
 urlpatterns = [
+    path("<slug:studio_slug>/time-off/mine/", views.time_off_my_requests, name="time_off_my_requests"),
+    path("<slug:studio_slug>/time-off/mine/<int:request_id>/edit/", views.time_off_request_change, name="time_off_request_change"),
     path(
         "<slug:studio_slug>/",
         views.calendar_page,

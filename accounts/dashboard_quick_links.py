@@ -2,51 +2,65 @@ from copy import deepcopy
 from urllib.parse import urlsplit
 
 
-MAX_CUSTOM_QUICK_LINKS = 2
+MAX_CUSTOM_QUICK_LINKS = 4
+# Explicit allowlist so saved dashboard preferences cannot insert arbitrary markup.
+QUICK_LINK_ICONS = (
+    "external-link", "calendar-days", "music-2", "video", "users",
+    "book-open", "clipboard-check", "shirt", "list-checks", "bell",
+    "star", "heart", "link", "home", "clock-3", "key-round",
+    "graduation-cap", "megaphone", "ruler", "clapperboard", "settings",
+)
 
 
 QUICK_LINK_DEFINITIONS = {
     "admin": [
         {
+            "key": "approval_codes",
+            "label": "Approval Codes",
+            "description": "Issue in-person class registration approvals.",
+            "icon": "key-round",
+            "default": False,
+        },
+        {
             "key": "calendar",
             "label": "Calendar",
             "description": "Built-in Encore shortcut.",
-            "icon": "▣",
+            "icon": "calendar-days",
             "default": True,
         },
         {
             "key": "classes",
             "label": "Class Manager",
             "description": "Built-in Encore shortcut.",
-            "icon": "◇",
+            "icon": "book-open",
             "default": True,
         },
         {
             "key": "students",
             "label": "Students",
             "description": "Built-in Encore shortcut.",
-            "icon": "○",
+            "icon": "users",
             "default": True,
         },
         {
             "key": "instructors",
             "label": "Instructors",
             "description": "Built-in Encore shortcut.",
-            "icon": "△",
+            "icon": "graduation-cap",
             "default": False,
         },
         {
             "key": "announcements",
             "label": "Announcements",
             "description": "Built-in Encore shortcut.",
-            "icon": "◌",
+            "icon": "megaphone",
             "default": False,
         },
         {
             "key": "tasks",
             "label": "Tasks",
             "description": "Built-in Encore shortcut.",
-            "icon": "✓",
+            "icon": "list-checks",
             "default": True,
         },
     ],
@@ -55,28 +69,28 @@ QUICK_LINK_DEFINITIONS = {
             "key": "calendar",
             "label": "Calendar",
             "description": "Built-in Encore shortcut.",
-            "icon": "▣",
+            "icon": "calendar-days",
             "default": True,
         },
         {
             "key": "add_reminder",
             "label": "Add Reminder",
             "description": "Built-in Encore shortcut.",
-            "icon": "○",
+            "icon": "bell-plus",
             "default": True,
         },
         {
             "key": "log_extra_work",
             "label": "Log Extra Work",
             "description": "Built-in Encore shortcut.",
-            "icon": "◷",
+            "icon": "clock-3",
             "default": False,
         },
         {
             "key": "announcements",
             "label": "Announcements",
             "description": "Built-in Encore shortcut.",
-            "icon": "◌",
+            "icon": "megaphone",
             "default": False,
         },
     ],
@@ -85,49 +99,49 @@ QUICK_LINK_DEFINITIONS = {
             "key": "attendance",
             "label": "Attendance",
             "description": "Built-in Encore shortcut.",
-            "icon": "✓",
+            "icon": "clipboard-check",
             "default": True,
         },
         {
             "key": "music",
             "label": "Music",
             "description": "Built-in Encore shortcut.",
-            "icon": "♫",
+            "icon": "music-2",
             "default": True,
         },
         {
             "key": "videos",
             "label": "Videos",
             "description": "Built-in Encore shortcut.",
-            "icon": "▷",
+            "icon": "video",
             "default": True,
         },
         {
             "key": "performance",
-            "label": "Performance",
+            "label": "Dances",
             "description": "Built-in Encore shortcut.",
-            "icon": "◇",
+            "icon": "clapperboard",
             "default": True,
         },
         {
             "key": "add_reminder",
             "label": "Add Reminder",
             "description": "Built-in Encore shortcut.",
-            "icon": "○",
+            "icon": "bell-plus",
             "default": True,
         },
         {
             "key": "measurements",
             "label": "Measurements",
             "description": "Built-in Encore shortcut.",
-            "icon": "↔",
+            "icon": "ruler",
             "default": True,
         },
         {
             "key": "costumes",
             "label": "Costumes",
             "description": "Built-in Encore shortcut.",
-            "icon": "♢",
+            "icon": "shirt",
             "default": True,
         },
     ],
@@ -157,6 +171,7 @@ def default_dashboard_quick_links(dashboard_kind):
             {
                 "label": "",
                 "url": "",
+                "icon": "external-link",
             }
             for _index in range(
                 MAX_CUSTOM_QUICK_LINKS
@@ -213,10 +228,14 @@ def _clean_custom_links(values):
             label = ""
             url = ""
 
+        icon = str(row.get("icon") or "external-link").strip()
+        if icon not in QUICK_LINK_ICONS:
+            icon = "external-link"
         cleaned.append(
             {
                 "label": label,
                 "url": url,
+                "icon": icon,
             }
         )
 
@@ -225,6 +244,7 @@ def _clean_custom_links(values):
             {
                 "label": "",
                 "url": "",
+                "icon": "external-link",
             }
         )
 

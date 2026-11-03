@@ -1,0 +1,174 @@
+{% extends "dashboard/parent_portal_base.html" %}
+{% load static %}
+
+{% block title %}Costumes | {{ studio.name }}{% endblock %}
+{% block parent_portal_heading %}Costumes{% endblock %}
+
+{% block parent_content %}
+<section class="parent-page-heading">
+    <div class="parent-page-icon parent-card-icon-costume">✦</div>
+    <div>
+        <span class="parent-eyebrow">Performance</span>
+        <h2>{% if selected_student %}{{ selected_student.first_name }}'s Costumes{% else %}Family Costumes{% endif %}</h2>
+        <p>Costume status, sizes, family instructions, photos, and purchase links.</p>
+    </div>
+</section>
+
+<section class="parent-costume-grid">
+    {% for row in assignment_rows %}
+        {% with assignment=row.assignment %}
+        <article class="parent-costume-card">
+            <div class="parent-costume-image">
+                {% with front=assignment.costume.front_image %}
+                    {% if front %}
+                        <img src="{{ front.image.url }}" alt="{{ assignment.costume.name }}">
+                    {% else %}
+                        <span class="parent-card-icon parent-card-icon-costume">✦</span>
+                    {% endif %}
+                {% endwith %}
+            </div>
+
+            <div class="parent-costume-copy">
+                <span class="parent-eyebrow">
+                    {{ assignment.student.first_name }}
+                    · {{ assignment.costume.dance.class_instance.name }}
+                </span>
+                <h3>{{ assignment.costume.name }}</h3>
+                <p>{{ assignment.costume.dance.title|default:"Dance Costume" }}</p>
+
+                <div class="parent-costume-meta">
+                    <span>Status <strong>{{ assignment.get_status_display }}</strong></span>
+                    <span>Costume <strong>{{ row.display_size|default:"TBD" }}</strong>{% if not assignment.costume_size and row.recommended_size %}<small>Recommended</small>{% endif %}</span>
+                    <span>Shoe <strong>{{ assignment.shoe_size|default:"TBD" }}</strong></span>
+                </div>
+
+                <button
+                    type="button"
+                    class="parent-primary-button"
+                    data-costume-modal-open="costume-modal-{{ assignment.id }}"
+                >
+                    View Details
+                </button>
+            </div>
+        </article>
+
+        <div
+            class="parent-modal"
+            id="costume-modal-{{ assignment.id }}"
+            data-costume-modal
+            hidden
+        >
+            <div class="parent-modal-backdrop" data-costume-modal-close></div>
+
+            <section class="parent-modal-dialog" role="dialog" aria-modal="true" aria-label="{{ assignment.costume.name }}">
+                <header class="parent-modal-header">
+                    <div>
+                        <span class="parent-eyebrow">{{ assignment.costume.dance.title|default:"Costume" }}</span>
+                        <h2>{{ assignment.costume.name }}</h2>
+                        <p>{{ assignment.student.first_name }} · {{ assignment.costume.dance.class_instance.name }}</p>
+                    </div>
+                    <button type="button" class="parent-modal-close" data-costume-modal-close aria-label="Close">×</button>
+                </header>
+
+                <div class="parent-modal-body">
+                    <section class="parent-costume-photo-grid">
+                        {% for image in assignment.costume.images.all %}
+                            <figure>
+                                <img src="{{ image.image.url }}" alt="{{ assignment.costume.name }} {{ image.get_image_type_display }}">
+                                {% if image.caption %}<figcaption>{{ image.caption }}</figcaption>{% endif %}
+                            </figure>
+                        {% empty %}
+                            <div class="parent-empty-state compact">No costume photos uploaded yet.</div>
+                        {% endfor %}
+                    </section>
+
+                    <section class="parent-costume-detail-grid">
+                        <div>
+                            <span>Status</span>
+                            <strong>{{ assignment.get_status_display }}</strong>
+                        </div>
+                        <div>
+                            <span>Costume Size</span>
+                            <strong>{{ row.display_size|default:"TBD" }}</strong>
+                            {% if not assignment.costume_size and row.recommended_size %}<small>Vendor recommendation</small>{% endif %}
+                        </div>
+                        <div>
+                            <span>Shoe Size</span>
+                            <strong>{{ assignment.shoe_size|default:"TBD" }}</strong>
+                        </div>
+                        <div>
+                            <span>Measurements Used</span>
+                            <strong>
+                                {% if assignment.measurement_set_used %}
+                                    {{ assignment.measurement_set_used.measured_at|date:"M j, Y"|default:"Saved set" }}
+                                {% else %}
+                                    Not assigned
+                                {% endif %}
+                            </strong>
+                        </div>
+                    </section>
+
+                    {% if assignment.costume.vendor %}
+                        <section class="parent-modal-note">
+                            <span class="parent-eyebrow">Vendor / Store</span>
+                            <p><strong>{{ assignment.costume.vendor.name }}</strong>{% if assignment.costume.vendor_size_chart %}<br>Size chart: {{ assignment.costume.vendor_size_chart.name }}{% endif %}</p>
+                            {% if assignment.costume.vendor.contact_name %}<p>{{ assignment.costume.vendor.contact_name }}</p>{% endif %}
+                            {% if assignment.costume.vendor.website %}
+                                <div class="parent-resource-actions">
+                                    <a href="{{ assignment.costume.vendor.website }}" target="_blank" rel="noopener">Visit Store ↗</a>
+                                </div>
+                            {% endif %}
+                        </section>
+                    {% endif %}
+
+                    {% if assignment.costume.student_notes or assignment.student_notes %}
+                        <section class="parent-modal-note">
+                            <span class="parent-eyebrow">Family Instructions</span>
+                            {% if assignment.costume.student_notes %}
+                                <p>{{ assignment.costume.student_notes|linebreaksbr }}</p>
+                            {% endif %}
+                            {% if assignment.student_notes %}
+                                <p>{{ assignment.student_notes|linebreaksbr }}</p>
+                            {% endif %}
+                        </section>
+                    {% endif %}
+
+                    {% if assignment.measurement_set_used %}
+                        <section class="parent-modal-note">
+                            <span class="parent-eyebrow">Measurements Used</span>
+                            <div class="parent-measurement-grid compact">
+                                <div><span>Chest</span><strong>{{ assignment.measurement_set_used.bust|default:"—" }}</strong></div>
+                                <div><span>Waist</span><strong>{{ assignment.measurement_set_used.waist|default:"—" }}</strong></div>
+                                <div><span>Hips</span><strong>{{ assignment.measurement_set_used.hips|default:"—" }}</strong></div>
+                                <div><span>Girth</span><strong>{{ assignment.measurement_set_used.girth|default:"—" }}</strong></div>
+                                <div><span>Inseam</span><strong>{{ assignment.measurement_set_used.inseam|default:"—" }}</strong></div>
+                                <div><span>Height</span><strong>{{ assignment.measurement_set_used.height|default:"—" }}</strong></div>
+                            </div>
+                        </section>
+                    {% endif %}
+
+                    {% if assignment.costume.purchase_links.all %}
+                        <section class="parent-modal-note">
+                            <span class="parent-eyebrow">Purchase / Reference Links</span>
+                            <div class="parent-resource-actions">
+                                {% for link in assignment.costume.purchase_links.all %}
+                                    <a href="{{ link.url }}" target="_blank" rel="noopener">
+                                        {{ link.label }} ↗
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        </section>
+                    {% endif %}
+                </div>
+            </section>
+        </div>
+        {% endwith %}
+    {% empty %}
+        <div class="parent-empty-state">No costume assignments are available yet.</div>
+    {% endfor %}
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/encore_parent_costumes.js' %}" defer></script>
+{% endblock %}

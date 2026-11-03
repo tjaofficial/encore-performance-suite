@@ -1,0 +1,142 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Studio Director Final Review | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}">{% endblock %}
+{% block topbar_title %}Studio Director Onboarding{% endblock %}
+
+{% block content %}
+<div class="settings-workspace">
+    {% include "includes/settings_nav.html" %}
+    <main class="settings-workspace-content">
+        <section class="settings-heading">
+            <div>
+                <a class="back-link" href="{% url 'studios:studio_director_onboarding' studio.slug %}">← Back to Studio Director Playbook</a>
+                <p class="eyebrow">Studio Director · Final Review</p>
+                <h1>Onboarding Review</h1>
+                <p>Check migration exceptions, measurements, staffing, enrollment, and billing cleanup before marking onboarding complete.</p>
+            </div>
+        </section>
+
+        <section class="import-review-summary">
+            <div class="import-review-stat">
+                <span>Needs Review</span>
+                <strong>{{ unresolved_rows }}</strong>
+                <small>Current failed/error rows</small>
+            </div>
+            <div class="import-review-stat">
+                <span>TBD Instructors</span>
+                <strong>{{ tbd_instructors }}</strong>
+                <small>Placeholder instructor records</small>
+            </div>
+            <div class="import-review-stat create">
+                <span>Measurements</span>
+                <strong>{{ measurement_records }}</strong>
+                <small>{{ students_with_measurements }} students with measurement history</small>
+            </div>
+            <div class="import-review-stat create">
+                <span>Active</span>
+                <strong>{{ current_enrollments }}</strong>
+                <small>Active enrollments</small>
+            </div>
+            <div class="import-review-stat update">
+                <span>Waitlisted</span>
+                <strong>{{ waitlisted }}</strong>
+                <small>Waitlist enrollments</small>
+            </div>
+            <div class="import-review-stat skip">
+                <span>Dropped</span>
+                <strong>{{ dropped }}</strong>
+                <small>Historical dropped enrollments</small>
+            </div>
+        </section>
+
+        {% if unresolved_jobs %}
+            <div class="message-banner warning">
+                {{ unresolved_jobs }} current onboarding step{{ unresolved_jobs|pluralize }} still contain failed or error rows. Older test runs are not included in this count.
+            </div>
+        {% endif %}
+
+        {% if billing_transition.status == "completed" %}
+            <section class="settings-section-block">
+                <div class="settings-section-heading">
+                    <div>
+                        <span>Billing Transition</span>
+                        <h2>Opening balances imported</h2>
+                        <p>
+                            Opening balance date: {{ billing_transition.opening_balance_date }} ·
+                            Encore billing starts: {{ billing_transition.billing_start_date }}
+                        </p>
+                    </div>
+                </div>
+                <div class="billing-reconcile-grid">
+                    <div><span>Opening Charges</span><strong>${{ billing_transition.source_unpaid }}</strong></div>
+                    <div><span>Unapplied Credits</span><strong>${{ billing_transition.source_unapplied }}</strong></div>
+                    <div><span>Net Opening Balance</span><strong>${{ billing_transition.source_balance }}</strong></div>
+                </div>
+            </section>
+        {% endif %}
+
+        <section class="settings-section-block">
+            <div class="settings-section-heading">
+                <div>
+                    <span>Billing Safety</span>
+                    <h2>Migration imports did not create tuition charges</h2>
+                    <p>
+                        Active enrollment records were imported without running enrollment post-save billing automation.
+                        Review tuition and billing setup before intentionally starting Encore billing.
+                    </p>
+                </div>
+            </div>
+            <div class="vendor-review-actions">
+                <a class="button secondary" href="{% url 'billing:tuition_plan_list' studio.slug %}">Review Tuition & Billing →</a>
+                <a class="button secondary" href="{% url 'enrollments:enrollment_list' studio.slug %}">Review Enrollments →</a>
+            </div>
+        </section>
+
+        <section class="settings-section-block">
+            <div class="settings-section-heading">
+                <div>
+                    <span>Current Studio Director Jobs</span>
+                    <h2>Latest Result for Each Completed Step</h2>
+                    <p>Only the job currently attached to each onboarding step is shown here. Older test runs are excluded from Final Review.</p>
+                </div>
+            </div>
+            {% if recent_jobs %}
+                <div class="import-history-list">
+                    {% for job in recent_jobs %}
+                        <a class="import-history-row" href="{% url 'studios:data_import_history_detail' studio.slug job.id %}">
+                            <div>
+                                <strong>{{ job.original_filename }}</strong>
+                                <span>{{ job.get_status_display }} · {{ job.created_at|date:"M j, Y g:i A" }}</span>
+                            </div>
+                            <div class="import-history-counts">
+                                <span>{{ job.created_count }} created</span>
+                                <span>{{ job.updated_count }} updated</span>
+                                {% if job.not_imported_count %}<span>{{ job.not_imported_count }} not imported</span>{% endif %}
+                            </div>
+                            <b>→</b>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">No Studio Director jobs found.</div>
+            {% endif %}
+        </section>
+
+        <section class="settings-section-block">
+            <div class="settings-section-heading">
+                <div>
+                    <span>Complete Onboarding</span>
+                    <h2>Everything look good?</h2>
+                    <p>Mark Final Review complete when remaining exceptions are understood and the studio is ready for handoff.</p>
+                </div>
+            </div>
+            <form method="post" action="{% url 'studios:studio_director_mark_manual_step' studio.slug 'final_review' %}">
+                {% csrf_token %}
+                <button class="button primary" type="submit">Mark Final Review Complete</button>
+            </form>
+        </section>
+    </main>
+</div>
+{% endblock %}

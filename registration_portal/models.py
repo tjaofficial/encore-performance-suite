@@ -262,6 +262,11 @@ class PublicRegistrationSession(models.Model):
         blank=True,
     )
 
+    policy_snapshot = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
     embed_mode = models.BooleanField(
         default=False,
     )
@@ -408,3 +413,165 @@ class RegistrationClassHold(models.Model):
             f"{self.registration_session.token} - "
             f"{self.class_instance}"
         )
+
+
+class RegistrationPolicy(models.Model):
+    class DocumentType(models.TextChoices):
+        POLICY = "policy", "Policy"
+        AGREEMENT = "agreement", "Agreement"
+        CONSENT = "consent", "Consent"
+        WAIVER = "waiver", "Waiver / Release"
+
+    class Scope(models.TextChoices):
+        ACCOUNT = "account", "Studio / account registration"
+        ALL_REGISTRATIONS = "all_registrations", "Every registration"
+        SPECIFIC_CLASSES = "specific_classes", "Specific classes"
+
+    studio = models.ForeignKey(
+        Studio,
+        on_delete=models.CASCADE,
+        related_name="registration_policies",
+    )
+    policy_key = models.UUIDField(default=uuid.uuid4, editable=False)
+    version = models.PositiveIntegerField(default=1)
+    is_current = models.BooleanField(default=True)
+
+    title = models.CharField(max_length=180)
+    document_type = models.CharField(
+        max_length=30,
+        choices=DocumentType.choices,
+        default=DocumentType.POLICY,
+    )
+    content_html = models.TextField()
+    acceptance_text = models.CharField(max_length=320, blank=True)
+
+    scope = models.CharField(
+        max_length=40,
+        choices=Scope.choices,
+        default=Scope.ALL_REGISTRATIONS,
+    )
+    classes = models.ManyToManyField(
+        Class,
+        related_name="registration_policies",
+        blank=True,
+    )
+
+    is_required = models.BooleanField(default=True)
+    requires_signature = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    effective_date = models.DateField(null=True, blank=True)
+    display_order = models.PositiveIntegerField(default=0)
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="created_registration_policies",
+        null=True,
+        blank=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["display_order", "title", "pk"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["studio", "policy_key", "version"],
+                name="unique_registration_policy_version",
+            )
+        ]
+
+    def clean(self):
+        super().clean()
+        if self.pk and self.scope != self.Scope.SPECIFIC_CLASSES:
+            # Class links are cleared by the form/view after save.
+            return
+
+    @property
+    def default_acceptance_text(self):
+        return f"I have read and agree to the {self.title}."
+
+    @property
+    def acceptance_label(self):
+        return self.acceptance_text.strip() or self.default_acceptance_text
+
+    def __str__(self):
+        return f"{self.title} (v{self.version})"
+
+
+class RegistrationPolicyAcceptance(models.Model):
+    registration_session = models.ForeignKey(
+        PublicRegistrationSession,
+        on_delete=models.CASCADE,
+        related_name="policy_acceptances",
+    )
+    policy = models.ForeignKey(
+        RegistrationPolicy,
+        on_delete=models.PROTECT,
+        related_name="acceptances",
+    )
+    policy_key = models.UUIDField()
+    policy_version = models.PositiveIntegerField()
+
+    title_snapshot = models.CharField(max_length=180)
+    document_type_snapshot = models.CharField(max_length=30)
+    content_html_snapshot = models.TextField()
+    acceptance_text_snapshot = models.CharField(max_length=320)
+    is_required_snapshot = models.BooleanField(default=True)
+    requires_signature_snapshot = models.BooleanField(default=False)
+
+    typed_signature = models.CharField(max_length=220, blank=True)
+    signer_name = models.CharField(max_length=220, blank=True)
+    signer_email = models.EmailField(blank=True)
+    selected_class_ids_snapshot = models.JSONField(default=list, blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.CharField(max_length=1000, blank=True)
+    accepted_at = models.DateTimeField(default=timezone.now)
+
+    linked_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="registration_policy_acceptances",
+        null=True,
+        blank=True,
+    )
+    linked_family = models.ForeignKey(
+        "families.Family",
+        on_delete=models.SET_NULL,
+        related_name="registration_policy_acceptances",
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        ordering = ["accepted_at", "pk"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["registration_session", "policy"],
+                name="unique_registration_policy_acceptance",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.title_snapshot} accepted by {self.signer_email or self.signer_name}"
+
+
+class ClassApprovalCode(models.Model):
+    """Studio-issued, single-student enrollment approval; plaintext is never stored."""
+    studio = models.ForeignKey("studios.Studio", on_delete=models.CASCADE, related_name="class_approval_codes")
+    class_instance = models.ForeignKey("classes.Class", on_delete=models.CASCADE, related_name="approval_codes")
+    parent_email = models.EmailField()
+    code_hash = models.CharField(max_length=128, unique=True)
+    expires_at = models.DateTimeField()
+    claimed_session = models.ForeignKey("registration_portal.PublicRegistrationSession", blank=True, null=True, on_delete=models.SET_NULL)
+    claimed_student_key = models.CharField(max_length=100, blank=True)
+    used_at = models.DateTimeField(blank=True, null=True)
+    revoked_at = models.DateTimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    issued_by = models.ForeignKey("accounts.User", null=True, on_delete=models.SET_NULL)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.class_instance}: {self.parent_email} ({self.pk})"

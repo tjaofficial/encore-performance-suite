@@ -1,0 +1,119 @@
+.encore-form-workspace {
+    display: grid;
+    grid-template-columns:
+        minmax(0, 1fr)
+        minmax(240px, 300px);
+    gap: 14px;
+    align-items: start;
+}
+
+.encore-form-content {
+    display: grid;
+    gap: 18px;
+    min-width: 0;
+}
+
+.encore-form-action-sidebar {
+    position: sticky;
+    top: 82px;
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+}
+
+.encore-form-save-card,
+.encore-form-tip-card {
+    border: 1px solid
+        color-mix(
+            in srgb,
+            var(--encore-primary) 12%,
+            var(--encore-border)
+        );
+    border-radius: 13px;
+    background: #fff;
+    box-shadow:
+        0 8px 24px rgba(0, 2, 78, .045);
+}
+
+.encore-form-save-card {
+    display: grid;
+    gap: 8px;
+    padding: 14px;
+}
+
+.encore-form-sidebar-kicker {
+    margin: 0 0 3px;
+    color: var(--encore-primary);
+    font-size: .57rem;
+    font-weight: 900;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.encore-form-save-card h2 {
+    margin: 0;
+    color: var(--encore-primary-deep);
+    font-size: .86rem;
+    letter-spacing: -.02em;
+}
+
+.encore-form-save-card p {
+    margin: 0 0 5px;
+    color: var(--encore-muted);
+    font-size: .56rem;
+    line-height: 1.5;
+}
+
+.encore-form-sidebar-submit,
+.encore-form-sidebar-cancel {
+    min-height: 38px;
+    justify-content: center;
+}
+
+.encore-form-tip-card {
+    display: grid;
+    gap: 4px;
+    padding: 12px;
+    background:
+        linear-gradient(
+            135deg,
+            var(--encore-primary-soft),
+            #fff
+        );
+}
+
+.encore-form-tip-card > span {
+    color: var(--encore-primary);
+    font-size: .48rem;
+    font-weight: 900;
+    letter-spacing: .06em;
+}
+
+.encore-form-tip-card strong {
+    color: var(--encore-primary-deep);
+    font-size: .62rem;
+}
+
+.encore-form-tip-card p {
+    margin: 0;
+    color: var(--encore-muted);
+    font-size: .53rem;
+    line-height: 1.45;
+}
+
+@media (max-width: 1180px) {
+    .encore-form-workspace {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .encore-form-action-sidebar {
+        position: static;
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 760px) {
+    .encore-form-action-sidebar {
+        grid-template-columns: 1fr;
+    }
+}

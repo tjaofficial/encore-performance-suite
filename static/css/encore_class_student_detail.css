@@ -242,3 +242,5 @@
         width: 100%;
     }
 }
+
+.class-student-notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:16px;margin:18px 0}.class-student-notes .student-class-card{padding:18px;border:1px solid #bccbe8;border-radius:16px;background:#fff}.class-student-notes textarea{display:block;width:100%;min-height:110px;padding:13px;border:1px solid #bac9e6;border-radius:10px;background:#f9fbff;color:#142346;font:inherit;resize:vertical;box-sizing:border-box}.class-student-notes textarea:focus{outline:2px solid #5c8dfb;outline-offset:1px}.class-student-notes [data-status]{color:#577099}.class-student-notes [data-status].error{color:#b32943}

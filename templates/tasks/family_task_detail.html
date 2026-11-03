@@ -1,0 +1,13 @@
+{% extends "dashboard/parent_portal_base.html" %}
+{% load static %}
+{% block title %}{{ task.title }} | Encore{% endblock %}
+{% block parent_portal_heading %}Task Details{% endblock %}
+{% block parent_extra_css %}<link rel="stylesheet" href="{% static 'css/encore_tasks.css' %}"><link rel="stylesheet" href="{% static 'css/encore_attendance_phase2.css' %}">{% endblock %}
+{% block parent_content %}
+<section class="attendance-family-page"><header class="attendance-family-header"><div><a href="{% url 'tasks:task_list' studio.slug %}?student={{ selected_student.id }}">← All Tasks</a><h1>{{ task.title }}</h1></div></header>
+<section class="attendance-family-section"><h2>Task Details</h2><p>{{ display_description|linebreaksbr }}</p>
+{% if task.student %}<p>Student: {{ task.student }}</p>{% endif %}
+{% if system_managed %}<p>Encore will update this task automatically as make-up sessions are booked and attended.</p><a class="button primary" href="{% url 'attendance:makeup_schedule' studio.slug %}?student={{ selected_student.id }}">View Make-Up Schedule</a>
+{% elif can_complete %}<form method="post" action="{% url 'tasks:task_toggle_complete' studio.slug task.id %}">{% csrf_token %}<button class="button primary" type="submit">{% if assignment.completed_at %}Reopen Task{% else %}Complete Task{% endif %}</button></form>{% endif %}
+</section></section>
+{% endblock %}

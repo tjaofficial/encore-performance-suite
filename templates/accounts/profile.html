@@ -3,6 +3,8 @@
 {% block title %}Profile | Encore Performance Suite{% endblock %}
 {% block topbar_title %}Profile{% endblock %}
 
+{% load static %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_profile_refresh.css' %}">{% endblock %}
 {% block content %}
 <section class="profile-page-heading">
     <p class="eyebrow">Account</p>

@@ -1,0 +1,121 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Import History #{{ job.id }} | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}">{% endblock %}
+{% block topbar_title %}Import History{% endblock %}
+
+{% block content %}
+<div class="settings-workspace">
+    {% include "includes/settings_nav.html" %}
+    <main class="settings-workspace-content">
+        <section class="settings-heading">
+            <div>
+                <a class="back-link" href="{% url 'studios:data_import_history' studio.slug %}">← Back to Import History</a>
+                <p class="eyebrow">Import #{{ job.id }}</p>
+                <h1>{{ job.original_filename }}</h1>
+                <p>{{ import_type.label }} · {{ job.get_status_display }} · {{ job.created_at|date:"M j, Y g:i A" }}</p>
+            </div>
+        </section>
+
+        {% if messages %}
+            <div class="message-stack">
+                {% for message in messages %}<div class="message-banner {{ message.tags }}">{{ message }}</div>{% endfor %}
+            </div>
+        {% endif %}
+
+        <section class="import-review-summary">
+            <div class="import-review-stat"><span>Total</span><strong>{{ job.total_rows }}</strong><small>CSV rows</small></div>
+            <div class="import-review-stat create"><span>Created</span><strong>{{ job.created_count }}</strong><small>New records</small></div>
+            <div class="import-review-stat update"><span>Updated</span><strong>{{ job.updated_count }}</strong><small>Changed records</small></div>
+            <div class="import-review-stat skip"><span>Skipped</span><strong>{{ job.skipped_count }}</strong><small>No change / duplicate</small></div>
+            <div class="import-review-stat error"><span>Not Imported</span><strong>{{ job.error_count|add:job.failed_count }}</strong><small>Error / failed</small></div>
+        </section>
+
+        <div class="form-actions import-history-actions">
+            {% if job.rejected_file %}
+                <a class="button secondary" href="{% url 'studios:data_import_rejected_csv' studio.slug job.id %}">
+                    Download Not-Imported CSV
+                </a>
+            {% endif %}
+
+            {% if job.status != 'reverted' and job.created_count|add:job.updated_count %}
+                <form method="post" action="{% url 'studios:data_import_undo' studio.slug job.id %}">
+                    {% csrf_token %}
+                    <button
+                        class="button danger"
+                        type="submit"
+                        onclick="return confirm('Undo this import? Encore will only reverse records that have not changed since the import.');"
+                    >
+                        Undo Import
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+
+        {% if job.reverted_at %}
+            <section class="settings-section-block import-revert-note">
+                <strong>Undo attempted {{ job.reverted_at|date:"M j, Y g:i A" }}</strong>
+                {% if job.reverted_by %}<span> by {{ job.reverted_by }}</span>{% endif %}
+            </section>
+        {% endif %}
+
+        <section class="settings-panel import-review-table-panel">
+            <div class="import-review-table-wrap">
+                <table class="import-review-table">
+                    <thead>
+                        <tr>
+                            <th>CSV Row</th>
+                            <th>Record</th>
+                            <th>Result</th>
+                            <th>Reason / Undo</th>
+                            <th>Before &amp; After</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in row_results %}
+                            <tr class="import-result-row result-{{ row.status }}">
+                                <td class="row-number">{{ row.row_number }}</td>
+                                <td><strong>{{ row.label }}</strong></td>
+                                <td><span class="import-status-badge {{ row.status }}">{{ row.get_status_display }}</span></td>
+                                <td>{% if row.revert_message %}{{ row.revert_message }}{% else %}{{ row.reason }}{% endif %}</td>
+                                <td>
+                                    {% if row.before_data or row.after_data %}
+                                        <details class="import-row-details">
+                                            <summary>View changes</summary>
+                                            {% if row.before_data %}
+                                                <div class="import-snapshot">
+                                                    <strong>Before</strong>
+                                                    <dl>
+                                                        {% for key, value in row.before_data.items %}
+                                                            <div><dt>{{ key|title }}</dt><dd>{{ value|default:"—" }}</dd></div>
+                                                        {% endfor %}
+                                                    </dl>
+                                                </div>
+                                            {% endif %}
+                                            {% if row.after_data %}
+                                                <div class="import-snapshot">
+                                                    <strong>After</strong>
+                                                    <dl>
+                                                        {% for key, value in row.after_data.items %}
+                                                            <div><dt>{{ key|title }}</dt><dd>{{ value|default:"—" }}</dd></div>
+                                                        {% endfor %}
+                                                    </dl>
+                                                </div>
+                                            {% endif %}
+                                        </details>
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="5" class="import-review-empty">No row results were recorded.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+{% endblock %}

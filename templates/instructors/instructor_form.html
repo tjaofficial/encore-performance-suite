@@ -5,6 +5,8 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/encore_staff_enrollment.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_form_workspace.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_instructor_onboarding.css' %}">
 {% endblock %}
 
 {% block topbar_title %}{{ page_title }}{% endblock %}
@@ -38,118 +40,70 @@
         </div>
     {% endif %}
 
-    <section class="form-card">
-        <div class="form-section-heading">
-            <span>01</span>
-            <div>
-                <h2>Instructor Profile</h2>
-                <p>Contact, emergency, bio, and active status.</p>
-            </div>
-        </div>
-
-        <div class="form-grid">
-            {% for field in form %}
-                <div class="field-group {% if field.name == 'bio' or field.name == 'address' %}full{% endif %}">
-                    {% if field.field.widget.input_type == "checkbox" %}
-                        <label class="checkbox-line">
-                            {{ field }}
-                            <span>{{ field.label }}</span>
-                        </label>
-                    {% else %}
-                        {{ field.label_tag }}
-                        {{ field }}
-                    {% endif %}
-
-                    {% if field.help_text %}
-                        <small>{{ field.help_text }}</small>
-                    {% endif %}
-
-                    {% for error in field.errors %}
-                        <small class="field-error">{{ error }}</small>
-                    {% endfor %}
+    <div class="encore-form-workspace">
+        <main class="encore-form-content">
+        <section class="form-card">
+            <div class="form-section-heading">
+                <span>01</span>
+                <div>
+                    <h2>Instructor Profile</h2>
+                    <p>Contact, emergency, bio, and active status.</p>
                 </div>
-            {% endfor %}
-        </div>
-    </section>
-
-    <section class="form-card">
-        <div class="form-section-heading">
-            <span>02</span>
-            <div>
-                <h2>Availability</h2>
-                <p>
-                    Define when this instructor is generally available
-                    for future class planning.
-                </p>
             </div>
-        </div>
-
-        {{ formset.management_form }}
-
-        <div class="availability-formset">
-            {% for availability_form in formset %}
-                <article class="availability-form-row">
-                    {% for hidden in availability_form.hidden_fields %}
-                        {{ hidden }}
-                    {% endfor %}
-
-                    <div>
-                        <label>Day</label>
-                        {{ availability_form.day_of_week }}
+    
+            <div class="form-grid">
+                {% for field in form %}
+                    <div class="field-group {% if field.name == 'bio' or field.name == 'address' %}full{% endif %}">
+                        {% if field.field.widget.input_type == "checkbox" %}
+                            <label class="checkbox-line">
+                                {{ field }}
+                                <span>{{ field.label }}</span>
+                            </label>
+                        {% else %}
+                            {{ field.label_tag }}
+                            {{ field }}
+                        {% endif %}
+    
+                        {% if field.help_text %}
+                            <small>{{ field.help_text }}</small>
+                        {% endif %}
+    
+                        {% for error in field.errors %}
+                            <small class="field-error">{{ error }}</small>
+                        {% endfor %}
                     </div>
+                {% endfor %}
+            </div>
+        </section>
+    
+        <section class="form-card">
+            <div class="form-section-heading">
+                <span>02</span>
+                <div>
+                    <h2>Availability</h2>
+                    <p>
+                        Define when this instructor is generally available
+                        for future class planning.
+                    </p>
+                </div>
+            </div>
+    
+            {% include "instructors/_availability_editor.html" %}
+        </section>
+        </main>
 
-                    <div>
-                        <label>Start</label>
-                        {{ availability_form.start_time }}
-                    </div>
-
-                    <div>
-                        <label>End</label>
-                        {{ availability_form.end_time }}
-                    </div>
-
-                    <div>
-                        <label>Notes</label>
-                        {{ availability_form.notes }}
-                    </div>
-
-                    <label class="checkbox-line compact-check">
-                        {{ availability_form.is_available }}
-                        <span>Available</span>
-                    </label>
-
-                    {% if availability_form.instance.pk %}
-                        <label class="delete-line">
-                            {{ availability_form.DELETE }}
-                            Remove
-                        </label>
-                    {% endif %}
-
-                    {% for error in availability_form.non_field_errors %}
-                        <small class="field-error full-error">
-                            {{ error }}
-                        </small>
-                    {% endfor %}
-                </article>
-            {% endfor %}
-        </div>
-    </section>
-
-    <div class="form-actions">
-        <a
-            class="button secondary"
-            href="{% url 'instructors:instructor_list' studio.slug %}"
-        >
-            Cancel
-        </a>
-
-        <button class="button primary" type="submit">
-            {% if instructor %}
-                Save Changes
-            {% else %}
-                Create Instructor
-            {% endif %}
-        </button>
+        {% url 'instructors:instructor_list' studio.slug as form_cancel_url %}
+        {% if instructor %}
+            {% include "includes/form_action_sidebar.html" with action_kicker="Update Instructor" action_title="Save your changes" action_description="Review the instructor profile and weekly availability, then save your updates." submit_label="Save Changes" cancel_url=form_cancel_url tip_title="Availability drives scheduling." tip_text="Keep recurring availability accurate so future class planning reflects when this instructor can and cannot work." %}
+        {% else %}
+            {% include "includes/form_action_sidebar.html" with action_kicker="Create Instructor" action_title="Ready to add this instructor?" action_description="Add the instructor profile and weekly availability, then create the record." submit_label="Create Instructor" cancel_url=form_cancel_url tip_title="Availability drives scheduling." tip_text="Keep recurring availability accurate so future class planning reflects when this instructor can and cannot work." %}
+        {% endif %}
     </div>
+
+
 </form>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/encore_instructor_availability.js' %}" defer></script>
 {% endblock %}

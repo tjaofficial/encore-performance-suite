@@ -1,0 +1,45 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Import History | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}">{% endblock %}
+{% block topbar_title %}Import History{% endblock %}
+
+{% block content %}
+<div class="settings-workspace">
+    {% include "includes/settings_nav.html" %}
+    <main class="settings-workspace-content">
+        <section class="settings-heading">
+            <div>
+                <a class="back-link" href="{% url 'studios:data_transfer_home' studio.slug %}">← Back to Data Import &amp; Export</a>
+                <p class="eyebrow">Data Import &amp; Export</p>
+                <h1>Import History</h1>
+                <p>Review previous migrations, download rejected rows, and safely undo eligible changes.</p>
+            </div>
+        </section>
+
+        <section class="settings-section-block">
+            {% if jobs %}
+                <div class="import-history-list">
+                    {% for job in jobs %}
+                        <a class="import-history-row" href="{% url 'studios:data_import_history_detail' studio.slug job.id %}">
+                            <div>
+                                <strong>{{ job.original_filename }}</strong>
+                                <span>{{ job.import_type|title }} · {{ job.get_status_display }} · {{ job.created_at|date:"M j, Y g:i A" }}</span>
+                            </div>
+                            <div class="import-history-counts">
+                                <span>{{ job.created_count }} created</span>
+                                <span>{{ job.updated_count }} updated</span>
+                                {% if job.not_imported_count %}<span>{{ job.not_imported_count }} not imported</span>{% endif %}
+                            </div>
+                            <b>→</b>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">No imports have been completed yet.</div>
+            {% endif %}
+        </section>
+    </main>
+</div>
+{% endblock %}

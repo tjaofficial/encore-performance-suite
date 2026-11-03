@@ -1,0 +1,31 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Verification Link Expired | Encore</title>
+    <link rel="stylesheet" href="{% static 'css/encore_registration_status.css' %}">
+</head>
+<body>
+<main class="registration-status-shell">
+    <section class="registration-status-card compact">
+        <img class="status-logo" src="{% static 'images/logo.png' %}" alt="Encore Performance Suite">
+        <p class="status-kicker">Email Verification</p>
+        <h1>This verification link has expired.</h1>
+        <p class="status-lead">
+            For security, Encore verification links expire after 24 hours. We can send a new link to <strong>{{ masked_email }}</strong>.
+        </p>
+        {% if session_id %}
+        <form method="post" action="{% url 'accounts:resend_registration_verification' %}" class="resend-form">
+            {% csrf_token %}
+            <input type="hidden" name="session_id" value="{{ session_id }}">
+            <button type="submit" class="status-button primary">Send a new verification link</button>
+        </form>
+        {% else %}
+            <a class="status-button primary" href="{% url 'accounts:login' %}">Go to Sign In</a>
+        {% endif %}
+    </section>
+</main>
+</body>
+</html>

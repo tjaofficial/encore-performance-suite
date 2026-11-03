@@ -36,6 +36,7 @@
 </section>
 
 <form method="get" class="people-filters family-filters">
+    <input type="hidden" name="page_size" value="{{ page_size }}">
     <div class="wide-filter">
         <label>Search</label>
         <input
@@ -79,13 +80,27 @@
         <table class="encore-list-table">
             <thead>
                 <tr>
-                    <th>Family</th>
-                    <th>Primary Guardian</th>
-                    <th>Students</th>
-                    <th>Guardians</th>
-                    <th>Primary Contact</th>
-                    <th>Current Balance</th>
-                    <th>Status</th>
+                    <th><a class="encore-sort-heading{% if sort_columns.family.active %} active{% endif %}" href="{{ sort_columns.family.url }}">
+<span>Family</span><span class="sort-indicator">{% if sort_columns.family.active %}{% if sort_columns.family.direction == "asc" %}↑{% else %}↓{% endif %}{% else %}↕{% endif %}</span>
+</a></th>
+                    <th><a class="encore-sort-heading{% if sort_columns.guardian.active %} active{% endif %}" href="{{ sort_columns.guardian.url }}">
+<span>Primary Guardian</span><span class="sort-indicator">{% if sort_columns.guardian.active %}{% if sort_columns.guardian.direction == "asc" %}↑{% else %}↓{% endif %}{% else %}↕{% endif %}</span>
+</a></th>
+                    <th><a class="encore-sort-heading{% if sort_columns.students.active %} active{% endif %}" href="{{ sort_columns.students.url }}">
+<span>Students</span><span class="sort-indicator">{% if sort_columns.students.active %}{% if sort_columns.students.direction == "asc" %}↑{% else %}↓{% endif %}{% else %}↕{% endif %}</span>
+</a></th>
+                    <th><a class="encore-sort-heading{% if sort_columns.guardians.active %} active{% endif %}" href="{{ sort_columns.guardians.url }}">
+<span>Guardians</span><span class="sort-indicator">{% if sort_columns.guardians.active %}{% if sort_columns.guardians.direction == "asc" %}↑{% else %}↓{% endif %}{% else %}↕{% endif %}</span>
+</a></th>
+                    <th><a class="encore-sort-heading{% if sort_columns.contact.active %} active{% endif %}" href="{{ sort_columns.contact.url }}">
+<span>Primary Contact</span><span class="sort-indicator">{% if sort_columns.contact.active %}{% if sort_columns.contact.direction == "asc" %}↑{% else %}↓{% endif %}{% else %}↕{% endif %}</span>
+</a></th>
+                    <th><a class="encore-sort-heading{% if sort_columns.balance.active %} active{% endif %}" href="{{ sort_columns.balance.url }}">
+<span>Current Balance</span><span class="sort-indicator">{% if sort_columns.balance.active %}{% if sort_columns.balance.direction == "asc" %}↑{% else %}↓{% endif %}{% else %}↕{% endif %}</span>
+</a></th>
+                    <th><a class="encore-sort-heading{% if sort_columns.status.active %} active{% endif %}" href="{{ sort_columns.status.url }}">
+<span>Status</span><span class="sort-indicator">{% if sort_columns.status.active %}{% if sort_columns.status.direction == "asc" %}↑{% else %}↓{% endif %}{% else %}↕{% endif %}</span>
+</a></th>
                     <th class="action-cell">Open</th>
                 </tr>
             </thead>
@@ -229,4 +244,6 @@
     {% endfor %}
 </section>
 {% endif %}
+
+{% include "includes/list_pagination.html" with pagination_label="Family pages" %}
 {% endblock %}

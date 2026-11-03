@@ -1,0 +1,65 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+{% block title %}Payment Activation | {{ studio.name }}{% endblock %}
+{% block topbar_title %}Payment Activation{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_stripe_activation.css' %}"><link rel="stylesheet" href="{% static 'css/encore_stripe_activation_refinement.css' %}">{% endblock %}
+{% block content %}
+<div class="ep-activation" id="ep-activation"
+ data-session-url="{% url 'billing:stripe_activation_session' studio.slug %}"
+ data-status-url="{% url 'billing:stripe_activation_status' studio.slug %}"
+ data-publishable-key="{{ stripe_publishable_key }}">
+ <nav class="ep-back"><a href="{% url 'billing:studio_subscription' studio.slug %}">← Subscription &amp; Billing</a></nav>
+ <div class="ep-hero">
+  <div><span class="ep-eyebrow">ENCORE PAYMENTS</span><h1>Activate Studio Payments</h1>
+   <p>One secure setup to accept registration fees and family tuition payments for {{ studio.name }}.</p></div>
+  <span class="ep-pill {% if connect_status.ready %}ep-ready{% endif %}" id="ep-status-pill">{{ connect_status.state_label|default:'Checking status' }}</span>
+ </div>
+ <section class="ep-panel ep-result" id="ep-status-result" data-state="{{ connect_status.state|default:'error' }}">
+  <div class="ep-result-heading"><strong id="ep-result-title">{% if connect_status.state == 'active' %}Your studio is ready to accept payments!{% elif connect_status.state == 'review' %}Information submitted — waiting for Stripe{% elif connect_status.state == 'action_required' %}One more step: Stripe needs information{% elif connect_status.state == 'not_started' %}Start your payment setup{% else %}We couldn't confirm your status{% endif %}</strong><span id="ep-result-state">{{ connect_status.state_label }}</span></div>
+  <p id="ep-result-description">{{ connect_status.message }}</p>
+  <div class="ep-next" id="ep-result-next">
+   {% if connect_status.state == 'active' %}You can return to Subscription &amp; Billing. Parents can now pay their balances and set up AutoPay (once those payment flows are tested). You'll receive an Encore notification and email confirming activation.
+   {% elif connect_status.state == 'review' %}Nothing else is required right now according to the status we received. Stripe's timing varies. Encore will check the status again; you can also refresh below. We'll notify you once card payments are active.
+   {% elif connect_status.state == 'action_required' %}Open the secure verification section below and provide the additional information requested by Stripe. Then refresh your status.
+   {% else %}Start or resume Stripe verification below, then refresh your status.{% endif %}
+  </div>
+  <div class="ep-result-actions"><button type="button" id="ep-refresh-top" class="ep-secondary">Check status again</button><a class="ep-primary" href="{% url 'billing:studio_subscription' studio.slug %}">Return to Billing</a></div>
+ </section>
+ <div class="ep-layout">
+  <aside class="ep-panel ep-guide">
+    <h2>Verification overview</h2>
+    <p>Stripe verifies the required business and banking information. A submitted form is not the same as active payments.</p>
+    <div class="ep-steps" id="ep-steps" {% if connect_status.state == 'active' or connect_status.state == 'review' %}hidden{% endif %}>
+     <div><span>1</span><section><strong>Business information</strong><small>Studio details, website, industry and statement description</small></section></div>
+     <div><span>2</span><section><strong>Owner verification</strong><small>Authorized representative and identity checks</small></section></div>
+     <div><span>3</span><section><strong>Banking &amp; payouts</strong><small>Securely add a payout account through Stripe</small></section></div>
+     <div><span>4</span><section><strong>Review &amp; activate</strong><small>Review required agreements and submit</small></section></div>
+    </div>
+    <div class="ep-state"><strong>Stripe's current payment status</strong><p id="ep-status-message">{{ connect_status.message }}</p>
+     <p class="ep-subtle">Mode: {{ connect_status.mode|title }} · Card payments: <span id="ep-card-status">{{ connect_status.card_status|default:'Pending' }}</span></p>
+     <button type="button" id="ep-refresh" class="ep-secondary">Refresh status</button>
+    </div>
+    <p class="ep-subtle">Stripe may request further information after review. Return here any time to continue.</p>
+  </aside>
+  <main class="ep-panel ep-form-panel">
+   <div class="ep-form-title"><div><span class="ep-eyebrow">SECURE VERIFICATION</span><h2 id="ep-form-heading">{% if connect_status.state == 'active' %}Manage your payment account{% elif connect_status.state == 'review' %}Verification submitted{% else %}Complete your payment account{% endif %}</h2>
+     <p>Information is submitted directly to Stripe. Encore does not store bank or identity documents.</p></div></div>
+   {% if connect_status.account_id %}
+   <form id="ep-token-form" hidden>{% csrf_token %}</form>
+   <div class="ep-embedded-message" id="ep-loading" {% if connect_status.state == 'active' or connect_status.state == 'review' %}hidden{% endif %}>Loading secure Stripe verification…</div>
+   <div id="ep-stripe-onboarding" {% if connect_status.state == "active" or connect_status.state == "review" %}hidden{% endif %}></div>
+   <div id="ep-stripe-management" hidden></div>
+   <div id="ep-onboarding-error" class="ep-error" hidden></div>
+   <p class="ep-subtle" id="ep-stripe-fallback">If your Stripe account requires its secure hosted verification instead, you can <a href="{% url 'billing:stripe_connect_start' studio.slug %}">continue in Stripe</a>. You will return to Encore when finished.</p>
+   <div class="ep-actions"><button type="button" class="ep-secondary" id="ep-retry">{% if connect_status.state == "active" or connect_status.state == "review" %}Resume verification{% else %}Reload verification{% endif %}</button>
+    <button type="button" class="ep-secondary" id="ep-manage">Update account details</button></div>
+   {% else %}
+    <p class="ep-embedded-message">Your studio has not created its connected payment account yet.</p>
+    <a class="ep-primary" href="{% url 'billing:stripe_connect_start' studio.slug %}">Create secure Stripe account</a>
+   {% endif %}
+  </main>
+ </div>
+</div>
+<script src="https://connect-js.stripe.com/v1.0/connect.js" defer></script>
+<script src="{% static 'js/encore_stripe_activation.js' %}" defer></script>
+{% endblock %}

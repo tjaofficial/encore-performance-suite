@@ -56,6 +56,13 @@ CLASS_DASHBOARD_CARDS = [
         "default_height": 1,
     },
     {
+        "key": "stopwatch",
+        "label": "Stopwatch",
+        "description": "Rehearsal stopwatch with laps and pause/resume.",
+        "default_width": "quarter",
+        "default_height": 2,
+    },
+    {
         "key": "waitlist",
         "label": "Waitlist",
         "description": "Waitlisted students when the class has a waitlist.",
@@ -112,6 +119,8 @@ def normalize_class_dashboard_layout(layout):
 
         if height not in VALID_HEIGHTS:
             height = fallback["height"]
+        if fallback["key"] == "stopwatch":
+            height = 2
 
         try:
             order = int(saved.get("order", fallback["order"]))
@@ -148,6 +157,7 @@ def class_dashboard_editor_cards(layout):
             **card,
             "label": definitions[card["key"]]["label"],
             "description": definitions[card["key"]]["description"],
+            "min_height": 2 if card["key"] == "stopwatch" else 1,
         }
         for card in normalized["cards"]
     ]

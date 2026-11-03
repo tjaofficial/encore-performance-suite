@@ -1,50 +1,24 @@
-<article class="admin-dashboard-card admin-task-card">
-    <div class="card-heading">
-        <div>
-            <span class="card-kicker">Admin Work</span>
-            <h2>Tasks / To-Do</h2>
-        </div>
-
-        <a
-            class="task-card-header-action"
-            href="{% url 'tasks:task_create' studio.slug %}"
-        >
-            + Add Task
-        </a>
+<article class="admin-dashboard-card admin-standard-card card-tone-violet admin-task-card task-card dashboard-task-card">
+    <div class="dashboard-task-heading card-heading">
+        <h2>My Tasks</h2>
+        <a class="dashboard-task-add" href="{% url 'tasks:task_create' studio.slug %}">+ Add Task</a>
     </div>
-
-    {% if admin_tasks %}
-        <div class="admin-compact-list admin-card-scroll">
-            {% for task in admin_tasks %}
-                <div class="admin-task-row priority-{{ task.priority }}">
-                    <span class="admin-task-dot"></span>
-
-                    <div class="admin-row-copy">
-                        <strong>{{ task.title }}</strong>
-                        <span>
-                            {{ task.get_priority_display }}
-                            {% if task.due_date %}
-                                · Due {{ task.due_date|date:"M j" }}
-                            {% endif %}
-                        </span>
-                    </div>
-
-                    {% if task.is_overdue %}
-                        <small class="admin-alert-badge">Overdue</small>
-                    {% endif %}
-                </div>
-            {% endfor %}
-        </div>
-
-        <a
-            class="admin-card-footer-link"
-            href="{% url 'tasks:task_list' studio.slug %}"
-        >
-            View All Tasks →
-        </a>
-    {% else %}
-        <div class="empty-state">
-            No open administrator tasks.
-        </div>
-    {% endif %}
+    <div class="dashboard-task-list">
+        {% for task in admin_tasks %}
+            <div class="dashboard-task-row priority-{{ task.priority }}">
+                <form class="dashboard-task-complete" method="post" action="{% url 'tasks:task_toggle_complete' studio.slug task.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button type="submit" class="dashboard-task-check" aria-label="Complete {{ task.title }}" title="Mark complete"><span aria-hidden="true"></span></button>
+                </form>
+                <a class="dashboard-task-row-link" href="{% url 'tasks:task_detail' studio.slug task.id %}" aria-label="Open task: {{ task.title }}">
+                    <span class="dashboard-task-copy"><strong>{{ task.title }}</strong>{% if task.class_instance %}<small>{{ task.class_instance.name }}</small>{% endif %}</span>
+                    <span class="dashboard-task-end">{% if task.due_date %}<span class="dashboard-task-date">{{ task.due_date|date:"M j" }}</span>{% endif %}<span class="dashboard-task-arrow" aria-hidden="true">›</span></span>
+                </a>
+            </div>
+        {% empty %}
+            <div class="empty-state"><span class="empty-state-icon">✓</span><strong>You're caught up</strong><span>No open administrator tasks.</span></div>
+        {% endfor %}
+    </div>
+    <a class="dashboard-task-footer" href="{% url 'tasks:task_list' studio.slug %}">View All Tasks →</a>
 </article>

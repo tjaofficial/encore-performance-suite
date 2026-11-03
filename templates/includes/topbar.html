@@ -1,4 +1,4 @@
-<header class="app-topbar encore-global-topbar">
+<header class="app-topbar encore-global-topbar" data-encore-tour-target="header">
     <button
         id="mobile-nav-toggle"
         class="mobile-nav-toggle"
@@ -164,6 +164,10 @@
                             Settings
                         </a>
                     {% endif %}
+
+                    <a href="{% url 'support_center:home' %}">
+                        Support Center
+                    </a>
 
                     {% if encore_has_multiple_workspaces %}
                         <a

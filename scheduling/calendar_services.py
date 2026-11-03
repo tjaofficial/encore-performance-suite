@@ -1473,3 +1473,131 @@ def substitute_availability_for_occurrence(
         "available_ids": available_ids,
         "unavailable": unavailable,
     }
+
+
+# Family calendar: ordinary enrollments and one-time make-up visits must be
+# represented independently. All selection keys are checked against the
+# authenticated user's guardian/student relationships before querying.
+def family_calendar_class_and_makeup_items(*, user, studio, start_date, end_date,
+                                           regular_pairs, makeup_pairs,
+                                           include_regular=True):
+    from datetime import datetime, timedelta
+    from attendance.models import MakeupAssignment
+    from classes.models import ClassMeeting
+    from enrollments.models import Enrollment
+    from students.models import Student
+    from .services import generate_class_occurrences
+
+    students = list(Student.objects.filter(
+        studio=studio,
+        family__guardians__user=user,
+        family__guardians__is_active=True,
+        is_active=True,
+    ).distinct())
+    accessible_ids = {student.pk for student in students}
+
+    def parse_pairs(raw):
+        result = set()
+        for token in (raw or "").split(","):
+            parts = token.split(":")
+            if len(parts) == 2 and all(part.isdigit() for part in parts):
+                student_id, class_id = map(int, parts)
+                if student_id in accessible_ids:
+                    result.add((student_id, class_id))
+        return result
+
+    regular_selected = parse_pairs(regular_pairs)
+    makeup_selected = parse_pairs(makeup_pairs)
+    result = []
+    if include_regular and regular_selected:
+        enrolled = Enrollment.objects.filter(
+            student_id__in=accessible_ids,
+            status=Enrollment.Status.ACTIVE,
+            class_instance__studio=studio,
+            class_instance__is_active=True,
+        ).select_related(
+            "student", "class_instance", "class_instance__season",
+            "class_instance__instructor",
+        ).prefetch_related("class_instance__meeting_times")
+        for enrollment in enrolled:
+            key = (enrollment.student_id, enrollment.class_instance_id)
+            if key not in regular_selected:
+                continue
+            klass = enrollment.class_instance
+            for occurrence in generate_class_occurrences(klass, start_date, end_date):
+                result.append({
+                    "id": f"family-class-{enrollment.student_id}-{klass.pk}-{occurrence.start_at.isoformat()}",
+                    "title": f"{klass.name} · {enrollment.student.first_name}",
+                    "start": occurrence.start_at.isoformat(),
+                    "end": occurrence.end_at.isoformat(),
+                    "allDay": False,
+                    "backgroundColor": "#2458D8",
+                    "borderColor": "#2458D8",
+                    "extendedProps": {
+                        "sourceType": "class", "sourceGroup": "classes",
+                        "eventType": "Enrolled Class", "classId": klass.pk,
+                        "seasonId": klass.season_id,
+                        "seasonName": klass.season.name,
+                        "classCode": klass.class_id,
+                        "studentId": enrollment.student_id,
+                        "student": str(enrollment.student),
+                        "classType": str(klass.class_type) if klass.class_type_id else "",
+                        "instructor": str(klass.instructor),
+                        "editable": False, "deletable": False,
+                    },
+                })
+
+    if makeup_selected:
+        bookings = MakeupAssignment.objects.filter(
+            student_id__in=accessible_ids,
+            student__studio=studio,
+            scheduled_date__gte=start_date,
+            scheduled_date__lte=end_date,
+            status__in=[MakeupAssignment.Status.SCHEDULED,
+                        MakeupAssignment.Status.COMPLETED],
+        ).select_related(
+            "student", "requirement", "requirement__source_class",
+            "source_class", "makeup_class", "makeup_meeting",
+            "makeup_class__season",
+        )
+        for booking in bookings:
+            source_class_id = (booking.requirement.source_class_id
+                               if booking.requirement_id else booking.source_class_id)
+            if (booking.student_id, source_class_id) not in makeup_selected:
+                continue
+            meeting = booking.makeup_meeting
+            if meeting is None:
+                # Old bookings may not have an explicitly saved meeting.
+                # Only infer one when the date has exactly one active option.
+                candidates = list(ClassMeeting.objects.filter(
+                    class_instance=booking.makeup_class,
+                    day_of_week=booking.scheduled_date.weekday(),
+                    is_active=True,
+                )[:2])
+                meeting = candidates[0] if len(candidates) == 1 else None
+            if meeting is None:
+                continue
+            start_at = timezone.make_aware(datetime.combine(
+                booking.scheduled_date, meeting.start_time,
+            ), timezone.get_current_timezone())
+            end_at = start_at + timedelta(minutes=meeting.duration_minutes)
+            result.append({
+                "id": f"family-makeup-{booking.pk}",
+                "title": f"Make-Up: {booking.makeup_class.name} · {booking.student.first_name}",
+                "start": start_at.isoformat(), "end": end_at.isoformat(),
+                "allDay": False,
+                "backgroundColor": "#8950D2", "borderColor": "#8950D2",
+                "extendedProps": {
+                    "sourceType": "makeup", "sourceGroup": "makeups",
+                    "eventType": "Scheduled Make-Up",
+                    "classId": booking.makeup_class_id,
+                    "sourceClassId": source_class_id,
+                    "studentId": booking.student_id,
+                    "student": str(booking.student),
+                    "className": booking.makeup_class.name,
+                    "description": f"One-time make-up for {booking.student}. "
+                                   f"Replacement class: {booking.makeup_class.name}.",
+                    "editable": False, "deletable": False,
+                },
+            })
+    return result

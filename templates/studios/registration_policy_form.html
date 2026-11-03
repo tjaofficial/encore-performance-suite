@@ -1,0 +1,157 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} | Encore{% endblock %}
+{% block topbar_title %}Registration Policies & Agreements{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_registration_policies.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="settings-workspace">
+    {% include "includes/settings_nav.html" %}
+
+    <main class="settings-workspace-content">
+        <a class="back-link" href="{% url 'studios:registration_policy_list' studio.slug %}">← Back to Policies & Agreements</a>
+
+        <section class="settings-heading">
+            <div>
+                <p class="eyebrow">Registration Policies & Agreements</p>
+                <h1>{{ page_title }}</h1>
+                <p>{{ page_intro }}</p>
+            </div>
+            {% if editing_policy %}<span class="policy-version-banner">Current version: v{{ editing_policy.version }}</span>{% endif %}
+        </section>
+
+        <form method="post" class="policy-editor-form" data-policy-form>
+            {% csrf_token %}
+            {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+
+            <section class="settings-panel policy-editor-panel">
+                <div class="policy-section-heading">
+                    <div><span>Document</span><h2>Name and type</h2></div>
+                    <p>This is what families will see in the registration checklist.</p>
+                </div>
+                <div class="settings-form-grid">
+                    <div class="settings-field">
+                        <label for="{{ form.title.id_for_label }}">Title</label>
+                        {{ form.title }}
+                        {% for error in form.title.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+                    </div>
+                    <div class="settings-field">
+                        <label for="{{ form.document_type.id_for_label }}">Document Type</label>
+                        {{ form.document_type }}
+                    </div>
+                </div>
+            </section>
+
+            <section class="settings-panel policy-editor-panel">
+                <div class="policy-section-heading">
+                    <div><span>Rich Text</span><h2>Policy / agreement content</h2></div>
+                    <p>Formatting and safe hyperlinks are preserved for the family-facing modal.</p>
+                </div>
+
+                {{ form.content_html }}
+                <div class="policy-rich-editor" data-policy-editor>
+                    <div class="policy-editor-toolbar" role="toolbar" aria-label="Rich text formatting">
+                        <select data-editor-block title="Text style">
+                            <option value="p">Paragraph</option>
+                            <option value="h2">Heading 2</option>
+                            <option value="h3">Heading 3</option>
+                            <option value="h4">Heading 4</option>
+                        </select>
+                        <select data-editor-font title="Font">
+                            <option value="Inter">Inter</option>
+                            <option value="Arial">Arial</option>
+                            <option value="Georgia">Georgia</option>
+                            <option value="Times New Roman">Times New Roman</option>
+                        </select>
+                        <select data-editor-size title="Font size">
+                            <option value="3">Normal</option>
+                            <option value="2">Small</option>
+                            <option value="4">Large</option>
+                            <option value="5">Extra Large</option>
+                        </select>
+                        <span class="toolbar-divider"></span>
+                        <button type="button" data-editor-command="bold"><strong>B</strong></button>
+                        <button type="button" data-editor-command="italic"><em>I</em></button>
+                        <button type="button" data-editor-command="underline"><u>U</u></button>
+                        <button type="button" data-editor-command="insertUnorderedList">• List</button>
+                        <button type="button" data-editor-command="insertOrderedList">1. List</button>
+                        <button type="button" data-editor-command="justifyLeft">Left</button>
+                        <button type="button" data-editor-command="justifyCenter">Center</button>
+                        <button type="button" data-editor-command="justifyRight">Right</button>
+                        <button type="button" data-editor-link>Link</button>
+                        <button type="button" data-editor-command="unlink">Unlink</button>
+                    </div>
+                    <div class="policy-editor-surface" contenteditable="true" data-editor-surface>{{ form.content_html.value|default:""|safe }}</div>
+                </div>
+                {% for error in form.content_html.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+            </section>
+
+            <section class="settings-panel policy-editor-panel">
+                <div class="policy-section-heading">
+                    <div><span>Acceptance</span><h2>What the registrant agrees to</h2></div>
+                    <p>Leave the wording blank and Encore will use “I have read and agree to the [title].”</p>
+                </div>
+                <div class="settings-field">
+                    <label for="{{ form.acceptance_text.id_for_label }}">Checkbox Wording</label>
+                    {{ form.acceptance_text }}
+                    {% for error in form.acceptance_text.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+                </div>
+                <p class="policy-required-explainer">Every active policy or agreement that applies to a registration is required before checkout.</p>
+                <div class="policy-toggle-grid policy-toggle-grid-two">
+                    <label class="checkbox-line">{{ form.requires_signature }} <span><strong>Require typed electronic signature</strong><small>Registrant must type their full legal name in addition to checking the box.</small></span></label>
+                    <label class="checkbox-line">{{ form.is_active }} <span><strong>Active</strong><small>Inactive policies are not shown during registration.</small></span></label>
+                </div>
+            </section>
+
+            <section class="settings-panel policy-editor-panel">
+                <div class="policy-section-heading">
+                    <div><span>Rules</span><h2>When should it appear?</h2></div>
+                    <p>Class-specific policies trigger automatically when any assigned class is selected.</p>
+                </div>
+                <div class="settings-form-grid">
+                    <div class="settings-field">
+                        <label for="{{ form.scope.id_for_label }}">Applies To</label>
+                        {{ form.scope }}
+                    </div>
+                    <div class="settings-field">
+                        <label for="{{ form.effective_date.id_for_label }}">Effective Date</label>
+                        {{ form.effective_date }}
+                        <small>Leave blank to make it effective immediately.</small>
+                    </div>
+                    <div class="settings-field">
+                        <label for="{{ form.display_order.id_for_label }}">Display Order</label>
+                        {{ form.display_order }}
+                    </div>
+                </div>
+
+                <div class="policy-class-picker" data-policy-class-picker>
+                    <div class="policy-class-picker-heading">
+                        <div><strong>Specific Classes</strong><small>Select every class that should trigger this document.</small></div>
+                        <input type="search" class="encore-input" placeholder="Search classes..." data-policy-class-search>
+                    </div>
+                    <div class="policy-class-grid">
+                        {% for checkbox in form.classes %}
+                        <label class="policy-class-option" data-class-option data-search="{{ checkbox.choice_label|lower }}">
+                            {{ checkbox.tag }}
+                            <span>{{ checkbox.choice_label }}</span>
+                        </label>
+                        {% empty %}<p class="empty-state">No active classes are available yet.</p>{% endfor %}
+                    </div>
+                    {% for error in form.classes.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+                </div>
+            </section>
+
+            <div class="form-actions policy-form-actions">
+                <a class="button secondary" href="{% url 'studios:registration_policy_list' studio.slug %}">Cancel</a>
+                <button class="button primary" type="submit">{% if editing_policy %}Save as New Version{% else %}Create Policy / Agreement{% endif %}</button>
+            </div>
+        </form>
+    </main>
+</div>
+<script src="{% static 'js/encore_registration_policies.js' %}"></script>
+{% endblock %}

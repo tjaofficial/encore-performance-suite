@@ -5,6 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/encore_tasks.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_tasks_refresh.css' %}">
 {% endblock %}
 
 {% block topbar_title %}Task Management{% endblock %}
@@ -18,10 +19,13 @@
     </div>
 
     <div class="task-manager-heading-actions">
-        {% if role == "administrator" or role == "teacher" %}
+        {% if role == "administrator" %}
             <a class="button secondary" href="{% url 'tasks:template_list' studio.slug %}">
                 Task Templates
             </a>
+        {% endif %}
+
+        {% if role == "administrator" or role == "teacher" %}
             <a class="button primary" href="{% url 'tasks:task_create' studio.slug %}">
                 + Add Task
             </a>
@@ -29,6 +33,7 @@
     </div>
 </section>
 
+<div class="task-list-controls">
 <nav class="task-manager-tabs">
     <a class="{% if active_tab == 'mine' %}active{% endif %}" href="?tab=mine{% if show_completed %}&completed=1{% endif %}">
         My Tasks
@@ -63,6 +68,7 @@
         <a href="?tab={{ active_tab }}&completed=1">Show Completed</a>
     {% endif %}
 </div>
+</div>
 
 <section class="task-manager-list">
     {% for row in task_rows %}
@@ -83,7 +89,12 @@
 
             <div class="task-manager-copy">
                 <div class="task-title-line">
-                    <strong>{{ row.task.title }}</strong>
+                    <a
+                        class="task-title-link"
+                        href="{% url 'tasks:task_detail' studio.slug row.task.id %}"
+                    >
+                        {{ row.task.title }}
+                    </a>
                     <span class="task-priority priority-{{ row.task.priority }}">
                         {{ row.task.get_priority_display }}
                     </span>
@@ -99,8 +110,8 @@
                     {% endif %}
                 </div>
 
-                {% if row.task.description %}
-                    <p>{{ row.task.description }}</p>
+                {% if row.display_description %}
+                    <p>{{ row.display_description }}</p>
                 {% endif %}
 
                 <div class="task-context">
@@ -143,7 +154,7 @@
                             <button type="submit" class="button primary">Accept</button>
                         </form>
                     </div>
-                {% elif row.task.created_by_id == request.user.id or role == "administrator" %}
+                {% elif not row.system_managed and row.task.created_by_id == request.user.id or not row.system_managed and role == "administrator" %}
                     <a class="task-edit-link" href="{% url 'tasks:task_edit' studio.slug row.task.id %}?next={{ request.get_full_path|urlencode }}">
                         Edit
                     </a>
@@ -151,7 +162,12 @@
             </div>
         </article>
     {% empty %}
-        <div class="task-empty-state">Nothing to show here right now.</div>
+        <div class="task-template-empty task-list-empty">
+            <div class="task-template-empty-icon" aria-hidden="true">✓</div>
+            <h2>No tasks in this view</h2>
+            <p>There are no matching tasks right now. Try another tab or create a task to get started.</p>
+            {% if role == 'administrator' or role == 'teacher' %}<a class="button primary" href="{% url 'tasks:task_create' studio.slug %}">+ Add Task</a>{% endif %}
+        </div>
     {% endfor %}
 </section>
 {% endblock %}

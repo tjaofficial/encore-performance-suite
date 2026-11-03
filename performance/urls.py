@@ -5,6 +5,11 @@ from . import views
 app_name = "performance"
 
 urlpatterns = [
+    path("<slug:studio_slug>/drawing-board/<int:board_id>/venue-templates/save/", views.drawing_board_stage_template_save, name="drawing_board_stage_template_save"),
+    path("<slug:studio_slug>/drawing-board/<int:board_id>/venue-templates/apply/", views.drawing_board_stage_template_apply, name="drawing_board_stage_template_apply"),
+    path("<slug:studio_slug>/drawing-board/<int:board_id>/venue-templates/undo/", views.drawing_board_stage_template_undo, name="drawing_board_stage_template_undo"),
+    path("<slug:studio_slug>/<int:plan_id>/view/", views.dance_choreography_viewer, name="dance_choreography_viewer"),
+    path("<slug:studio_slug>/<int:plan_id>/notes/autosave/", views.dance_notes_autosave, name="dance_notes_autosave"),
     path(
         "<slug:studio_slug>/drawing-board/<int:board_id>/information/save/",
         views.drawing_board_information_save,
@@ -43,6 +48,11 @@ urlpatterns = [
     path("<slug:studio_slug>/drawing-board/dance/<int:plan_id>/", views.drawing_board_for_plan, name="drawing_board_for_plan"),
     path("<slug:studio_slug>/drawing-board/class/<int:class_id>/", views.drawing_board_for_class, name="drawing_board_for_class"),
     path("<slug:studio_slug>/drawing-board/<int:board_id>/", views.drawing_board_detail, name="drawing_board_detail"),
+    path(
+        "<slug:studio_slug>/drawing-board/<int:board_id>/copy/",
+        views.drawing_board_copy_to_class,
+        name="drawing_board_copy_to_class",
+    ),
     path("<slug:studio_slug>/drawing-board/<int:board_id>/save/", views.drawing_board_detail_save, name="drawing_board_detail_save"),
     path("<slug:studio_slug>/drawing-board/<int:board_id>/formations/add/", views.drawing_board_detail_formation_add, name="drawing_board_detail_formation_add"),
     path("<slug:studio_slug>/drawing-board/<int:board_id>/formations/<int:formation_id>/delete/", views.drawing_board_formation_delete, name="drawing_board_formation_delete"),

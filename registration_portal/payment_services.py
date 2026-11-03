@@ -18,6 +18,8 @@ from .services import (
     finalize_public_registration,
     registration_pricing_snapshot,
 )
+from .security import registration_identity_verified
+from .policy_services import registration_policies_satisfied
 
 
 HOLD_MINUTES = 20
@@ -60,12 +62,6 @@ def connected_subscription_for_registration(
         return None
 
     if (
-        subscription.payment_mode
-        != StudioSubscription.PaymentMode.SOFTWARE_PAYMENTS
-    ):
-        return None
-
-    if (
         not subscription.payments_connected
         or not subscription.stripe_connected_account_id
         or not subscription.stripe_connect_charges_enabled
@@ -103,6 +99,17 @@ def reserve_registration_classes(
         .order_by("pk")
     )
 
+    raw_student_data = session.student_data or {}
+    assignment_counts = {}
+    if isinstance(raw_student_data.get("assignments"), dict):
+        for values in raw_student_data.get("assignments", {}).values():
+            if not isinstance(values, list):
+                continue
+            for value in values:
+                if str(value).isdigit():
+                    class_id = int(value)
+                    assignment_counts[class_id] = assignment_counts.get(class_id, 0) + 1
+
     waitlisted_ids = set()
     settings_obj = getattr(
         session.studio,
@@ -138,12 +145,14 @@ def reserve_registration_classes(
             .count()
         )
 
+        seats_needed = max(assignment_counts.get(class_instance.pk, 1), 1)
         has_capacity = (
             class_instance.capacity <= 0
             or (
                 active_enrollment_count
                 + other_holds
-                < class_instance.capacity
+                + seats_needed
+                <= class_instance.capacity
             )
         )
 
@@ -202,6 +211,16 @@ def prepare_registration_payment(
     request,
     registration_session,
 ):
+    if not registration_identity_verified(registration_session):
+        raise ValueError(
+            "Verify the registration email before starting payment."
+        )
+
+    if not registration_policies_satisfied(registration_session):
+        raise ValueError(
+            "Review and accept the required registration policies before starting payment."
+        )
+
     if (
         registration_session.status
         not in {
@@ -212,6 +231,9 @@ def prepare_registration_payment(
         raise ValueError(
             "This registration is not ready for payment."
         )
+
+    from .approval_codes import validate_session as validate_class_codes
+    validate_class_codes(registration_session)
 
     snapshot = reserve_registration_classes(
         registration_session
@@ -276,6 +298,8 @@ def prepare_registration_payment(
                 "",
             )
 
+            if existing_status == "succeeded":
+                raise ValueError('Payment has already succeeded. Complete the existing registration; do not pay again.')
             if existing_status not in {
                 "succeeded",
                 "canceled",
@@ -372,6 +396,12 @@ def retrieve_registration_payment(
 def finalize_if_payment_succeeded(
     registration_session,
 ):
+    if not registration_identity_verified(registration_session):
+        return None
+
+    if not registration_policies_satisfied(registration_session):
+        return None
+
     payment_intent = retrieve_registration_payment(
         registration_session
     )
@@ -437,6 +467,12 @@ def finalize_from_connect_webhook(
     )
 
     if registration_session is None:
+        return None
+
+    if not registration_identity_verified(registration_session):
+        return None
+
+    if not registration_policies_satisfied(registration_session):
         return None
 
     subscription = (

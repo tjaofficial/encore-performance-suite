@@ -1,0 +1,446 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Import Vocabulary | Studio Director Onboarding{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}">{% endblock %}
+{% block topbar_title %}Studio Director Onboarding{% endblock %}
+
+{% block content %}
+<div class="settings-workspace">
+    {% include "includes/settings_nav.html" %}
+
+    <main class="settings-workspace-content">
+        <section class="settings-heading">
+            <div>
+                <a class="back-link" href="{% url 'studios:studio_director_onboarding' studio.slug %}">
+                    ← Back to Studio Director Playbook
+                </a>
+                <p class="eyebrow">Studio Director · Studio-Specific Rules</p>
+                <h1>Import Vocabulary</h1>
+                <p>
+                    Teach Encore what this studio's own words mean without changing
+                    Encore's universal parser. Leave a field blank when a term does
+                    not control that part of the class.
+                </p>
+            </div>
+        </section>
+
+        {% if messages %}
+            <div class="message-stack">
+                {% for message in messages %}
+                    <div class="message-banner {{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="message-banner info">
+            <strong>Universal rules stay universal.</strong>
+            Numeric age ranges, configured level aliases, schedule syntax,
+            multiple class-type detection, and the class naming standard
+            <strong>TYPE - LEVEL_NAME</strong> do not need vocabulary entries.
+            Use this page for studio-specific language such as Preschool, Jr.,
+            Sr., Company, Rehearsal, or another local term.
+        </div>
+
+        <form method="post" class="settings-form" id="vocabulary-form">
+            {% csrf_token %}
+            <input type="hidden" name="rules_json" id="rules-json" value="{{ rules_json|escape }}">
+
+            <section class="settings-panel">
+                <div class="settings-section-heading">
+                    <div>
+                        <span>Studio Vocabulary</span>
+                        <h2>Class-name rules</h2>
+                        <p>
+                            A rule can set an age range, level, exact class type,
+                            class-type suffix, performance status, and/or registration status.
+                        </p>
+                    </div>
+                    <button class="button secondary" type="button" id="add-vocabulary-rule">
+                        + Add Rule
+                    </button>
+                </div>
+
+                <div class="vocabulary-toolbar">
+                    <div>
+                        <strong id="vocabulary-rule-count">0 rules</strong>
+                        <small>Saved rules stay visible here so you can edit or remove them at any time.</small>
+                    </div>
+                </div>
+
+                <div id="vocabulary-rule-list" class="vocabulary-rule-list"></div>
+            </section>
+
+            <div class="form-actions">
+                <a class="button secondary" href="{% url 'studios:studio_director_onboarding' studio.slug %}">
+                    Cancel
+                </a>
+                <button class="button primary" type="submit">Save Import Vocabulary</button>
+            </div>
+        </form>
+    </main>
+</div>
+
+<template id="vocabulary-rule-template">
+    <article class="settings-section-block vocabulary-rule" data-vocabulary-rule>
+        <div class="vocabulary-rule-summary" data-rule-summary>
+            <div class="vocabulary-rule-number" data-rule-number></div>
+
+            <div class="vocabulary-rule-summary-copy">
+                <div class="vocabulary-rule-title-row">
+                    <strong data-summary-term>New Rule</strong>
+                    <span class="vocabulary-rule-status" data-rule-status>Saved</span>
+                </div>
+                <small data-summary-details>No mappings configured yet.</small>
+            </div>
+
+            <div class="vocabulary-rule-summary-actions">
+                <button class="button secondary" type="button" data-edit-rule>
+                    Edit
+                </button>
+                <button class="button danger" type="button" data-remove-rule>
+                    Remove
+                </button>
+            </div>
+        </div>
+
+        <div class="vocabulary-rule-editor" data-rule-editor hidden>
+            <div class="vendor-discovery-edit-grid">
+                <div class="settings-field">
+                    <label>Studio Term / Phrase</label>
+                    <input class="encore-input" data-field="term" placeholder="Example: Preschool">
+                </div>
+
+                <div class="settings-field">
+                    <label>Minimum Age</label>
+                    <input class="encore-input" data-field="min_age" type="number" min="0" step="0.25" placeholder="1.5 = 18 months">
+                    <small>Use years. Example: 1.5 means 18 months.</small>
+                </div>
+
+                <div class="settings-field">
+                    <label>Maximum Age</label>
+                    <input class="encore-input" data-field="max_age" type="number" min="0" step="0.25" placeholder="Example: 4">
+                </div>
+
+                <div class="settings-field">
+                    <label>Level</label>
+                    <select class="encore-input" data-field="level_id">
+                        <option value="">No level mapping</option>
+                        {% for level in class_levels %}
+                            <option value="{{ level.id }}" data-label="Level {{ level.number }} — {{ level.name }}">
+                                Level {{ level.number }} — {{ level.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="settings-field">
+                    <label>Exact Class Type</label>
+                    <select class="encore-input" data-field="class_type_id">
+                        <option value="">Keep detected class type</option>
+                        {% for class_type in class_types %}
+                            <option value="{{ class_type.id }}" data-label="{{ class_type.name }}">
+                                {{ class_type.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="settings-field">
+                    <label>Class Type Suffix</label>
+                    <input class="encore-input" data-field="class_type_suffix" placeholder="Example: Competition">
+                    <small>Example: Hip Hop + Competition → Hip Hop - Competition</small>
+                </div>
+
+                <div class="settings-field">
+                    <label>Performance</label>
+                    <select class="encore-input" data-field="performance">
+                        <option value="">Do not decide</option>
+                        <option value="yes">Performance Class</option>
+                        <option value="no">Non-Performance Class</option>
+                    </select>
+                </div>
+
+                <div class="settings-field">
+                    <label>Online Registration</label>
+                    <select class="encore-input" data-field="registration">
+                        <option value="">Do not decide</option>
+                        <option value="open">Open</option>
+                        <option value="closed">Closed / Permission Required</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-actions vocabulary-editor-actions">
+                <button class="button secondary" type="button" data-cancel-edit>
+                    Done Editing
+                </button>
+            </div>
+        </div>
+    </article>
+</template>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+.vocabulary-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin: 4px 0 14px;
+}
+.vocabulary-toolbar > div {
+    display: grid;
+    gap: 3px;
+}
+.vocabulary-toolbar strong {
+    color: #15203d;
+    font-size: .82rem;
+}
+.vocabulary-toolbar small {
+    color: #6f7b91;
+}
+.vocabulary-rule-list {
+    display: grid;
+    gap: 12px;
+}
+.vocabulary-rule {
+    padding: 0 !important;
+    overflow: hidden;
+}
+.vocabulary-rule-summary {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr) auto;
+    gap: 14px;
+    align-items: center;
+    padding: 16px 18px;
+}
+.vocabulary-rule-number {
+    display: grid;
+    width: 36px;
+    height: 36px;
+    place-items: center;
+    border-radius: 10px;
+    background: #edf4ff;
+    color: #2672ff;
+    font-weight: 900;
+}
+.vocabulary-rule-summary-copy {
+    display: grid;
+    min-width: 0;
+    gap: 4px;
+}
+.vocabulary-rule-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+.vocabulary-rule-title-row strong {
+    color: #132044;
+    font-size: .88rem;
+}
+.vocabulary-rule-summary-copy small {
+    color: #66748a;
+    line-height: 1.45;
+}
+.vocabulary-rule-status {
+    display: inline-flex;
+    min-height: 22px;
+    align-items: center;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: #e9f7ef;
+    color: #26734a;
+    font-size: .58rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+.vocabulary-rule-status.unsaved {
+    background: #fff3cd;
+    color: #8a6710;
+}
+.vocabulary-rule-summary-actions {
+    display: flex;
+    gap: 8px;
+}
+.vocabulary-rule-editor {
+    padding: 18px;
+    border-top: 1px solid #dfe5ee;
+    background: #f8faff;
+}
+.vocabulary-editor-actions {
+    margin-top: 14px;
+}
+.button.danger {
+    border-color: #f0c3c3;
+    color: #a13a3a;
+    background: #fff;
+}
+.button.danger:hover {
+    background: #fff1f1;
+}
+@media (max-width: 760px) {
+    .vocabulary-rule-summary {
+        grid-template-columns: 36px minmax(0, 1fr);
+    }
+    .vocabulary-rule-summary-actions {
+        grid-column: 1 / -1;
+        justify-content: flex-end;
+    }
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("vocabulary-form");
+    const list = document.getElementById("vocabulary-rule-list");
+    const template = document.getElementById("vocabulary-rule-template");
+    const hidden = document.getElementById("rules-json");
+    const addButton = document.getElementById("add-vocabulary-rule");
+    const countLabel = document.getElementById("vocabulary-rule-count");
+
+    function selectText(select) {
+        if (!select || !select.value) return "";
+        const option = select.options[select.selectedIndex];
+        return option ? option.text.trim() : "";
+    }
+
+    function ruleData(row) {
+        const item = {};
+        row.querySelectorAll("[data-field]").forEach(function (field) {
+            item[field.dataset.field] = field.value;
+        });
+        return item;
+    }
+
+    function updateCount() {
+        const count = list.querySelectorAll("[data-vocabulary-rule]").length;
+        countLabel.textContent = count + (count === 1 ? " rule" : " rules");
+
+        list.querySelectorAll("[data-vocabulary-rule]").forEach(function (row, index) {
+            row.querySelector("[data-rule-number]").textContent = index + 1;
+        });
+    }
+
+    function updateSummary(row, markUnsaved) {
+        const data = ruleData(row);
+        const term = (data.term || "").trim() || "Untitled Rule";
+        const details = [];
+
+        if (data.min_age || data.max_age) {
+            if (data.min_age && data.max_age) {
+                details.push("Age " + data.min_age + "–" + data.max_age);
+            } else if (data.min_age) {
+                details.push("Age " + data.min_age + "+");
+            } else {
+                details.push("Age up to " + data.max_age);
+            }
+        }
+
+        const level = selectText(row.querySelector('[data-field="level_id"]'));
+        if (level) details.push(level);
+
+        const classType = selectText(row.querySelector('[data-field="class_type_id"]'));
+        if (classType) details.push("Type: " + classType);
+
+        if (data.class_type_suffix) {
+            details.push("Type suffix: " + data.class_type_suffix);
+        }
+
+        if (data.performance === "yes") details.push("Performance");
+        if (data.performance === "no") details.push("Non-performance");
+
+        if (data.registration === "open") details.push("Registration open");
+        if (data.registration === "closed") details.push("Registration closed");
+
+        row.querySelector("[data-summary-term]").textContent = term;
+        row.querySelector("[data-summary-details]").textContent =
+            details.length ? details.join(" · ") : "No mappings configured yet.";
+
+        if (markUnsaved) {
+            const status = row.querySelector("[data-rule-status]");
+            status.textContent = "Unsaved";
+            status.classList.add("unsaved");
+        }
+    }
+
+    function setEditorOpen(row, open) {
+        row.querySelector("[data-rule-editor]").hidden = !open;
+        row.querySelector("[data-edit-rule]").textContent = open ? "Editing" : "Edit";
+    }
+
+    function addRule(data, options) {
+        const fragment = template.content.cloneNode(true);
+        const row = fragment.querySelector("[data-vocabulary-rule]");
+        const opts = options || {};
+
+        row.querySelectorAll("[data-field]").forEach(function (field) {
+            const key = field.dataset.field;
+            field.value = (data && data[key] != null) ? data[key] : "";
+            field.addEventListener("input", function () {
+                updateSummary(row, true);
+            });
+            field.addEventListener("change", function () {
+                updateSummary(row, true);
+            });
+        });
+
+        row.querySelector("[data-edit-rule]").addEventListener("click", function () {
+            const editor = row.querySelector("[data-rule-editor]");
+            setEditorOpen(row, editor.hidden);
+        });
+
+        row.querySelector("[data-cancel-edit]").addEventListener("click", function () {
+            setEditorOpen(row, false);
+        });
+
+        row.querySelector("[data-remove-rule]").addEventListener("click", function () {
+            const term = row.querySelector("[data-summary-term]").textContent || "this rule";
+            if (window.confirm("Remove " + term + "?")) {
+                row.remove();
+                updateCount();
+            }
+        });
+
+        list.appendChild(fragment);
+        updateSummary(row, !!opts.newRule);
+        setEditorOpen(row, !!opts.open);
+        updateCount();
+
+        if (opts.open) {
+            const termInput = row.querySelector('[data-field="term"]');
+            if (termInput) termInput.focus();
+        }
+
+        return row;
+    }
+
+    let initial = [];
+    try {
+        initial = JSON.parse(hidden.value || "[]");
+    } catch (_) {}
+
+    if (initial.length) {
+        initial.forEach(function (item) {
+            addRule(item, {open: false, newRule: false});
+        });
+    }
+
+    addButton.addEventListener("click", function () {
+        addRule({}, {open: true, newRule: true});
+    });
+
+    form.addEventListener("submit", function () {
+        const rules = Array.from(
+            list.querySelectorAll("[data-vocabulary-rule]")
+        ).map(ruleData).filter(function (item) {
+            return (item.term || "").trim();
+        });
+
+        hidden.value = JSON.stringify(rules);
+    });
+});
+</script>
+{% endblock %}

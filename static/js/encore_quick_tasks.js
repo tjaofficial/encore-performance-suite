@@ -51,9 +51,10 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    document.querySelectorAll(".task-complete-form").forEach((form) => {
+    document.querySelectorAll(".task-complete-form, .dashboard-task-complete").forEach((form) => {
         form.addEventListener("submit", (event) => {
             if (form.dataset.submitting === "true") {
+                event.preventDefault();
                 return;
             }
 
@@ -61,24 +62,50 @@ document.addEventListener("DOMContentLoaded", () => {
             form.dataset.submitting = "true";
 
             const row = form.closest(
-                ".class-task-row, "
+                ".dashboard-task-row, "
+                + ".class-task-row, "
                 + ".teacher-task-row, "
+                + ".admin-task-row, "
                 + ".student-task-row, "
                 + ".task-list-row"
             );
 
-            if (row) {
-                row.classList.add("task-completing");
-            }
-
             const button = form.querySelector("button");
+
             if (button) {
                 button.disabled = true;
+                button.setAttribute("aria-pressed", "true");
             }
 
+            if (row) {
+                row.classList.add("task-completing");
+
+                /*
+                 * Let the user see the completed state for one full second:
+                 * filled circle + strikethrough text.
+                 */
+                window.setTimeout(() => {
+                    row.classList.add("task-removing");
+
+                    /*
+                     * Fade/collapse the row, then perform the existing
+                     * Django form submission so completion is persisted.
+                     */
+                    window.setTimeout(() => {
+                        form.submit();
+                    }, 180);
+                }, 1000);
+
+                return;
+            }
+
+            /*
+             * Fallback for a completion form used outside a recognized row:
+             * preserve the one-second feedback delay, then submit normally.
+             */
             window.setTimeout(() => {
                 form.submit();
-            }, 280);
+            }, 1000);
         });
     });
 });

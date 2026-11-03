@@ -1,0 +1,39 @@
+{% extends "dashboard/parent_portal_base.html" %}
+{% load announcement_format %}
+
+{% block title %}{{ announcement.title }} | {{ studio.name }}{% endblock %}
+{% block parent_portal_heading %}Announcement{% endblock %}
+
+{% block parent_content %}
+<a class="parent-back-link" href="{% url 'communications:announcement_list' studio.slug %}">
+    ← Back to Announcements
+</a>
+
+<article class="parent-detail-card parent-announcement-detail-card">
+    <div class="parent-detail-icon parent-card-icon-announcement">◖</div>
+
+    <div class="parent-detail-copy">
+        <span class="parent-eyebrow">
+            {{ announcement.get_audience_display }}
+            · {{ announcement.publish_at|date:"M j, Y · g:i A" }}
+        </span>
+
+        <h2>{{ announcement.title }}</h2>
+
+        <div class="parent-announcement-message">
+            {{ announcement.message|announcement_body }}
+        </div>
+
+        {% if announcement.classes.all %}
+            <div class="parent-detail-meta">
+                <strong>Related Classes</strong>
+                <span>
+                    {% for class_instance in announcement.classes.all %}
+                        {{ class_instance.name }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </span>
+            </div>
+        {% endif %}
+    </div>
+</article>
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Billing Transition | Studio Director Onboarding{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}">{% endblock %}
+{% block topbar_title %}Studio Director Onboarding{% endblock %}
+
+{% block content %}
+<div class="settings-workspace">
+    {% include "includes/settings_nav.html" %}
+    <main class="settings-workspace-content">
+        <section class="settings-heading">
+            <div>
+                <a class="back-link" href="{% url 'studios:studio_director_onboarding' studio.slug %}">← Back to Studio Director Playbook</a>
+                <p class="eyebrow">Studio Director · Billing Transition</p>
+                <h1>Opening Balances &amp; Billing Cutover</h1>
+                <p>Upload both CSVs created from the Studio Director Aging / Collections report. Encore will reconcile them before any financial records are created.</p>
+            </div>
+        </section>
+
+        {% if messages %}
+            <div class="message-stack">
+                {% for message in messages %}<div class="message-banner {{ message.tags }}">{{ message }}</div>{% endfor %}
+            </div>
+        {% endif %}
+
+        {% if current_job and current_job.status != "reverted" %}
+            <div class="message-banner warning">
+                A Billing Transition import is already attached to this onboarding run (Import #{{ current_job.id }}).
+                To import new opening balances, undo that import from Import History first.
+            </div>
+        {% endif %}
+
+        <section class="settings-section-block">
+            <div class="settings-section-heading">
+                <div>
+                    <span>What This Imports</span>
+                    <h2>Old balances only — not future tuition</h2>
+                    <p>
+                        Charge Detail becomes opening Encore charges by category. Negative unapplied payments become account credits.
+                        Universal tuition and active enrollments continue to calculate new tuition after the billing start date.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <form method="post" enctype="multipart/form-data" class="settings-form billing-transition-form">
+            {% csrf_token %}
+
+            <section class="settings-panel billing-transition-upload-grid">
+                <div class="settings-field">
+                    <label for="summary_csv">1. Family Balance Summary CSV</label>
+                    <input class="encore-input" id="summary_csv" name="summary_csv" type="file" accept=".csv,text/csv" required>
+                    <small>One row per family with Total Unpaid Charges, unapplied payments, and Balance Due.</small>
+                </div>
+
+                <div class="settings-field">
+                    <label for="detail_csv">2. Family Charge Detail CSV</label>
+                    <input class="encore-input" id="detail_csv" name="detail_csv" type="file" accept=".csv,text/csv" required>
+                    <small>One row per family/category with the aging buckets and Unpaid Charges.</small>
+                </div>
+
+                <div class="settings-field">
+                    <label for="opening_balance_date">Opening Balance Date</label>
+                    <input class="encore-input" id="opening_balance_date" name="opening_balance_date" type="date" required>
+                    <small>The date these Studio Director balances are considered the opening balance in Encore.</small>
+                </div>
+
+                <div class="settings-field">
+                    <label for="billing_start_date">Encore Billing Start Date</label>
+                    <input class="encore-input" id="billing_start_date" name="billing_start_date" type="date" required>
+                    <small>New Encore tuition should begin from this date forward. This onboarding step records the date; it does not retroactively bill old months.</small>
+                </div>
+            </section>
+
+            <div class="form-actions">
+                <a class="button secondary" href="{% url 'studios:studio_director_onboarding' studio.slug %}">Cancel</a>
+                <button class="button primary" type="submit">Analyze Billing Files →</button>
+            </div>
+        </form>
+    </main>
+</div>
+{% endblock %}

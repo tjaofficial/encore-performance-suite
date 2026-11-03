@@ -1,0 +1,100 @@
+{% extends "dashboard/parent_portal_base.html" %}
+
+{% block title %}Class Resources | {{ studio.name }}{% endblock %}
+{% block parent_portal_heading %}Class Resources{% endblock %}
+
+{% block parent_content %}
+<section class="parent-page-heading">
+    <div class="parent-page-icon parent-card-icon-resources">▤</div>
+    <div>
+        <span class="parent-eyebrow">Class Resources</span>
+        <h2>Resources for Your Dancers</h2>
+        <p>Music, videos, documents, and class materials shared by the studio.</p>
+    </div>
+</section>
+
+<form method="get" class="parent-filter-bar parent-filter-grid">
+    <label>
+        <span>Search</span>
+        <input type="search" name="q" value="{{ filters.q }}" placeholder="Search resources...">
+    </label>
+
+    <label>
+        <span>Type</span>
+        <select name="type">
+            <option value="">All Types</option>
+            {% for value, label in resource_types %}
+                <option value="{{ value }}" {% if filters.type == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </label>
+
+    <label>
+        <span>Class</span>
+        <select name="class">
+            <option value="">All Classes</option>
+            {% for class_row in accessible_classes %}
+                <option
+                    value="{{ class_row.class_instance_id }}"
+                    {% if filters.class == class_row.class_instance_id|stringformat:"s" %}selected{% endif %}
+                >
+                    {{ class_row.class_instance__class_id }} · {{ class_row.class_instance__name }}
+                </option>
+            {% endfor %}
+        </select>
+    </label>
+
+    <button type="submit">Filter</button>
+</form>
+
+{% if viewable_dances %}
+<section class="parent-page-card" style="margin-bottom:20px;padding:20px">
+  <div class="parent-section-heading"><div><span class="parent-eyebrow">CHOREOGRAPHY</span><h3>Dance Drawing Boards</h3><p>Watch the formations and lighting cues, synced to approved music.</p></div></div>
+  <div class="parent-resource-grid">{% for dance in viewable_dances %}
+    <a class="parent-resource-card" style="text-decoration:none" href="{% url 'performance:dance_choreography_viewer' studio.slug dance.id %}"><div class="parent-page-row-icon">◇</div><div><h4>{{ dance.title|default:dance.class_instance.name }}</h4><p>{{ dance.class_instance.name }}</p><strong>Open choreography viewer →</strong></div></a>
+  {% endfor %}</div>
+</section>{% endif %}
+<div class="parent-resource-stack">
+    {% for class_instance, resources in resource_groups %}
+        <section class="parent-page-card parent-resource-section">
+            <div class="parent-section-heading">
+                <div>
+                    <span class="parent-eyebrow">{{ class_instance.class_id }}</span>
+                    <h3>{{ class_instance.name }}</h3>
+                    <p>{{ class_instance.season.name }} · {{ resources|length }} resource{{ resources|length|pluralize }}</p>
+                </div>
+            </div>
+
+            <div class="parent-resource-grid">
+                {% for resource in resources %}
+                    <article class="parent-resource-card">
+                        <div class="parent-page-row-icon">
+                            {% if resource.resource_type == "music" %}♫
+                            {% elif resource.resource_type == "video" %}▶
+                            {% elif resource.resource_type == "document" %}▤
+                            {% else %}✦{% endif %}
+                        </div>
+
+                        <div>
+                            <span class="parent-eyebrow">{{ resource.get_resource_type_display }}</span>
+                            <h4>{{ resource.title }}</h4>
+                            {% if resource.description %}<p>{{ resource.description }}</p>{% endif %}
+
+                            <div class="parent-resource-actions">
+                                {% if resource.file %}
+                                    <a href="{% if resource.resource_type == 'music' %}{% url 'resources:music_file' studio.slug resource.id %}{% else %}{{ resource.file.url }}{% endif %}" download>Download</a>
+                                {% endif %}
+                                {% if resource.external_url %}
+                                    <a href="{{ resource.external_url }}" target="_blank" rel="noopener noreferrer">Open Resource</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        </section>
+    {% empty %}
+        <div class="parent-empty-state">No class resources are available yet.</div>
+    {% endfor %}
+</div>
+{% endblock %}

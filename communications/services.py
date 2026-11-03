@@ -1057,6 +1057,7 @@ def send_campaign(
                         campaign
                     )
                 ),
+                reply_to=(campaign.studio.email or None),
                 tags={
                     "campaign_id": campaign.pk,
                     "studio_id": (

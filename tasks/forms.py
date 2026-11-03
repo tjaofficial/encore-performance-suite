@@ -192,7 +192,6 @@ class TaskForm(forms.ModelForm):
         elif role == StudioMembership.Role.TEACHER:
             allowed = {
                 Task.AudienceType.SELF,
-                Task.AudienceType.ADMIN,
                 Task.AudienceType.CLASS_STAFF,
                 Task.AudienceType.SELECTED_STUDENTS,
                 Task.AudienceType.ALL_STUDENTS_IN_CLASS,

@@ -1,0 +1,185 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_parent_portal.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_parent_dashboard_refinements.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_parent_notifications.css' %}">
+{% block parent_extra_css %}{% endblock %}
+{% endblock %}
+
+{% block body_class %}parent-portal-body{% endblock %}
+{% block app_shell_class %}parent-portal-shell{% endblock %}
+{% block app_main_class %}parent-portal-main{% endblock %}
+{% block page_content_class %}parent-portal-content{% endblock %}
+
+{% block sidebar %}
+<aside class="parent-sidebar" style="--parent-sidebar-custom-bg: {{ studio.settings.parent_sidebar_color|default:'#FFFFFF' }}; --parent-logo-header-bg: {{ studio.settings.parent_logo_header_color|default:'#E9EFFF' }};">
+    <a
+        class="parent-brand{% if not studio.settings.logo %} parent-brand-default{% endif %}"
+        href="{% url 'dashboard:family_dashboard' studio.slug %}{% if selected_student %}?student={{ selected_student.id }}{% endif %}"
+        aria-label="{{ studio.name }} parent portal"
+    >
+        {% if studio.settings.logo %}
+            <img src="{{ studio.settings.logo.url }}" alt="{{ studio.name }}">
+        {% else %}
+            <img class="parent-encore-logo" src="{% static 'images/logo.png' %}" alt="Encore Performance Suite">
+        {% endif %}
+    </a>
+
+    {% if parent_section != "payments" and parent_section != "announcements" and parent_section != "notifications" %}
+    <div class="parent-dancer-section">
+        <span class="parent-sidebar-label">My Dancers</span>
+
+        <div class="parent-dancer-list">
+            {% for item in dancer_rows %}
+                <a
+                    class="parent-dancer-link {% if item.is_selected %}is-selected{% endif %}"
+                    href="{% if parent_section == 'dashboard' %}{% url 'dashboard:family_dashboard' studio.slug %}{% elif parent_section == 'attendance' %}{% url 'attendance:family_attendance' studio.slug %}{% elif parent_section == 'makeups' %}{{ request.path }}{% elif parent_section == 'resources' or parent_section == 'costumes' %}{{ request.path }}{% else %}{% url 'dashboard:family_dashboard' studio.slug %}{% endif %}?student={{ item.student.id }}"
+                >
+                    <span class="parent-dancer-avatar">
+                        {{ item.student.first_name|slice:":1"|upper }}{{ item.student.last_name|slice:":1"|upper }}
+                    </span>
+
+                    <span class="parent-dancer-copy">
+                        <strong>{{ item.student.first_name }} {{ item.student.last_name }}</strong>
+                        <small>
+                            Age {{ item.student.age }}
+                            {% if item.class_count %}
+                                · {{ item.class_count }} class{{ item.class_count|pluralize }}
+                            {% endif %}
+                        </small>
+                    </span>
+
+                    {% if item.is_selected %}
+                        <span class="parent-dancer-check">✓</span>
+                    {% endif %}
+                </a>
+            {% empty %}
+                <div class="parent-sidebar-empty">No active students.</div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <nav class="parent-nav" aria-label="Parent navigation">
+        <a class="{% if parent_section == 'dashboard' %}active{% endif %}" href="{% url 'dashboard:family_dashboard' studio.slug %}{% if selected_student %}?student={{ selected_student.id }}{% endif %}"><span class="parent-nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>Dashboard</a>
+        <a class="{% if parent_section == 'payments' %}active{% endif %}" href="{% url 'billing:family_payments' studio.slug %}"><span class="parent-nav-icon"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20M6 15h5"/></svg></span>Billing</a>
+        <a class="{% if parent_section == 'resources' %}active{% endif %}" href="{% url 'resources:resource_list' studio.slug %}{% if selected_student %}?student={{ selected_student.id }}{% endif %}"><span class="parent-nav-icon"><svg viewBox="0 0 24 24"><path d="M12 6c-3-2-6-2-9-1v14c3-1 6-1 9 1 3-2 6-2 9-1V5c-3-1-6-1-9 1ZM12 6v14"/></svg></span>Class Resources</a>
+        <a class="{% if parent_section == 'attendance' or parent_section == 'makeups' %}active{% endif %}" href="{% url 'attendance:family_attendance' studio.slug %}{% if selected_student %}?student={{ selected_student.id }}{% endif %}"><span class="parent-nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 2v6M17 2v6M3 10h18m-13 5 3 3 5-6"/></svg></span>Attendance</a>
+        <a class="{% if parent_section == 'announcements' %}active{% endif %}" href="{% url 'communications:announcement_list' studio.slug %}"><span class="parent-nav-icon"><svg viewBox="0 0 24 24"><path d="M3 10v4h4l11 5V5L7 10H3Zm4 4 2 6h3l-2-5m10-5c2 1 2 3 0 4"/></svg></span>Announcements</a>
+        <a class="{% if parent_section == 'costumes' %}active{% endif %}" href="{% url 'costumes:my_costumes' studio.slug %}{% if selected_student %}?student={{ selected_student.id }}{% endif %}"><span class="parent-nav-icon"><svg viewBox="0 0 24 24"><path d="m8 3-5 4 3 5 3-2v11h6V10l3 2 3-5-5-4-4 3-4-3Z"/></svg></span>Costumes</a>
+    </nav>
+
+</aside>
+{% endblock %}
+
+{% block topbar %}
+<header class="parent-topbar">
+    <div>
+        <h1>{% block parent_portal_heading %}Welcome back, {{ guardian.first_name }}.{% endblock %}</h1>
+    </div>
+
+    <div class="parent-topbar-actions">
+        <div class="parent-bell-wrap" data-parent-bell-wrap>
+            <button type="button" class="parent-topbar-icon parent-notification-button"
+                    data-parent-bell-toggle aria-label="Open notifications"
+                    aria-haspopup="true" aria-expanded="false" aria-controls="parent-notification-menu">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M10 21h4"></path>
+                </svg>
+                {% if parent_unread_notification_count %}
+                    <span class="parent-notification-count">{% if parent_unread_notification_count > 9 %}9+{% else %}{{ parent_unread_notification_count }}{% endif %}</span>
+                {% endif %}
+            </button>
+            <div id="parent-notification-menu" class="parent-bell-dropdown" data-parent-bell-menu hidden>
+                <div class="parent-bell-head"><strong>Notifications</strong><span>{{ parent_unread_notification_count|default:0 }} unread</span></div>
+                <div class="parent-bell-list">
+                    {% for notification in parent_notification_preview %}
+                        <a class="parent-bell-item" href="{% url 'communications:notification_center' studio.slug %}?open={{ notification.pk }}">
+                            <strong>{{ notification.title }}</strong>
+                            <span>{{ notification.message|truncatechars:115 }}</span>
+                            <small>{{ notification.created_at|timesince }} ago</small>
+                        </a>
+                    {% empty %}
+                        <p class="parent-bell-empty">You're all caught up!</p>
+                    {% endfor %}
+                </div>
+                <a class="parent-bell-all" href="{% url 'communications:notification_center' studio.slug %}">See All Notifications →</a>
+            </div>
+        </div>
+
+        <div class="profile-menu parent-profile-menu" data-profile-menu>
+            <button
+                class="parent-profile-link parent-profile-button"
+                type="button"
+                aria-label="Open family account menu"
+                aria-expanded="false"
+                data-profile-menu-toggle
+            >
+                <span class="parent-profile-avatar">
+                    {{ guardian.first_name|slice:":1"|upper }}{{ guardian.last_name|slice:":1"|upper }}
+                </span>
+                <span>
+                    <strong>{{ guardian.first_name }} {{ guardian.last_name }}</strong>
+                    <small>Family Account</small>
+                </span>
+                <span class="parent-profile-chevron">⌄</span>
+            </button>
+
+            <div class="profile-dropdown parent-profile-dropdown" data-profile-menu-dropdown hidden>
+                <div class="profile-dropdown-identity">
+                    <span class="profile-dropdown-avatar">
+                        {{ guardian.first_name|slice:":1"|upper }}{{ guardian.last_name|slice:":1"|upper }}
+                    </span>
+                    <div>
+                        <strong>{{ guardian.first_name }} {{ guardian.last_name }}</strong>
+                        <span>{{ request.user.email }}</span>
+                        <small>{{ studio.name }} · Parent</small>
+                    </div>
+                </div>
+
+                <div class="profile-dropdown-links">
+                    <a href="{% url 'accounts:profile' %}">My Account</a>
+                    <a href="{% url 'families:parent_family_detail' studio.slug %}">My Family</a>
+                    {% if guardian.is_primary %}
+                        <a href="{% url 'families:parent_family_edit' studio.slug %}">Settings</a>
+                    {% endif %}
+                </div>
+
+                <div class="profile-dropdown-footer">
+                    <a href="{% url 'accounts:logout' %}">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+{% endblock %}
+
+{% block content %}
+{% if messages %}
+    <div class="parent-message-stack">
+        {% for message in messages %}
+            <div class="parent-message">{{ message }}</div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+{% block parent_content %}{% endblock %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const wrap = document.querySelector('[data-parent-bell-wrap]');
+  if (!wrap) return;
+  const btn = wrap.querySelector('[data-parent-bell-toggle]');
+  const menu = wrap.querySelector('[data-parent-bell-menu]');
+  const close = () => { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); };
+  btn.addEventListener('click', function(e) { e.stopPropagation(); const opening = menu.hidden; menu.hidden = !opening; btn.setAttribute('aria-expanded', String(opening)); });
+  document.addEventListener('click', e => { if (!wrap.contains(e.target)) close(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+});
+</script>
+{% block parent_extra_js %}{% endblock %}
+{% endblock %}

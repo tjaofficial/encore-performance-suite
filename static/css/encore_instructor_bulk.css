@@ -1,0 +1,13 @@
+/* Instructor bulk editor: intentionally scoped to the instructor list. */
+.instructor-selection-cell{width:42px;text-align:center!important}.instructor-selection-cell input{width:17px;height:17px;accent-color:var(--encore-primary);cursor:pointer}
+.instructor-selection-bar{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 16px;margin:0 0 14px;border:1px solid #b8c9ee;border-radius:14px;background:#f1f6ff}
+.instructor-selection-bar[hidden],.instructor-bulk-modal[hidden]{display:none!important}
+.instructor-selection-bar>div:first-child{display:grid;gap:4px}.instructor-selection-bar strong{font-size:.82rem;color:#122450}.instructor-selection-bar small{color:#62718b;font-size:.7rem}.instructor-selection-actions{display:flex;gap:8px}
+.instructor-bulk-modal{position:fixed;z-index:10000;inset:0;display:grid;place-items:center;padding:16px}
+.instructor-bulk-backdrop{position:absolute;inset:0;background:rgba(14,24,49,.62);backdrop-filter:blur(3px)}
+.instructor-bulk-dialog{position:relative;background:white;border:1px solid #cbd6e9;border-radius:19px;box-shadow:0 30px 80px #0f1e403d;width:min(580px,100%);max-height:calc(100vh - 32px);overflow:auto}
+.instructor-bulk-header{padding:21px 23px;border-bottom:1px solid #dae3ef;display:flex;justify-content:space-between;gap:12px}.instructor-bulk-header h2{margin:5px 0;font-size:1.3rem}.instructor-bulk-header p{margin:0;color:#66738b;font-size:.78rem}.instructor-bulk-close{width:34px;height:34px;border:1px solid #dae3ef;border-radius:9px;background:white;cursor:pointer;font-size:21px}
+.instructor-bulk-body{padding:22px 23px;display:grid;gap:12px}.instructor-bulk-body>label:not(.instructor-bulk-confirm){font-size:.75rem;font-weight:800;color:#465577}.instructor-bulk-body select,.instructor-bulk-body input[type=tel]{width:100%;min-height:43px;padding:10px 11px;border:1px solid #cbd6e9;border-radius:10px;background:white;font:inherit}
+.instructor-bulk-warning{background:#f4f7fd;border:1px solid #e0e8f4;padding:12px;border-radius:10px;font-size:.75rem;line-height:1.55;color:#64738a}.instructor-bulk-confirm{display:flex;gap:9px;align-items:flex-start;font-size:.78rem;color:#253453}.instructor-bulk-confirm input{margin-top:3px;accent-color:var(--encore-primary)}
+.instructor-bulk-footer{display:flex;justify-content:flex-end;gap:9px;padding:16px 23px;border-top:1px solid #dae3ef}
+body.instructor-bulk-open{overflow:hidden}@media(max-width:650px){.instructor-selection-bar{align-items:flex-start;flex-direction:column}.instructor-selection-actions{width:100%;flex-wrap:wrap}}

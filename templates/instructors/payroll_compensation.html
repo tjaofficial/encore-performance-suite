@@ -1,0 +1,236 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ instructor.full_name }} Compensation | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_payroll.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Payroll Management{% endblock %}
+
+{% block content %}
+<section class="payroll-heading">
+    <div>
+        <a
+            class="payroll-back-link"
+            href="{% url 'instructors:payroll_management' studio.slug %}"
+        >
+            ← Back to Payroll Management
+        </a>
+        <p class="eyebrow">Staff Compensation</p>
+        <h1>{{ instructor.full_name }}</h1>
+        <p>
+            Store rate history with effective dates. Encore will use the
+            correct historical record when calculating past and future pay.
+        </p>
+    </div>
+</section>
+
+{% if messages %}
+    <div class="message-stack">
+        {% for message in messages %}
+            <div class="message-banner {{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="payroll-compensation-grid">
+    <section class="payroll-card payroll-compensation-form-card">
+        <div class="payroll-card-heading">
+            <div>
+                <span>
+                    {% if editing_record %}Edit Record{% else %}New Record{% endif %}
+                </span>
+                <h2>
+                    {% if editing_record %}
+                        Update Compensation
+                    {% else %}
+                        Add Compensation Rate
+                    {% endif %}
+                </h2>
+            </div>
+        </div>
+
+        <form method="post" data-compensation-form>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="message-banner error">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <div class="payroll-form-grid">
+                <div class="payroll-field">
+                    {{ form.compensation_type.label_tag }}
+                    {{ form.compensation_type }}
+                    {{ form.compensation_type.errors }}
+                </div>
+
+                <div
+                    class="payroll-field"
+                    data-hourly-fields
+                >
+                    {{ form.hourly_rate.label_tag }}
+                    <div class="payroll-money-input">
+                        <span>$</span>
+                        {{ form.hourly_rate }}
+                    </div>
+                    {{ form.hourly_rate.errors }}
+                </div>
+
+                <div
+                    class="payroll-field"
+                    data-salary-fields
+                >
+                    {{ form.salary_amount.label_tag }}
+                    <div class="payroll-money-input">
+                        <span>$</span>
+                        {{ form.salary_amount }}
+                    </div>
+                    {{ form.salary_amount.errors }}
+                </div>
+
+                <div
+                    class="payroll-field"
+                    data-salary-fields
+                >
+                    {{ form.salary_basis.label_tag }}
+                    {{ form.salary_basis }}
+                    {{ form.salary_basis.errors }}
+                </div>
+
+                <div class="payroll-field">
+                    {{ form.extra_work_hourly_rate.label_tag }}
+                    <div class="payroll-money-input">
+                        <span>$</span>
+                        {{ form.extra_work_hourly_rate }}
+                    </div>
+                    <small>
+                        Optional. Leave blank to use the studio's default rule.
+                    </small>
+                    {{ form.extra_work_hourly_rate.errors }}
+                </div>
+
+                <div class="payroll-field">
+                    {{ form.effective_start.label_tag }}
+                    {{ form.effective_start }}
+                    {{ form.effective_start.errors }}
+                </div>
+
+                <div class="payroll-field">
+                    {{ form.effective_end.label_tag }}
+                    {{ form.effective_end }}
+                    <small>
+                        Leave blank while this rate is current.
+                    </small>
+                    {{ form.effective_end.errors }}
+                </div>
+
+                <div class="payroll-field payroll-field-full">
+                    {{ form.notes.label_tag }}
+                    {{ form.notes }}
+                    {{ form.notes.errors }}
+                </div>
+            </div>
+
+            <div class="payroll-card-actions">
+                {% if editing_record %}
+                    <a
+                        class="button secondary"
+                        href="{% url 'instructors:payroll_compensation' studio.slug instructor.id %}"
+                    >
+                        Cancel Edit
+                    </a>
+                {% endif %}
+
+                <button class="button primary" type="submit">
+                    {% if editing_record %}
+                        Save Changes
+                    {% else %}
+                        Add Compensation Record
+                    {% endif %}
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <section class="payroll-card payroll-history-card">
+        <div class="payroll-card-heading">
+            <div>
+                <span>Rate History</span>
+                <h2>Compensation Records</h2>
+            </div>
+        </div>
+
+        <div class="payroll-history-list">
+            {% for record in compensation_history %}
+                <article class="payroll-history-row">
+                    <div class="payroll-history-rate">
+                        <strong>{{ record.rate_display }}</strong>
+                        <span>
+                            {{ record.get_compensation_type_display }}
+                        </span>
+                    </div>
+
+                    <div class="payroll-history-dates">
+                        <strong>
+                            {{ record.effective_start|date:"M j, Y" }}
+                        </strong>
+                        <span>
+                            {% if record.effective_end %}
+                                through {{ record.effective_end|date:"M j, Y" }}
+                            {% else %}
+                                Current / Open Ended
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <div class="payroll-history-extra">
+                        {% if record.extra_work_hourly_rate %}
+                            Extra work:
+                            ${{ record.extra_work_hourly_rate|floatformat:2 }}/hr
+                        {% else %}
+                            No extra-work override
+                        {% endif %}
+                    </div>
+
+                    <a
+                        class="button secondary"
+                        href="{% url 'instructors:payroll_compensation_edit' studio.slug instructor.id record.id %}"
+                    >
+                        Edit
+                    </a>
+                </article>
+            {% empty %}
+                <div class="payroll-empty-state">
+                    No compensation history has been entered yet.
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.querySelector("[data-compensation-form]");
+    if (!form) return;
+
+    const typeField = form.querySelector("#id_compensation_type");
+    const hourly = form.querySelectorAll("[data-hourly-fields]");
+    const salary = form.querySelectorAll("[data-salary-fields]");
+
+    const refresh = () => {
+        const isSalary = typeField?.value === "salary";
+        hourly.forEach((field) => field.hidden = isSalary);
+        salary.forEach((field) => field.hidden = !isSalary);
+    };
+
+    typeField?.addEventListener("change", refresh);
+    refresh();
+});
+</script>
+{% endblock %}

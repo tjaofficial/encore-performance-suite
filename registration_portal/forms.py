@@ -8,6 +8,29 @@ from django.contrib.auth.hashers import make_password
 from classes.models import Class
 from .models import FamilyInvite, RegistrationRequest, PublicRegistrationSession
 
+US_STATE_CHOICES = [
+    ("", "Select a state"),
+    ("AL", "Alabama"), ("AK", "Alaska"), ("AZ", "Arizona"),
+    ("AR", "Arkansas"), ("CA", "California"), ("CO", "Colorado"),
+    ("CT", "Connecticut"), ("DE", "Delaware"), ("FL", "Florida"),
+    ("GA", "Georgia"), ("HI", "Hawaii"), ("ID", "Idaho"),
+    ("IL", "Illinois"), ("IN", "Indiana"), ("IA", "Iowa"),
+    ("KS", "Kansas"), ("KY", "Kentucky"), ("LA", "Louisiana"),
+    ("ME", "Maine"), ("MD", "Maryland"), ("MA", "Massachusetts"),
+    ("MI", "Michigan"), ("MN", "Minnesota"), ("MS", "Mississippi"),
+    ("MO", "Missouri"), ("MT", "Montana"), ("NE", "Nebraska"),
+    ("NV", "Nevada"), ("NH", "New Hampshire"), ("NJ", "New Jersey"),
+    ("NM", "New Mexico"), ("NY", "New York"), ("NC", "North Carolina"),
+    ("ND", "North Dakota"), ("OH", "Ohio"), ("OK", "Oklahoma"),
+    ("OR", "Oregon"), ("PA", "Pennsylvania"), ("RI", "Rhode Island"),
+    ("SC", "South Carolina"), ("SD", "South Dakota"), ("TN", "Tennessee"),
+    ("TX", "Texas"), ("UT", "Utah"), ("VT", "Vermont"),
+    ("VA", "Virginia"), ("WA", "Washington"), ("WV", "West Virginia"),
+    ("WI", "Wisconsin"), ("WY", "Wyoming"), ("DC", "District of Columbia"),
+]
+
+STATE_NAME_TO_ABBREVIATION = {label.lower(): value for value, label in US_STATE_CHOICES if value}
+
 
 class PublicRegistrationRequestForm(forms.ModelForm):
     class Meta:
@@ -395,9 +418,10 @@ class GuardianAccountDetailsForm(forms.Form):
         max_length=100,
         required=False,
     )
-    state = forms.CharField(
-        max_length=100,
+    state = forms.ChoiceField(
+        choices=US_STATE_CHOICES,
         required=False,
+        label="State",
     )
     postal_code = forms.CharField(
         max_length=20,
@@ -429,9 +453,17 @@ class GuardianAccountDetailsForm(forms.Form):
         saved_data=None,
         **kwargs,
     ):
+        initial = dict(saved_data or {})
+        saved_state = str(initial.get("state") or "").strip()
+        if saved_state and len(saved_state) != 2:
+            initial["state"] = STATE_NAME_TO_ABBREVIATION.get(
+                saved_state.lower(),
+                saved_state,
+            )
+
         super().__init__(
             *args,
-            initial=saved_data or None,
+            initial=initial or None,
             **kwargs,
         )
 
@@ -531,9 +563,10 @@ class SelfAccountDetailsForm(forms.Form):
         max_length=100,
         required=False,
     )
-    state = forms.CharField(
-        max_length=100,
+    state = forms.ChoiceField(
+        choices=US_STATE_CHOICES,
         required=False,
+        label="State",
     )
     postal_code = forms.CharField(
         max_length=20,
@@ -564,9 +597,17 @@ class SelfAccountDetailsForm(forms.Form):
         saved_data=None,
         **kwargs,
     ):
+        initial = dict(saved_data or {})
+        saved_state = str(initial.get("state") or "").strip()
+        if saved_state and len(saved_state) != 2:
+            initial["state"] = STATE_NAME_TO_ABBREVIATION.get(
+                saved_state.lower(),
+                saved_state,
+            )
+
         super().__init__(
             *args,
-            initial=saved_data or None,
+            initial=initial or None,
             **kwargs,
         )
 

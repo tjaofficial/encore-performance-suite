@@ -5,6 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/encore_people_manager.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_form_workspace.css' %}">
 {% endblock %}
 
 {% block topbar_title %}{{ page_title }}{% endblock %}
@@ -38,47 +39,43 @@
         </div>
     {% endif %}
 
-    <section class="people-card">
-        <div class="form-grid">
-            {% for field in form %}
-                <div class="field-group {% if field.name == 'medical_conditions' or field.name == 'allergies' or field.name == 'comments' %}full{% endif %}">
-                    {% if field.field.widget.input_type == "checkbox" %}
-                        <label class="checkbox-line">
+    <div class="encore-form-workspace">
+        <main class="encore-form-content">
+        <section class="people-card">
+            <div class="form-grid">
+                {% for field in form %}
+                    <div class="field-group {% if field.name == 'medical_conditions' or field.name == 'allergies' or field.name == 'comments' %}full{% endif %}">
+                        {% if field.field.widget.input_type == "checkbox" %}
+                            <label class="checkbox-line">
+                                {{ field }}
+                                <span>{{ field.label }}</span>
+                            </label>
+                        {% else %}
+                            {{ field.label_tag }}
                             {{ field }}
-                            <span>{{ field.label }}</span>
-                        </label>
-                    {% else %}
-                        {{ field.label_tag }}
-                        {{ field }}
-                    {% endif %}
+                        {% endif %}
+    
+                        {% if field.help_text %}
+                            <small>{{ field.help_text }}</small>
+                        {% endif %}
+    
+                        {% for error in field.errors %}
+                            <small class="field-error">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+        </main>
 
-                    {% if field.help_text %}
-                        <small>{{ field.help_text }}</small>
-                    {% endif %}
-
-                    {% for error in field.errors %}
-                        <small class="field-error">{{ error }}</small>
-                    {% endfor %}
-                </div>
-            {% endfor %}
-        </div>
-    </section>
-
-    <div class="form-actions">
-        <a
-            class="button secondary"
-            href="{% url 'students:student_list' studio.slug %}"
-        >
-            Cancel
-        </a>
-
-        <button class="button primary" type="submit">
-            {% if student %}
-                Save Changes
-            {% else %}
-                Create Student
-            {% endif %}
-        </button>
+        {% url 'students:student_list' studio.slug as form_cancel_url %}
+        {% if student %}
+            {% include "includes/form_action_sidebar.html" with action_kicker="Update Student" action_title="Save your changes" action_description="Review the student profile and save any updates. You can return to this profile at any time." submit_label="Save Changes" cancel_url=form_cancel_url tip_title="Keep profiles current." tip_text="Accurate family, health, waiver, and contact information keeps registration and staff records dependable." %}
+        {% else %}
+            {% include "includes/form_action_sidebar.html" with action_kicker="Create Student" action_title="Ready to add this student?" action_description="Complete the student profile, then create the record. You can update it later from the student dashboard." submit_label="Create Student" cancel_url=form_cancel_url tip_title="Keep profiles current." tip_text="Accurate family, health, waiver, and contact information keeps registration and staff records dependable." %}
+        {% endif %}
     </div>
+
+
 </form>
 {% endblock %}

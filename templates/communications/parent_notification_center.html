@@ -1,0 +1,32 @@
+{% extends "dashboard/parent_portal_base.html" %}
+{% load static %}
+{% block title %}Notifications | {{ studio.name }}{% endblock %}
+{% block parent_portal_heading %}Notifications{% endblock %}
+{% block parent_extra_css %}<link rel="stylesheet" href="{% static 'css/encore_parent_notifications.css' %}">{% endblock %}
+{% block parent_content %}
+<section class="parent-page-heading"><div><span class="parent-eyebrow">Notification Center</span><h2>Your Notifications</h2><p>Updates about attendance, make-up classes, tasks, and your family.</p></div></section>
+<section class="parent-page-card parent-notifications-page">
+  <div class="parent-notifications-toolbar">
+    <div class="parent-notifications-tabs">
+      <a class="{% if notification_filter == 'all' %}active{% endif %}" href="{% url 'communications:notification_center' studio.slug %}">All</a>
+      <a class="{% if notification_filter == 'unread' %}active{% endif %}" href="{% url 'communications:notification_center' studio.slug %}?filter=unread">Unread ({{ parent_unread_notification_count }})</a>
+    </div>
+    {% if parent_unread_notification_count %}<form method="post">{% csrf_token %}<input type="hidden" name="operation" value="mark_all_read"><button type="submit" class="parent-notifications-mark">Mark All as Read</button></form>{% endif %}
+  </div>
+  <div class="parent-notifications-list">
+  {% for notification in workspace_notifications %}
+    <div class="parent-notification-record {% if not notification.is_read %}unread{% endif %}">
+      <a class="parent-notification-record-link" href="{% url 'communications:notification_center' studio.slug %}?open={{ notification.pk }}">
+        <span class="parent-notification-record-icon">{% if notification.category == 'task' %}✓{% else %}♢{% endif %}</span>
+        <span class="parent-notification-record-body"><strong>{{ notification.title }}</strong><span>{{ notification.message }}</span><small>{{ notification.created_at|date:"M j, Y · g:i A" }}</small></span>
+        {% if not notification.is_read %}<span class="parent-notification-new">New</span>{% endif %}
+        <span>→</span>
+      </a>
+      {% if not notification.is_read %}<form method="post" class="parent-notification-mark-form">{% csrf_token %}<input type="hidden" name="operation" value="mark_read"><input type="hidden" name="notification_id" value="{{ notification.pk }}"><button type="submit">Mark read</button></form>{% endif %}
+    </div>
+  {% empty %}
+    <div class="parent-empty-state">{% if notification_filter == 'unread' %}You're all caught up — no unread notifications.{% else %}No notifications yet. New attendance, task, and make-up updates will appear here.{% endif %}</div>
+  {% endfor %}
+  </div>
+</section>
+{% endblock %}

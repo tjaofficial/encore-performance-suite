@@ -1,0 +1,32 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+{% block title %}Billing Reviews | Encore{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_billing.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_overdue_settings.css' %}">
+{% endblock %}
+{% block topbar_title %}Billing Reviews{% endblock %}
+{% block content %}
+<div class="settings-workspace">
+    {% include "includes/settings_nav.html" %}
+    <main class="settings-workspace-content billing-review-workspace">
+        <a class="back-link" href="{% url 'billing:tuition_plan_list' studio.slug %}">← Tuition &amp; Billing</a>
+        <div class="billing-review-intro"><span class="card-kicker">Accounts &amp; enrollments</span><h1>Billing Reviews</h1><p>Review withdrawal requests and overdue-account flags. Existing balances remain due after withdrawal. Attendance isn't modified automatically.</p></div>
+        {% if messages %}<div class="message-stack">{% for message in messages %}<div class="message-banner">{{ message }}</div>{% endfor %}</div>{% endif %}
+        <section class="billing-card billing-review-section"><div class="overdue-subheading"><h2>Pending withdrawal requests</h2><p>Approving a request drops the enrollment and updates future billing schedules.</p></div>
+            {% for r in withdrawals %}<article class="billing-review-item"><div><strong>{{ r.enrollment.student }} · {{ r.enrollment.class_instance.name }}</strong><p>{{ r.account.family }}{% if r.reason %} — {{ r.reason }}{% endif %}</p></div><form method="post" action="{% url 'billing:studio_withdrawal_decision' studio.slug r.pk %}" class="billing-review-actions">{% csrf_token %}<button class="button primary" name="decision" value="approve" type="submit">Approve withdrawal</button><button class="button secondary" name="decision" value="reject" type="submit">Reject</button></form></article>{% empty %}<p class="billing-review-empty">No pending withdrawal requests.</p>{% endfor %}
+        </section>
+        <section class="billing-card billing-review-section">
+          <div class="overdue-subheading"><h2>Overdue account reviews</h2>
+          <p>Accounts are flagged after their billing policy's grace period. Only an administrator can remove a student from a class. Historical charges, payments, and attendance are retained.</p></div>
+          {% for h in holds %}
+          <article class="billing-review-item">
+            <div><strong>{{ h.account.family }}</strong><p>{{ h.get_status_display }} · Outstanding ${{ h.account.balance|floatformat:2 }}</p></div>
+            <a class="button primary" href="{% url 'billing:studio_overdue_account' studio.slug h.account_id %}">Open family review →</a>
+          </article>
+          {% empty %}<p class="billing-review-empty">No accounts flagged for review.</p>{% endfor %}
+        </section>
+    </main>
+</div>
+{% endblock %}

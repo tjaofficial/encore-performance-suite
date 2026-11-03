@@ -14,9 +14,9 @@
     <div>
         <a
             class="back-link"
-            href="{% url 'performance:plan_list' studio.slug %}"
+            href="{% if form.instance.pk %}{% url 'performance:plan_detail' studio.slug form.instance.pk %}{% else %}{% url 'performance:plan_list' studio.slug %}{% endif %}"
         >
-            ← Back to Performance Tools
+            ← {% if form.instance.pk %}Back to Dance{% else %}Back to Dances{% endif %}
         </a>
 
         <p class="eyebrow">Choreography</p>
@@ -30,6 +30,7 @@
 
 <form method="post" class="performance-form">
     {% csrf_token %}
+    {% if locked_class %}<input type="hidden" name="class_context" value="{{ locked_class.pk }}"><div class="dance-locked-context"><strong>Class selected:</strong> {{ locked_class.name }} <span>· This dance will belong to this class.</span></div>{% endif %}
 
     {% if form.non_field_errors %}
         <div class="form-errors">
@@ -66,7 +67,7 @@
     <div class="form-actions">
         <a
             class="button secondary"
-            href="{% url 'performance:plan_list' studio.slug %}"
+            href="{% if form.instance.pk %}{% url 'performance:plan_detail' studio.slug form.instance.pk %}{% else %}{% url 'performance:plan_list' studio.slug %}{% endif %}"
         >
             Cancel
         </a>
@@ -75,7 +76,7 @@
             class="button primary"
             type="submit"
         >
-            Save Performance Plan
+            Save Dance Details
         </button>
     </div>
 </form>

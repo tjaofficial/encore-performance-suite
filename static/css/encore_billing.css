@@ -418,3 +418,35 @@ textarea.encore-input {
 .settings-workspace-content .billing-heading {
     margin-top: 0;
 }
+
+
+/* Studio-Wide Tuition Settings */
+.tuition-settings-form{margin-bottom:24px}.tuition-settings-card{display:grid;gap:20px}.tuition-mode-grid,.tuition-method-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.tuition-choice-card{display:flex;align-items:flex-start;gap:10px;padding:14px;border:1px solid var(--encore-border);border-radius:12px;background:#fff;cursor:pointer}.tuition-choice-card.compact{padding:11px}.tuition-choice-card input{margin-top:2px;accent-color:var(--encore-primary)}.tuition-choice-card>span{display:grid;gap:3px}.tuition-choice-card strong{font-size:.78rem}.tuition-choice-card small{color:var(--encore-muted);font-size:.68rem;line-height:1.45}.studio-wide-settings{display:none;gap:14px}.studio-wide-settings.visible{display:grid}.tuition-subsection{padding:16px;border:1px solid var(--encore-border);border-radius:14px;background:var(--encore-background)}.tuition-subsection-heading{margin-bottom:12px}.tuition-subsection-heading.with-action{display:flex;align-items:flex-start;justify-content:space-between;gap:15px}.tuition-subsection-heading>span,.tuition-subsection-heading div>span{font-size:.7rem;font-weight:900;text-transform:uppercase;color:var(--encore-primary)}.tuition-subsection-heading p{margin:4px 0 0;color:var(--encore-muted);font-size:.7rem}.tuition-tier-list{display:grid;gap:9px}.tuition-tier-row{display:grid;grid-template-columns:minmax(110px,.35fr) minmax(180px,.55fr) auto;gap:10px;align-items:end;padding:11px;border:1px solid var(--encore-border);border-radius:11px;background:#fff}.tier-delete{display:flex;align-items:center;gap:5px;min-height:43px;color:#a13f3f;font-size:.7rem;font-weight:800}.tier-delete input{accent-color:#a13f3f}.billing-policy-section-heading{margin:28px 0 14px}.billing-policy-section-heading h2{margin:4px 0;font-size:1.25rem}.billing-policy-section-heading p{margin:0;color:var(--encore-muted);font-size:.78rem}.money-input{position:relative;display:flex;align-items:center}.money-input>span{position:absolute;left:11px;z-index:1;color:var(--encore-muted)}.money-input input{padding-left:25px}@media(max-width:760px){.tuition-mode-grid,.tuition-method-grid,.tuition-tier-row{grid-template-columns:1fr}.tuition-subsection-heading.with-action{flex-direction:column}}
+
+
+.tuition-validation-banner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 12px;
+    padding: 12px 14px;
+    border: 1px solid rgba(177, 74, 74, 0.22);
+    border-radius: 12px;
+    background: rgba(177, 74, 74, 0.08);
+    color: #a13f3f;
+}
+
+.tuition-validation-banner strong {
+    font-size: 0.8rem;
+}
+
+.tuition-validation-banner span {
+    font-size: 0.74rem;
+}
+
+.field-group:has(.field-error) .encore-input,
+.field-group:has(.field-error) select,
+.field-group:has(.field-error) input {
+    border-color: rgba(177, 74, 74, 0.62);
+    box-shadow: 0 0 0 3px rgba(177, 74, 74, 0.08);
+}

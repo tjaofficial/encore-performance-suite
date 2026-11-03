@@ -1,1 +1,24 @@
-<article class="admin-dashboard-card"><div class="card-heading"><div><span class="card-kicker">Capacity</span><h2>Classes Filling Up</h2></div><a href="/admin/classes/class/">View Classes</a></div>{% if classes_near_capacity %}<div class="capacity-list admin-card-scroll">{% for item in classes_near_capacity %}<div class="capacity-item"><div class="capacity-info"><strong>{{ item.class.class_id }} · {{ item.class.name }}</strong><span>{{ item.class.active_enrollment_count }} / {{ item.class.capacity }} enrolled</span></div><div class="capacity-status"><div class="progress-track"><div class="progress-fill" style="width: {{ item.percent_full }}%;"></div></div><span>{{ item.remaining }} spot{{ item.remaining|pluralize }} left</span></div></div>{% endfor %}</div>{% else %}<div class="empty-state">No classes are above 80% capacity right now.</div>{% endif %}</article>
+<article class="admin-dashboard-card admin-standard-card card-tone-blue">
+    <div class="card-heading">
+        <h2>Classes Filling Up</h2>
+        <a href="/admin/classes/class/">View Classes</a>
+    </div>
+    {% if classes_near_capacity %}
+        <div class="capacity-list admin-card-scroll">
+            {% for item in classes_near_capacity %}
+                <div class="capacity-item">
+                    <div class="capacity-info">
+                        <strong>{{ item.class.class_id }} · {{ item.class.name }}</strong>
+                        <span>{{ item.class.active_enrollment_count }} / {{ item.class.capacity }} enrolled</span>
+                    </div>
+                    <div class="capacity-status">
+                        <div class="progress-track"><div class="progress-fill" style="width: {{ item.percent_full }}%;"></div></div>
+                        <span>{{ item.remaining }} spot{{ item.remaining|pluralize }} left · {{ item.percent_full }}% full</span>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state"><span class="empty-state-icon">✓</span><strong>Capacity looks healthy</strong><span>No classes are above 80% capacity right now.</span></div>
+    {% endif %}
+</article>

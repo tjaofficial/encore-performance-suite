@@ -1,0 +1,198 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ task.title }} | Tasks | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_tasks.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Task Detail{% endblock %}
+
+{% block content %}
+<section class="task-detail-heading">
+    <div>
+        <a
+            class="task-back-link"
+            href="{% url 'tasks:task_list' studio.slug %}"
+        >
+            ← Back to Tasks
+        </a>
+        <p class="eyebrow">Task Detail</p>
+        <h1>{{ task.title }}</h1>
+        <p>
+            Review the assignment, related class or student, due date,
+            and completion status.
+        </p>
+    </div>
+
+    <div class="task-detail-heading-actions">
+        {% if can_manage %}
+            <a
+                class="button secondary"
+                href="{% url 'tasks:task_edit' studio.slug task.id %}?next={{ request.get_full_path|urlencode }}"
+            >
+                Edit Task
+            </a>
+        {% endif %}
+
+        {% if can_complete %}
+            <form
+                method="post"
+                action="{% url 'tasks:task_toggle_complete' studio.slug task.id %}"
+            >
+                {% csrf_token %}
+                <input
+                    type="hidden"
+                    name="next"
+                    value="{{ request.get_full_path }}"
+                >
+                <button class="button primary" type="submit">
+                    {% if assignment.completed_at %}
+                        Reopen Task
+                    {% else %}
+                        Mark Complete
+                    {% endif %}
+                </button>
+            </form>
+        {% endif %}
+    </div>
+</section>
+
+<div class="task-detail-grid">
+    <section class="task-detail-card task-detail-main">
+        <div class="task-detail-card-heading">
+            <div>
+                <span>Assignment</span>
+                <h2>Task Information</h2>
+            </div>
+
+            <span class="task-priority priority-{{ task.priority }}">
+                {{ task.get_priority_display }}
+            </span>
+        </div>
+
+        {% if task.description %}
+            <div class="task-detail-description">
+                {{ display_description|linebreaksbr }}
+            </div>
+        {% else %}
+            <div class="task-detail-empty-description">
+                No description was added to this task.
+            </div>
+        {% endif %}
+
+        <dl class="task-detail-metadata">
+            <div>
+                <dt>Status</dt>
+                <dd>
+                    {% if assignment and assignment.completed_at %}
+                        Completed
+                    {% elif task.approval_status == "pending" %}
+                        Pending Approval
+                    {% else %}
+                        Open
+                    {% endif %}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Due Date</dt>
+                <dd>
+                    {% if task.due_date %}
+                        {{ task.due_date|date:"F j, Y" }}
+                    {% else %}
+                        No due date
+                    {% endif %}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Created By</dt>
+                <dd>
+                    {% if task.created_by %}
+                        {{ task.created_by.get_full_name|default:task.created_by.email }}
+                    {% else %}
+                        Encore Automation
+                    {% endif %}
+                </dd>
+            </div>
+
+            <div>
+                <dt>Created</dt>
+                <dd>{{ task.created_at|date:"M j, Y g:i A" }}</dd>
+            </div>
+
+            {% if task.class_instance %}
+                <div>
+                    <dt>Related Class</dt>
+                    <dd>{{ task.class_instance.name }}</dd>
+                </div>
+            {% endif %}
+
+            {% if task.student %}
+                <div>
+                    <dt>Related Student</dt>
+                    <dd>{{ task.student }}</dd>
+                </div>
+            {% endif %}
+
+            {% if task.source_template %}
+                <div>
+                    <dt>Created From</dt>
+                    <dd>{{ task.source_template.name }}</dd>
+                </div>
+            {% endif %}
+        </dl>
+    </section>
+
+    <section class="task-detail-card">
+        <div class="task-detail-card-heading">
+            <div>
+                <span>Progress</span>
+                <h2>Assignments</h2>
+            </div>
+
+            <strong>
+                {{ completed_count }}/{{ assignment_count }}
+            </strong>
+        </div>
+
+        <div class="task-detail-assignment-list">
+            {% for item in assignments %}
+                <div class="task-detail-assignment-row">
+                    <span
+                        class="task-detail-assignment-state{% if item.completed_at %} complete{% endif %}"
+                    >
+                        {% if item.completed_at %}✓{% else %}○{% endif %}
+                    </span>
+
+                    <div>
+                        <strong>
+                            {% if item.user %}
+                                {{ item.user.get_full_name|default:item.user.email }}
+                            {% elif item.student %}
+                                {{ item.student }}
+                            {% else %}
+                                Assignment
+                            {% endif %}
+                        </strong>
+
+                        <small>
+                            {% if item.completed_at %}
+                                Completed {{ item.completed_at|date:"M j, Y g:i A" }}
+                            {% else %}
+                                Open
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="task-empty-state compact">
+                    No assignments are attached to this task.
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}

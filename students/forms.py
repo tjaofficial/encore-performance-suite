@@ -59,3 +59,40 @@ class EncoreStudentForm(forms.ModelForm):
                 widget.attrs["class"] = (
                     f"{existing} encore-input".strip()
                 )
+
+
+class ParentStudentProfileForm(forms.ModelForm):
+    class Meta:
+        model = Student
+        fields = [
+            "first_name",
+            "last_name",
+            "birthday",
+            "gender",
+            "medical_conditions",
+            "allergies",
+            "comments",
+            "emergency_contact_name",
+            "emergency_contact_phone",
+            "emergency_contact_relationship",
+        ]
+        widgets = {
+            "birthday": forms.DateInput(
+                attrs={"type": "date"}
+            ),
+            "medical_conditions": forms.Textarea(
+                attrs={"rows": 3}
+            ),
+            "allergies": forms.Textarea(
+                attrs={"rows": 3}
+            ),
+            "comments": forms.Textarea(
+                attrs={"rows": 3}
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        for field in self.fields.values():
+            field.widget.attrs["class"] = "parent-input"

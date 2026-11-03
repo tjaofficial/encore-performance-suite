@@ -45,3 +45,26 @@ class AnnouncementReadAdmin(admin.ModelAdmin):
     list_filter = (
         "announcement__studio",
     )
+
+
+from .models import OutboundEmailLog, OutboundEmailEvent
+
+@admin.register(OutboundEmailLog)
+class OutboundEmailLogAdmin(admin.ModelAdmin):
+    list_display = ("created_at", "studio", "subject", "status", "provider_message_id")
+    list_filter = ("studio", "status", "category")
+    search_fields = ("subject", "provider_message_id", "sender")
+    readonly_fields = [field.name for field in OutboundEmailLog._meta.fields]
+    def has_add_permission(self, request):
+        return False
+    def has_change_permission(self, request, obj=None):
+        return False
+
+@admin.register(OutboundEmailEvent)
+class OutboundEmailEventAdmin(admin.ModelAdmin):
+    list_display = ("occurred_at", "email", "event_type")
+    readonly_fields = [field.name for field in OutboundEmailEvent._meta.fields]
+    def has_add_permission(self, request):
+        return False
+    def has_change_permission(self, request, obj=None):
+        return False

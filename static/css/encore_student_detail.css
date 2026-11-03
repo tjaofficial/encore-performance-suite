@@ -1,0 +1,44 @@
+/* Admin student detail only. Does not change parent/student portal styles. */
+.encore-student-detail .student-accent-card{position:relative;isolation:isolate;overflow:hidden;border:1px solid #cbd6e8;border-radius:20px;background:#fff;box-shadow:0 6px 22px rgba(24,44,91,.035)}
+.encore-student-detail .student-accent-card::before{content:"";position:absolute;width:106px;height:106px;right:-31px;top:-37px;border-radius:50%;background:var(--student-accent-bg);z-index:-1;pointer-events:none}
+.encore-student-detail .student-accent-blue{--student-accent-bg:rgba(53,107,255,.095)}
+.encore-student-detail .student-accent-green{--student-accent-bg:rgba(21,166,131,.10)}
+.encore-student-detail .student-accent-purple{--student-accent-bg:rgba(114,83,229,.09)}
+.encore-student-detail .student-accent-orange{--student-accent-bg:rgba(240,150,73,.10)}
+.encore-student-detail .card-heading{position:relative;z-index:1}
+.encore-student-detail .student-card-orb{display:grid;place-items:center;width:36px;height:36px;border-radius:13px;background:#e1f5ef;color:#138c70;font-weight:800}
+.student-attendance-layout{display:grid;grid-template-columns:minmax(132px,.38fr) minmax(0,1fr);align-items:start;gap:18px}
+.student-attendance-summary{display:flex;flex-direction:column;align-items:center;gap:8px;padding:8px 0}
+.student-attendance-summary small{color:#64738c;font-size:11px;text-align:center}
+.student-attendance-ring{width:130px;height:130px;display:grid;place-items:center;border-radius:50%;background:conic-gradient(#12a583 calc(var(--student-attendance-pct) * 1%),#e8eef4 0);}
+.student-attendance-ring-inner{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:3px;width:106px;height:106px;border-radius:50%;background:#fff}
+.student-attendance-ring-inner strong{font-size:29px;line-height:1.1;color:#17233b}
+.student-attendance-ring-inner span{font-size:9px;letter-spacing:.11em;font-weight:800;color:#61718c}
+.student-attendance-recent{min-width:0;max-height:340px;overflow-y:auto;scrollbar-width:thin;padding-right:4px}
+.student-attendance-item{display:flex;gap:10px;align-items:center;justify-content:space-between;min-height:44px;padding:6px 0;border-bottom:1px solid #e2e8f2}
+.student-attendance-item:last-child{border-bottom:0}
+.student-attendance-item-info{min-width:0;display:flex;flex-direction:column;gap:2px}
+.student-attendance-item-info strong{font-size:12px;color:#1c2a43;line-height:1.3;overflow-wrap:anywhere}
+.student-attendance-item-info span{font-size:11px;color:#728099}
+.student-attendance-item .status-pill{flex-shrink:0;font-size:10px;padding:4px 8px}
+.student-enrollment-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 14px;border-bottom:1px solid #d7e0ef}
+.student-enrollment-tab{cursor:pointer;background:transparent;color:#5d6c86;padding:10px 15px;border:0;border-bottom:3px solid transparent;font:inherit;font-weight:750;font-size:13px}
+.student-enrollment-tab.is-active{color:#1d58e8;border-bottom-color:#2468f2}
+.student-enrollment-tab span{display:inline-block;margin-left:5px;background:#e9eef9;border-radius:9px;padding:1px 7px;font-size:11px}
+.student-enrollment-tab:focus-visible{outline:2px solid #2468f2;outline-offset:-2px}
+.student-enrollment-panel[hidden]{display:none!important}
+.student-enrollment-table td{vertical-align:middle}
+@media(max-width:950px){.student-attendance-layout{grid-template-columns:1fr}.student-attendance-recent{max-height:280px}}
+@media(max-width:600px){.student-attendance-layout{gap:8px}.student-attendance-ring{width:112px;height:112px}.student-attendance-ring-inner{width:92px;height:92px}.student-enrollment-tab{padding:9px 10px;font-size:12px}}
+
+/* Private general notes on administrator student profile. */
+.student-private-notes{background:#fff;border:1px solid #b9c9e6;border-radius:17px;box-shadow:0 7px 22px rgba(16,40,81,.055);padding:20px;margin:0 0 19px}
+.student-private-notes-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:12px}
+.student-private-notes-heading h2{font-size:20px;margin:5px 0 4px;color:#16223c}
+.student-private-notes-heading p,.student-private-notes-meta{font-size:12px;color:#61718c;margin:0}
+.student-private-notes-status{font-size:12px;font-weight:800;color:#157d69;white-space:nowrap}
+.student-private-notes-status.is-error{color:#bc303c;white-space:normal}
+.student-private-notes textarea{box-sizing:border-box;width:100%;min-height:104px;resize:vertical;padding:13px 15px;border:1px solid #bfcde5;border-radius:12px;font:inherit;color:#16223c;background:#fbfcff;outline:none}
+.student-private-notes textarea:focus{border-color:#336cf6;box-shadow:0 0 0 3px rgba(51,108,246,.12);background:#fff}
+.student-private-notes-meta{display:block;margin-top:7px}
+@media(max-width:600px){.student-private-notes{padding:14px}.student-private-notes-heading{flex-direction:column;gap:5px}}

@@ -14,6 +14,7 @@ from django.utils import timezone
 from classes.models import Class
 from performance.models import ChoreographyPlan
 from students.models import Student
+from dashboard.parent_portal import parent_portal_context
 from studios.models import (
     Studio,
     StudioMembership,
@@ -22,15 +23,22 @@ from studios.models import (
 from .forms import (
     CostumeForm,
     CostumeLinkFormSet,
+    VendorForm,
+    VendorSizeChartForm,
+    VendorSizeEntryFormSet,
 )
 from .models import (
     Costume,
     CostumeImage,
     StudentCostumeAssignment,
     StudentMeasurementSet,
+    Vendor,
+    VendorSizeChart,
 )
 from .services import (
     can_manage_class,
+    cancel_measurement_draft,
+    chart_size_for_field,
     create_costume_announcement,
     create_costume_student_task,
     current_completed_measurement,
@@ -38,7 +46,11 @@ from .services import (
     family_student_ids,
     get_or_create_measurement_draft,
     measurement_state,
+    measurement_from_display,
+    measurement_to_display,
+    recommend_size_for_chart,
     start_new_measurement_set,
+    vendor_measurement_conversions,
     sync_costume_assignments,
     workspace_role,
 )
@@ -56,6 +68,16 @@ MEASUREMENT_FIELDS = {
     "shoe_size": "text",
     "other_size_info": "text",
     "notes": "text",
+}
+
+MEASUREMENT_LABELS = {
+    "bust": "Chest",
+    "waist": "Waist",
+    "hips": "Hips",
+    "girth": "Girth",
+    "inseam": "Inseam",
+    "outseam": "Outseam",
+    "height": "Height",
 }
 
 
@@ -138,36 +160,63 @@ def measurement_roster(
         )
     )
 
+    settings_obj = getattr(studio, "settings", None)
+    unit = getattr(settings_obj, "measurement_unit", "in")
+    unit_label = "cm" if unit == "cm" else "in."
+
+    vendors = Vendor.objects.filter(studio=studio, is_active=True).order_by("name")
+    selected_vendor = None
+    vendor_id = str(request.GET.get("vendor", "") or "").strip()
+    if vendor_id.isdigit():
+        selected_vendor = vendors.filter(pk=int(vendor_id)).first()
+
     rows = []
+    numeric_fields = ("bust", "waist", "hips", "girth", "inseam", "outseam", "height")
+    text_fields = ("clothing_size", "shoe_size", "other_size_info", "notes")
 
     for student in active_students:
-        draft = current_draft_measurement(
-            student
-        )
+        draft = current_draft_measurement(student)
+        current = current_completed_measurement(student)
+        state = measurement_state(student)
+        edit_set = draft if draft is not None else current
 
-        current = current_completed_measurement(
-            student
-        )
+        edit_values = {}
+        for field_name in numeric_fields:
+            value = getattr(edit_set, field_name, None) if edit_set else None
+            display = measurement_to_display(value, unit)
+            edit_values[field_name] = "" if display is None else f"{display:g}"
+        for field_name in text_fields:
+            edit_values[field_name] = getattr(edit_set, field_name, "") if edit_set else ""
 
-        state = measurement_state(
-            student
-        )
+        current_values = {}
+        for field_name in numeric_fields:
+            value = getattr(current, field_name, None) if current else None
+            display = measurement_to_display(value, unit)
+            current_values[field_name] = None if display is None else f"{display:g}"
+        for field_name in ("clothing_size", "shoe_size"):
+            current_values[field_name] = getattr(current, field_name, "") if current else ""
 
-        edit_set = (
-            draft
-            if draft is not None
-            else current
-        )
+        conversions = []
+        conversion_source = draft or current
+        if selected_vendor and conversion_source:
+            for item in vendor_measurement_conversions(selected_vendor, conversion_source):
+                display = measurement_to_display(item["value"], unit)
+                conversions.append({
+                    "field": item["field"],
+                    "label": MEASUREMENT_LABELS.get(
+                        item["field"],
+                        item["field"].title(),
+                    ),
+                    "value": f"{display:g}" if display is not None else "",
+                    "charts": item["charts"],
+                })
 
-        rows.append(
-            {
-                "student": student,
-                "draft": draft,
-                "current": current,
-                "edit_set": edit_set,
-                "state": state,
-            }
-        )
+        rows.append({
+            "student": student, "draft": draft, "current": current,
+            "edit_set": edit_set, "edit_values": edit_values,
+            "current_values": current_values, "state": state,
+            "conversions": conversions,
+        })
 
     counts = {
         "total": len(rows),
@@ -205,6 +254,10 @@ def measurement_roster(
             "measurement_fields": (
                 MEASUREMENT_FIELDS.keys()
             ),
+            "vendors": vendors,
+            "selected_vendor": selected_vendor,
+            "measurement_unit": unit,
+            "measurement_unit_label": unit_label,
         },
     )
 
@@ -274,6 +327,9 @@ def measurement_autosave(
         field_name
     )
 
+    settings_obj = getattr(studio, "settings", None)
+    unit = getattr(settings_obj, "measurement_unit", "in")
+
     if field_type is None:
         return JsonResponse(
             {
@@ -296,9 +352,8 @@ def measurement_autosave(
             value = None
         else:
             try:
-                value = Decimal(
-                    raw_value
-                )
+                display_value = Decimal(raw_value)
+                value = Decimal(str(measurement_from_display(float(display_value), unit)))
             except InvalidOperation:
                 return JsonResponse(
                     {
@@ -328,15 +383,29 @@ def measurement_autosave(
         ]
     )
 
-    return JsonResponse(
-        {
-            "ok": True,
-            "measurement_set_id": (
-                measurement_set.pk
-            ),
-            "saved_at": timezone.now().isoformat(),
-        }
-    )
+    vendor = None
+    vendor_id = str(request.POST.get("vendor_id", "") or "").strip()
+    if vendor_id.isdigit():
+        vendor = Vendor.objects.filter(pk=int(vendor_id), studio=studio, is_active=True).first()
+    conversions = []
+    if vendor:
+        for item in vendor_measurement_conversions(vendor, measurement_set):
+            display = measurement_to_display(item["value"], unit)
+            conversions.append({
+                "field": item["field"],
+                "label": MEASUREMENT_LABELS.get(
+                    item["field"],
+                    item["field"].title(),
+                ),
+                "value": f"{display:g}" if display is not None else "",
+                "charts": item["charts"],
+            })
+    return JsonResponse({
+        "ok": True,
+        "measurement_set_id": measurement_set.pk,
+        "saved_at": timezone.now().isoformat(),
+        "conversions": conversions,
+    })
 
 
 @login_required
@@ -419,12 +488,50 @@ def measurement_complete(
         status=StudentCostumeAssignment.Status.MEASUREMENTS_READY,
     )
 
+    unit = getattr(
+        getattr(studio, "settings", None),
+        "measurement_unit",
+        "in",
+    )
+
+    values = {}
+    for field_name in MEASUREMENT_FIELDS:
+        value = getattr(measurement_set, field_name)
+        if MEASUREMENT_FIELDS[field_name] == "decimal":
+            value = measurement_to_display(value, unit)
+        values[field_name] = "" if value is None else str(value)
+
+    vendor = None
+    vendor_id = str(request.POST.get("vendor_id", "") or "").strip()
+    if vendor_id.isdigit():
+        vendor = Vendor.objects.filter(
+            pk=int(vendor_id),
+            studio=studio,
+            is_active=True,
+        ).first()
+
+    conversions = []
+    if vendor:
+        for item in vendor_measurement_conversions(vendor, measurement_set):
+            display = measurement_to_display(item["value"], unit)
+            conversions.append(
+                {
+                    "field": item["field"],
+                    "label": MEASUREMENT_LABELS.get(
+                        item["field"],
+                        item["field"].title(),
+                    ),
+                    "value": f"{display:g}" if display is not None else "",
+                    "charts": item["charts"],
+                }
+            )
+
     return JsonResponse(
         {
             "ok": True,
-            "completed_at": (
-                measurement_set.measured_at.isoformat()
-            ),
+            "completed_at": measurement_set.measured_at.isoformat(),
+            "values": values,
+            "conversions": conversions,
         }
     )
 
@@ -480,14 +587,42 @@ def measurement_start_new(
         )
     )
 
-    return JsonResponse(
-        {
-            "ok": True,
-            "measurement_set_id": (
-                measurement_set.pk
-            ),
-        }
-    )
+    unit = getattr(getattr(studio, "settings", None), "measurement_unit", "in")
+    values = {}
+    for field_name in MEASUREMENT_FIELDS:
+        value = getattr(measurement_set, field_name)
+        if MEASUREMENT_FIELDS[field_name] == "decimal":
+            value = measurement_to_display(value, unit)
+        values[field_name] = "" if value is None else str(value)
+    return JsonResponse({"ok": True, "measurement_set_id": measurement_set.pk, "values": values})
+
+
+@login_required
+def measurement_cancel(
+    request, studio_slug, class_id, student_id,
+):
+    if request.method != "POST":
+        return JsonResponse({"ok": False}, status=405)
+    studio = get_object_or_404(Studio, slug=studio_slug, is_active=True)
+    class_instance = _class_for_staff(request, studio, class_id)
+    if class_instance is None:
+        return JsonResponse({"ok": False, "error": "Access denied."}, status=403)
+    student = get_object_or_404(Student, pk=student_id, studio=studio, is_active=True)
+    current = cancel_measurement_draft(student, studio)
+    unit = getattr(getattr(studio, "settings", None), "measurement_unit", "in")
+    values = {}
+    if current:
+        for field_name in MEASUREMENT_FIELDS:
+            value = getattr(current, field_name)
+            if MEASUREMENT_FIELDS[field_name] == "decimal":
+                value = measurement_to_display(value, unit)
+            values[field_name] = "" if value is None else str(value)
+    return JsonResponse({
+        "ok": True,
+        "has_current": bool(current),
+        "values": values,
+        "state": measurement_state(student),
+    })
 
 
 @login_required
@@ -697,11 +832,26 @@ def costume_create(
         studio,
     )
 
+    requested_dance_id = str(
+        request.GET.get("dance", "") or ""
+    ).strip()
+
+    initial = {}
+    if requested_dance_id.isdigit():
+        requested_dance = ChoreographyPlan.objects.filter(
+            pk=int(requested_dance_id),
+            studio=studio,
+            class_instance=class_instance,
+        ).first()
+        if requested_dance is not None:
+            initial["dance"] = requested_dance
+
     form = CostumeForm(
         request.POST or None,
         request.FILES or None,
         studio=studio,
         class_instance=class_instance,
+        initial=initial,
     )
 
     costume = Costume(
@@ -790,8 +940,33 @@ def costume_create(
             "role": role,
             "form": form,
             "link_formset": link_formset,
+            "vendors": Vendor.objects.filter(studio=studio, is_active=True).order_by("name"),
         },
     )
+
+
+@login_required
+def costume_edit(request, studio_slug, class_id, costume_id):
+    studio = get_object_or_404(Studio, slug=studio_slug, is_active=True)
+    class_instance = _class_for_staff(request, studio, class_id)
+    if class_instance is None:
+        return _access_denied(request, studio)
+    costume = get_object_or_404(Costume, pk=costume_id, studio=studio, dance__class_instance=class_instance)
+    role = workspace_role(request, studio)
+    form = CostumeForm(request.POST or None, request.FILES or None, instance=costume, studio=studio, class_instance=class_instance)
+    link_formset = CostumeLinkFormSet(request.POST or None, instance=costume, prefix="links")
+    if request.method == "POST" and form.is_valid() and link_formset.is_valid():
+        costume = form.save()
+        link_formset.save()
+        _save_uploaded_images(request, costume)
+        sync_costume_assignments(costume)
+        messages.success(request, f"{costume.name} was updated.")
+        return redirect("costumes:costume_detail", studio_slug=studio.slug, class_id=class_instance.pk, costume_id=costume.pk)
+    return render(request, "costumes/costume_form.html", {
+        "studio": studio, "class_instance": class_instance, "role": role,
+        "form": form, "link_formset": link_formset, "costume": costume, "is_edit": True,
+        "vendors": Vendor.objects.filter(studio=studio, is_active=True).order_by("name"),
+    })
 
 
 @login_required
@@ -822,7 +997,7 @@ def costume_detail(
     costume = get_object_or_404(
         Costume.objects
         .select_related(
-            "dance",
+            "dance", "vendor", "vendor_size_chart",
         )
         .prefetch_related(
             "images",
@@ -851,9 +1026,12 @@ def costume_detail(
     )
 
     total = assignments.count()
-    ready = assignments.filter(
-        status=StudentCostumeAssignment.Status.READY,
-    ).count()
+    ready = assignments.filter(status=StudentCostumeAssignment.Status.READY).count()
+    assignment_rows = []
+    for assignment in assignments:
+        measurement_set = assignment.measurement_set_used or current_completed_measurement(assignment.student)
+        recommended = recommend_size_for_chart(costume.vendor_size_chart, measurement_set)
+        assignment_rows.append({"assignment": assignment, "recommended_size": recommended})
 
     return render(
         request,
@@ -867,6 +1045,7 @@ def costume_detail(
             ),
             "costume": costume,
             "assignments": assignments,
+            "assignment_rows": assignment_rows,
             "assignment_status_choices": (
                 StudentCostumeAssignment.Status.choices
             ),
@@ -1027,6 +1206,14 @@ def my_costumes(
             studio,
         )
 
+    selected_student_id = str(
+        request.GET.get("student", "") or ""
+    ).strip()
+
+    selected_class_id = str(
+        request.GET.get("class", "") or ""
+    ).strip()
+
     assignments = (
         StudentCostumeAssignment.objects
         .filter(
@@ -1039,6 +1226,9 @@ def my_costumes(
             "costume",
             "costume__dance",
             "costume__dance__class_instance",
+            "costume__vendor",
+            "costume__vendor_size_chart",
+            "measurement_set_used",
         )
         .prefetch_related(
             "costume__images",
@@ -1050,12 +1240,225 @@ def my_costumes(
         )
     )
 
+    if selected_student_id.isdigit():
+        assignments = assignments.filter(
+            student_id=int(selected_student_id)
+        )
+
+    if selected_class_id.isdigit():
+        assignments = assignments.filter(
+            costume__dance__class_instance_id=int(
+                selected_class_id
+            )
+        )
+
+    assignment_rows = []
+    for assignment in assignments:
+        measurement_set = (
+            assignment.measurement_set_used
+            or current_completed_measurement(assignment.student)
+        )
+        recommended = recommend_size_for_chart(
+            assignment.costume.vendor_size_chart,
+            measurement_set,
+        )
+        assignment_rows.append({
+            "assignment": assignment,
+            "recommended_size": recommended,
+            "display_size": assignment.costume_size or recommended or "",
+        })
+
+    context = {
+        "studio": studio,
+        "role": role,
+        "assignments": assignments,
+        "assignment_rows": assignment_rows,
+        "selected_class_id": selected_class_id,
+    }
+
+    template_name = "costumes/my_costumes.html"
+
+    if role == StudioMembership.Role.FAMILY:
+        selected_student = None
+        if selected_student_id.isdigit():
+            selected_student = Student.objects.filter(
+                pk=int(selected_student_id),
+                studio=studio,
+                pk__in=student_ids,
+                is_active=True,
+            ).first()
+
+        context.update(
+            parent_portal_context(
+                request,
+                studio,
+                selected_student=selected_student,
+                section="costumes",
+            )
+        )
+        template_name = "costumes/parent_costumes.html"
+
     return render(
         request,
-        "costumes/my_costumes.html",
-        {
-            "studio": studio,
-            "role": role,
-            "assignments": assignments,
-        },
+        template_name,
+        context,
+    )
+
+
+
+def _admin_role(request, studio):
+    role = workspace_role(request, studio)
+    return role if role == StudioMembership.Role.ADMINISTRATOR else None
+
+
+@login_required
+def vendor_list(request, studio_slug):
+    studio = get_object_or_404(Studio, slug=studio_slug, is_active=True)
+    if _admin_role(request, studio) is None:
+        return _access_denied(request, studio)
+    vendors = Vendor.objects.filter(studio=studio).prefetch_related("size_charts").order_by("name")
+    return render(request, "costumes/vendor_list.html", {"studio": studio, "role": "administrator", "vendors": vendors, "settings_section": "vendors"})
+
+
+@login_required
+def vendor_create(request, studio_slug):
+    studio = get_object_or_404(Studio, slug=studio_slug, is_active=True)
+    if _admin_role(request, studio) is None:
+        return _access_denied(request, studio)
+    form = VendorForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        vendor = form.save(commit=False); vendor.studio = studio; vendor.save()
+        messages.success(request, "Vendor created.")
+        return redirect("costumes:vendor_detail", studio_slug=studio.slug, vendor_id=vendor.pk)
+    return render(request, "costumes/vendor_form.html", {"studio": studio, "role": "administrator", "form": form, "page_title": "Add Vendor", "settings_section": "vendors"})
+
+
+@login_required
+def vendor_edit(request, studio_slug, vendor_id):
+    studio = get_object_or_404(Studio, slug=studio_slug, is_active=True)
+    if _admin_role(request, studio) is None:
+        return _access_denied(request, studio)
+    vendor = get_object_or_404(Vendor, pk=vendor_id, studio=studio)
+    form = VendorForm(request.POST or None, instance=vendor)
+    if request.method == "POST" and form.is_valid():
+        form.save(); messages.success(request, "Vendor updated.")
+        return redirect("costumes:vendor_detail", studio_slug=studio.slug, vendor_id=vendor.pk)
+    return render(request, "costumes/vendor_form.html", {"studio": studio, "role": "administrator", "form": form, "vendor": vendor, "page_title": "Edit Vendor", "settings_section": "vendors"})
+
+
+
+@login_required
+def vendor_delete(request, studio_slug, vendor_id):
+    studio = get_object_or_404(Studio, slug=studio_slug, is_active=True)
+    if _admin_role(request, studio) is None:
+        return _access_denied(request, studio)
+
+    vendor = get_object_or_404(Vendor, pk=vendor_id, studio=studio)
+
+    if request.method != "POST":
+        return redirect(
+            "costumes:vendor_detail",
+            studio_slug=studio.slug,
+            vendor_id=vendor.pk,
+        )
+
+    vendor_name = vendor.name
+    linked_costumes = vendor.costumes.count()
+    chart_count = vendor.size_charts.count()
+    vendor.delete()
+
+    details = []
+    if chart_count:
+        details.append(
+            f'{chart_count} size chart{" was" if chart_count == 1 else "s were"} also removed'
+        )
+    if linked_costumes:
+        details.append(
+            f'{linked_costumes} linked costume{" was" if linked_costumes == 1 else "s were"} kept with vendor and size chart cleared'
+        )
+
+    message = f"{vendor_name} was deleted."
+    if details:
+        message += " " + "; ".join(details) + "."
+
+    messages.success(request, message)
+
+    return redirect(
+        "costumes:vendor_list",
+        studio_slug=studio.slug,
+    )
+
+@login_required
+def vendor_detail(request, studio_slug, vendor_id):
+    studio = get_object_or_404(Studio, slug=studio_slug, is_active=True)
+    if _admin_role(request, studio) is None:
+        return _access_denied(request, studio)
+    vendor = get_object_or_404(Vendor.objects.prefetch_related("size_charts__entries"), pk=vendor_id, studio=studio)
+    return render(request, "costumes/vendor_detail.html", {"studio": studio, "role": "administrator", "vendor": vendor, "settings_section": "vendors"})
+
+
+@login_required
+def vendor_chart_create(request, studio_slug, vendor_id):
+    studio = get_object_or_404(Studio, slug=studio_slug, is_active=True)
+    if _admin_role(request, studio) is None:
+        return _access_denied(request, studio)
+    vendor = get_object_or_404(Vendor, pk=vendor_id, studio=studio)
+    chart = VendorSizeChart(vendor=vendor)
+    form = VendorSizeChartForm(request.POST or None, instance=chart)
+    formset = VendorSizeEntryFormSet(request.POST or None, instance=chart, prefix="entries", form_kwargs={"studio": studio})
+    if request.method == "POST" and form.is_valid() and formset.is_valid():
+        chart = form.save(commit=False); chart.vendor = vendor; chart.save(); formset.instance = chart; formset.save()
+        messages.success(request, "Size chart created.")
+        return redirect("costumes:vendor_detail", studio_slug=studio.slug, vendor_id=vendor.pk)
+    return render(request, "costumes/vendor_chart_form.html", {"studio": studio, "role": "administrator", "vendor": vendor, "chart": chart, "form": form, "formset": formset, "page_title": "Add Size Chart", "measurement_unit": getattr(studio.settings, "measurement_unit", "in"), "settings_section": "vendors"})
+
+
+@login_required
+def vendor_chart_edit(request, studio_slug, vendor_id, chart_id):
+    studio = get_object_or_404(Studio, slug=studio_slug, is_active=True)
+    if _admin_role(request, studio) is None:
+        return _access_denied(request, studio)
+    vendor = get_object_or_404(Vendor, pk=vendor_id, studio=studio)
+    chart = get_object_or_404(VendorSizeChart, pk=chart_id, vendor=vendor)
+    form = VendorSizeChartForm(request.POST or None, instance=chart)
+    formset = VendorSizeEntryFormSet(request.POST or None, instance=chart, prefix="entries", form_kwargs={"studio": studio})
+    if request.method == "POST" and form.is_valid() and formset.is_valid():
+        form.save(); formset.save(); messages.success(request, "Size chart updated.")
+        return redirect("costumes:vendor_detail", studio_slug=studio.slug, vendor_id=vendor.pk)
+    return render(request, "costumes/vendor_chart_form.html", {"studio": studio, "role": "administrator", "vendor": vendor, "chart": chart, "form": form, "formset": formset, "page_title": "Edit Size Chart", "measurement_unit": getattr(studio.settings, "measurement_unit", "in"), "settings_section": "vendors"})
+
+
+@login_required
+def vendor_chart_delete(request, studio_slug, vendor_id, chart_id):
+    studio = get_object_or_404(Studio, slug=studio_slug, is_active=True)
+    if _admin_role(request, studio) is None:
+        return _access_denied(request, studio)
+
+    vendor = get_object_or_404(Vendor, pk=vendor_id, studio=studio)
+    chart = get_object_or_404(VendorSizeChart, pk=chart_id, vendor=vendor)
+
+    if request.method != "POST":
+        return redirect(
+            "costumes:vendor_detail",
+            studio_slug=studio.slug,
+            vendor_id=vendor.pk,
+        )
+
+    chart_name = chart.name
+    linked_costumes = chart.costumes.count()
+    chart.delete()
+
+    if linked_costumes:
+        messages.success(
+            request,
+            f'{chart_name} was removed. {linked_costumes} linked costume'
+            f'{" was" if linked_costumes == 1 else "s were"} kept, with the size chart cleared.',
+        )
+    else:
+        messages.success(request, f"{chart_name} was removed.")
+
+    return redirect(
+        "costumes:vendor_detail",
+        studio_slug=studio.slug,
+        vendor_id=vendor.pk,
     )

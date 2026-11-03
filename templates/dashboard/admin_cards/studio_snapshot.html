@@ -1,9 +1,6 @@
 <article class="admin-dashboard-card admin-studio-snapshot-card">
     <div class="card-heading snapshot-card-heading">
-        <div>
-            <span class="card-kicker">Studio Snapshot</span>
-            <h2>At a Glance</h2>
-        </div>
+        <h2>Studio Snapshot</h2>
     </div>
 
     <div class="studio-snapshot-layout">
@@ -14,6 +11,7 @@
                     --enrolled-stop: {{ studio_snapshot.enrolled_stop }}%;
                     --waitlisted-stop: {{ studio_snapshot.waitlisted_stop }}%;
                 "
+                aria-label="Student status: {{ studio_snapshot.enrolled_count }} enrolled, {{ studio_snapshot.waitlisted_only_count }} waitlisted only, {{ studio_snapshot.inactive_count }} inactive"
             >
                 <div class="snapshot-donut-center">
                     <strong>{{ studio_snapshot.total_students }}</strong>
@@ -23,48 +21,70 @@
 
             <div class="snapshot-donut-legend">
                 <div>
-                    <strong>{{ studio_snapshot.enrolled_count }}</strong>
                     <i class="snapshot-dot enrolled"></i>
                     <span>Enrolled</span>
+                    <strong>{{ studio_snapshot.enrolled_count }}</strong>
                 </div>
-
                 <div>
-                    <strong>{{ studio_snapshot.waitlisted_only_count }}</strong>
                     <i class="snapshot-dot waitlisted"></i>
                     <span>Waitlisted Only</span>
+                    <strong>{{ studio_snapshot.waitlisted_only_count }}</strong>
                 </div>
-
                 <div>
-                    <strong>{{ studio_snapshot.inactive_count }}</strong>
                     <i class="snapshot-dot inactive"></i>
                     <span>Inactive</span>
+                    <strong>{{ studio_snapshot.inactive_count }}</strong>
                 </div>
             </div>
         </div>
 
-        <div class="studio-snapshot-metrics">
+        <div class="studio-snapshot-metrics{% if card.snapshot_metrics|length > 6 %} is-compact{% endif %}" style="--snapshot-count: {{ card.snapshot_metrics|length }};">
             {% for metric in card.snapshot_metrics %}
-                <div class="studio-snapshot-metric">
-                    {% if metric == "student_records" %}
-                        <strong>{{ total_students }}</strong>
-                        <span>Student Records</span>
-                    {% elif metric == "active_students" %}
-                        <strong>{{ active_students }}</strong>
-                        <span>Active Students</span>
-                    {% elif metric == "active_classes" %}
-                        <strong>{{ active_class_count }}</strong>
-                        <span>Active Classes</span>
-                    {% elif metric == "active_enrollments" %}
-                        <strong>{{ active_enrollment_count }}</strong>
-                        <span>Active Enrollments</span>
-                    {% elif metric == "instructors" %}
-                        <strong>{{ active_instructors }}</strong>
-                        <span>Instructors</span>
-                    {% elif metric == "waitlisted" %}
-                        <strong>{{ waitlist_count }}</strong>
-                        <span>Waitlisted</span>
-                    {% endif %}
-                </div>
+                {% if metric == "student_records" %}
+                    <div class="studio-snapshot-metric tone-blue">
+                        <div><strong>{{ total_students }}</strong><span>Student Records</span></div>
+                    </div>
+                {% elif metric == "active_students" %}
+                    <div class="studio-snapshot-metric tone-teal">
+                        <div><strong>{{ active_students }}</strong><span>Active Students</span></div>
+                    </div>
+                {% elif metric == "active_classes" %}
+                    <div class="studio-snapshot-metric tone-violet">
+                        <div><strong>{{ active_class_count }}</strong><span>Active Classes</span></div>
+                    </div>
+                {% elif metric == "active_enrollments" %}
+                    <div class="studio-snapshot-metric tone-indigo">
+                        <div><strong>{{ active_enrollment_count }}</strong><span>Active Enrollments</span></div>
+                    </div>
+                {% elif metric == "instructors" %}
+                    <div class="studio-snapshot-metric tone-cyan">
+                        <div><strong>{{ active_instructors }}</strong><span>Instructors</span></div>
+                    </div>
+                {% elif metric == "waitlisted" %}
+                    <div class="studio-snapshot-metric tone-amber">
+                        <div><strong>{{ waitlist_count }}</strong><span>Waitlisted</span></div>
+                    </div>
+                {% elif metric == "monthly_revenue" %}
+                    <div class="studio-snapshot-metric tone-green">
+                        <div><strong>${{ admin_analytics.monthly_revenue.total|floatformat:0 }}</strong><span>Revenue This Month</span></div>
+                    </div>
+                {% elif metric == "attendance_rate" %}
+                    <div class="studio-snapshot-metric tone-teal">
+                        <div><strong>{{ admin_analytics.attendance_rate.rate }}%</strong><span>30-Day Attendance</span></div>
+                    </div>
+                {% elif metric == "outstanding_balances" %}
+                    <div class="studio-snapshot-metric tone-orange">
+                        <div><strong>${{ admin_analytics.outstanding_balances.total|floatformat:0 }}</strong><span>Outstanding Balance</span></div>
+                    </div>
+                {% elif metric == "new_enrollments" %}
+                    <div class="studio-snapshot-metric tone-purple">
+                        <div><strong>{{ admin_analytics.enrollment_trend.current_total }}</strong><span>New This Month</span></div>
+                    </div>
+                {% elif metric == "classes_near_capacity" %}
+                    <div class="studio-snapshot-metric tone-pink">
+                        <div><strong>{{ classes_near_capacity|length }}</strong><span>Classes Near Capacity</span></div>
+                    </div>
+                {% endif %}
             {% endfor %}
         </div>
     </div>

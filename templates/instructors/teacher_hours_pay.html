@@ -1,0 +1,182 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}My Hours & Pay | Encore{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_payroll.css' %}">
+{% endblock %}
+
+{% block topbar_title %}My Hours & Pay{% endblock %}
+
+{% block content %}
+<section class="payroll-heading teacher-pay-heading">
+    <div>
+        <p class="eyebrow">Teacher Compensation</p>
+        <h1>My Hours &amp; Pay</h1>
+        <p>
+            Review your scheduled teaching, approved time off,
+            substitute coverage, extra work, and calculated pay by season.
+        </p>
+    </div>
+
+</section>
+
+<div class="teacher-pay-actions">
+    <a
+        class="button secondary"
+        href="{% url 'scheduling:time_off_request_create' studio.slug %}"
+    >
+        Request Time Off
+    </a>
+
+    <a
+        class="button secondary"
+        href="{% url 'timekeeping:extra_work_create' studio.slug %}"
+    >
+        Log Extra Work
+    </a>
+</div>
+
+{% if overall_unresolved %}
+    <div class="message-banner warning teacher-pay-warning">
+        <strong>
+            {{ overall_unresolved }} payroll item{{ overall_unresolved|pluralize }}
+            still need{{ overall_unresolved|pluralize:"s," }} pricing information.
+        </strong>
+        <span>
+            Hours are shown, but the dollar total includes only items that
+            have a valid compensation rule for the work date.
+        </span>
+
+        {% if overall_unresolved_reasons %}
+            <ul>
+                {% for reason in overall_unresolved_reasons %}
+                    <li>{{ reason }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+{% endif %}
+
+<section class="teacher-pay-browser">
+    {% for row in season_rows %}
+        <details class="teacher-pay-season">
+            <summary>
+                <div class="teacher-pay-tree-label">
+                    <span class="teacher-pay-chevron">›</span>
+                    <div>
+                        <strong>{{ row.season.name }}</strong>
+                        <small>
+                            {{ row.season.start_date|date:"M j, Y" }}
+                            –
+                            {{ row.season.end_date|date:"M j, Y" }}
+                        </small>
+                    </div>
+                </div>
+
+                <div class="teacher-pay-summary-value">
+                    <span>{{ row.hours }} hrs</span>
+                    <strong class="teacher-pay-collapsed-total">
+                        ${{ row.pay|floatformat:2 }}
+                    </strong>
+                    {% if row.unresolved_count %}
+                        <em>{{ row.unresolved_count }} unresolved</em>
+                    {% endif %}
+                </div>
+            </summary>
+
+            <div class="teacher-pay-season-body">
+                {% if row.pay_period_warning %}
+                    <div class="message-banner warning compact">
+                        {{ row.pay_period_warning }}
+                    </div>
+                {% endif %}
+
+                {% for class_row in row.classes %}
+                    <details class="teacher-pay-class">
+                        <summary>
+                            <div class="teacher-pay-tree-label">
+                                <span class="teacher-pay-chevron">›</span>
+                                <div>
+                                    <strong>{{ class_row.label }}</strong>
+                                    <small>
+                                        {{ class_row.hours|floatformat:2 }} hrs
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div class="teacher-pay-summary-value">
+                                <strong class="teacher-pay-collapsed-total">
+                                    ${{ class_row.pay|floatformat:2 }}
+                                </strong>
+                                {% if class_row.unresolved_count %}
+                                    <em>
+                                        {{ class_row.unresolved_count }}
+                                        unresolved
+                                    </em>
+                                {% endif %}
+                            </div>
+                        </summary>
+
+                        <div class="teacher-pay-period-list">
+                            {% for period in class_row.pay_periods %}
+                                <div class="teacher-pay-period-row">
+                                    <div>
+                                        <strong>
+                                            {{ period.start_date|date:"m/d/Y" }}
+                                            –
+                                            {{ period.end_date|date:"m/d/Y" }}
+                                        </strong>
+                                        <small>
+                                            {{ period.hours|floatformat:2 }} hrs
+                                        </small>
+                                    </div>
+
+                                    <div class="teacher-pay-period-total">
+                                        <strong>
+                                            ${{ period.pay|floatformat:2 }}
+                                        </strong>
+                                        {% if period.unresolved_count %}
+                                            <span>
+                                                {{ period.unresolved_count }}
+                                                unresolved
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <div class="teacher-pay-empty">
+                                    No payable activity in this class.
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </details>
+                {% empty %}
+                    <div class="teacher-pay-empty">
+                        No payroll activity was found for this season.
+                    </div>
+                {% endfor %}
+            </div>
+        </details>
+    {% empty %}
+        <div class="teacher-pay-empty large">
+            No seasons with teaching or substitute assignments are available yet.
+        </div>
+    {% endfor %}
+</section>
+
+<section class="teacher-pay-grand-total">
+    <div>
+        <span>Overall Calculated Total</span>
+        <small>
+            This total stays the same while you expand and collapse the breakdown above.
+        </small>
+    </div>
+
+    <div>
+        <span>{{ overall_hours }} hrs</span>
+        <strong>${{ overall_pay|floatformat:2 }}</strong>
+    </div>
+</section>
+{% endblock %}

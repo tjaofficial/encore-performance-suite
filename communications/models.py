@@ -938,3 +938,124 @@ class EmailAutomationRule(models.Model):
     def __str__(self):
         return self.name or f"{self.template.name} - {self.get_trigger_type_display()}"
 
+class NotificationPreference(models.Model):
+    """Per-user notification choices for one Encore studio workspace."""
+
+    studio = models.ForeignKey(
+        Studio,
+        on_delete=models.CASCADE,
+        related_name="notification_preferences",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="encore_notification_preferences",
+    )
+
+    task_assigned = models.BooleanField(default=True)
+    task_reassigned = models.BooleanField(default=True)
+    task_due_reminder = models.BooleanField(default=True)
+    task_due_reminder_days = models.PositiveSmallIntegerField(default=2)
+    task_overdue = models.BooleanField(default=True)
+    task_creator_completed = models.BooleanField(default=True)
+
+    registration_new = models.BooleanField(default=True)
+    extra_work_logged = models.BooleanField(default=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["studio", "user"],
+                name="unique_notification_preferences_per_workspace",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.user} · {self.studio} notification preferences"
+
+
+class WorkspaceNotification(models.Model):
+    """General Encore notification for non-announcement workspace events."""
+
+    class Category(models.TextChoices):
+        TASK = "task", "Task"
+        REGISTRATION = "registration", "Registration"
+        TIMEKEEPING = "timekeeping", "Time / Extra Work"
+        SYSTEM = "system", "System"
+
+    studio = models.ForeignKey(
+        Studio,
+        on_delete=models.CASCADE,
+        related_name="workspace_notifications",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="encore_workspace_notifications",
+    )
+    category = models.CharField(
+        max_length=30,
+        choices=Category.choices,
+        default=Category.SYSTEM,
+    )
+    kind = models.CharField(max_length=60)
+    title = models.CharField(max_length=200)
+    message = models.TextField(blank=True)
+    action_url = models.CharField(max_length=1000, blank=True)
+    dedupe_key = models.CharField(max_length=255, blank=True)
+    read_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    @property
+    def is_read(self):
+        return self.read_at is not None
+
+    def __str__(self):
+        return f"{self.user}: {self.title}"
+
+
+
+class OutboundEmailLog(models.Model):
+    """Snapshot of the exact outbound message; SES acceptance is not delivery."""
+    studio = models.ForeignKey("studios.Studio", on_delete=models.CASCADE, related_name="outbound_email_logs", null=True, blank=True)
+    to_addresses = models.JSONField(default=list)
+    cc_addresses = models.JSONField(default=list, blank=True)
+    bcc_addresses = models.JSONField(default=list, blank=True)
+    sender = models.CharField(max_length=320)
+    reply_to_addresses = models.JSONField(default=list, blank=True)
+    subject = models.TextField()
+    text_body = models.TextField(blank=True)
+    html_body = models.TextField(blank=True)
+    category = models.CharField(max_length=80, blank=True)
+    source = models.CharField(max_length=80, blank=True)
+    provider_message_id = models.CharField(max_length=255, blank=True, db_index=True)
+    status = models.CharField(max_length=30, default="queued", db_index=True)
+    error = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    accepted_at = models.DateTimeField(null=True, blank=True)
+    delivered_at = models.DateTimeField(null=True, blank=True)
+    last_event_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["studio", "-created_at"])]
+
+    def __str__(self):
+        return f"{self.subject[:70]} ({self.status})"
+
+
+class OutboundEmailEvent(models.Model):
+    email = models.ForeignKey(OutboundEmailLog, on_delete=models.CASCADE, related_name="delivery_events")
+    event_type = models.CharField(max_length=40)
+    event_key = models.CharField(max_length=255, unique=True)
+    occurred_at = models.DateTimeField()
+    detail = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        ordering = ["-occurred_at"]

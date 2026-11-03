@@ -10,6 +10,10 @@
     rel="stylesheet"
     href="{% static 'css/encore_class_form.css' %}"
 >
+<link
+    rel="stylesheet"
+    href="{% static 'css/encore_form_workspace.css' %}"
+>
 {% endblock %}
 
 {% block topbar_title %}
@@ -140,6 +144,17 @@ Class Manager
                         </label>
                         {{ form.class_type }}
                         {% for error in form.class_type.errors %}
+                            <small class="field-error">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="field-group">
+                        <label for="{{ form.level.id_for_label }}">
+                            Level
+                        </label>
+                        {{ form.level }}
+                        <small>Studio-defined experience level used by registration and website widgets.</small>
+                        {% for error in form.level.errors %}
                             <small class="field-error">{{ error }}</small>
                         {% endfor %}
                     </div>
@@ -445,66 +460,62 @@ Class Manager
                     <span>04</span>
                     <div>
                         <h2>Tuition & Billing</h2>
-                        <p>
-                            Set what this class costs and how Encore should
-                            bill that tuition when a student enrolls.
-                        </p>
+                        <p>Set what this class costs and how Encore should bill that tuition.</p>
                     </div>
                 </div>
 
-                <div class="form-grid two-column">
-                    <div class="field-group">
-                        <label for="{{ form.tuition_amount.id_for_label }}">
-                            Class Tuition
-                        </label>
-
-                        <div class="money-input">
-                            <span>$</span>
-                            {{ form.tuition_amount }}
+                {% if form.studio_wide_tuition_enabled %}
+                    <div class="studio-tuition-inheritance">
+                        <div>
+                            <span>STUDIO-WIDE TUITION</span>
+                            <strong>This class inherits the studio tuition schedule.</strong>
+                            <p>
+                                Encore calculates normal tuition from the family's active weekly
+                                class hours. Default billing policy:
+                                <b>{{ form.studio_tuition_settings.default_tuition_plan|default:"not selected" }}</b>.
+                            </p>
                         </div>
-
-                        {% if form.tuition_amount.help_text %}
-                            <small>
-                                {{ form.tuition_amount.help_text }}
-                            </small>
-                        {% endif %}
-
-                        {% for error in form.tuition_amount.errors %}
-                            <small class="field-error">
-                                {{ error }}
-                            </small>
-                        {% endfor %}
+                        <a class="button secondary" href="{% url 'billing:tuition_plan_list' studio.slug %}">Tuition Settings</a>
                     </div>
 
-                    <div class="field-group">
-                        <label for="{{ form.tuition_plan.id_for_label }}">
-                            Tuition Billing Policy
-                        </label>
+                    <label class="setting-toggle-card tuition-override-toggle">
+                        {{ form.use_custom_tuition }}
+                        <span>
+                            <strong>Use a custom tuition override for this class</strong>
+                            <small>Use this for special classes that should not use studio-wide pricing.</small>
+                        </span>
+                    </label>
 
-                        {{ form.tuition_plan }}
-
-                        {% if form.tuition_plan.help_text %}
-                            <small>
-                                {{ form.tuition_plan.help_text }}
-                            </small>
-                        {% endif %}
-
-                        {% for error in form.tuition_plan.errors %}
-                            <small class="field-error">
-                                {{ error }}
-                            </small>
-                        {% endfor %}
+                    <div id="custom-tuition-fields" class="custom-tuition-fields">
+                        <div class="form-grid two-column">
+                            <div class="field-group">
+                                <label for="{{ form.tuition_amount.id_for_label }}">Custom Class Tuition</label>
+                                <div class="money-input"><span>$</span>{{ form.tuition_amount }}</div>
+                                {% for error in form.tuition_amount.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+                            </div>
+                            <div class="field-group">
+                                <label for="{{ form.tuition_plan.id_for_label }}">Custom Billing Policy</label>
+                                {{ form.tuition_plan }}
+                                {% for error in form.tuition_plan.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+                            </div>
+                        </div>
                     </div>
-                </div>
-
-                <div class="form-alert info">
-                    <p>
-                        <strong>Class Tuition</strong> is the price of this class.
-                        The <strong>Tuition Billing Policy</strong> controls how
-                        often that amount is billed, such as monthly or for the
-                        full season.
-                    </p>
-                </div>
+                {% else %}
+                    <div class="form-grid two-column">
+                        <div class="field-group">
+                            <label for="{{ form.tuition_amount.id_for_label }}">Class Tuition</label>
+                            <div class="money-input"><span>$</span>{{ form.tuition_amount }}</div>
+                            {% if form.tuition_amount.help_text %}<small>{{ form.tuition_amount.help_text }}</small>{% endif %}
+                            {% for error in form.tuition_amount.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+                        </div>
+                        <div class="field-group">
+                            <label for="{{ form.tuition_plan.id_for_label }}">Tuition Billing Policy</label>
+                            {{ form.tuition_plan }}
+                            {% if form.tuition_plan.help_text %}<small>{{ form.tuition_plan.help_text }}</small>{% endif %}
+                            {% for error in form.tuition_plan.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
             </section>
 
             <section class="class-form-card">
@@ -572,6 +583,41 @@ Class Manager
                             <small class="field-error">{{ error }}</small>
                         {% endfor %}
                     </div>
+                </div>
+
+                <div class="form-grid two-column registration-window-grid">
+                    <div class="field-group">
+                        <label for="{{ form.registration_opens.id_for_label }}">
+                            Registration Starts
+                        </label>
+                        {{ form.registration_opens }}
+                        {% if form.registration_opens.help_text %}
+                            <small>{{ form.registration_opens.help_text }}</small>
+                        {% endif %}
+                        {% for error in form.registration_opens.errors %}
+                            <small class="field-error">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="field-group">
+                        <label for="{{ form.registration_closes.id_for_label }}">
+                            Registration Ends
+                        </label>
+                        {{ form.registration_closes }}
+                        {% if form.registration_closes.help_text %}
+                            <small>{{ form.registration_closes.help_text }}</small>
+                        {% endif %}
+                        {% for error in form.registration_closes.errors %}
+                            <small class="field-error">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="field-group" style="margin:1rem 0">
+                    <label for="{{ form.registration_mode.id_for_label }}">Registration Method</label>
+                    {{ form.registration_mode }}
+                    <small>Online registration is public. In-person approval requires a studio-issued code for each dancer before enrolling.</small>
+                    {% for error in form.registration_mode.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
                 </div>
 
                 <div class="class-toggle-grid">
@@ -648,57 +694,13 @@ Class Manager
             </section>
         </main>
 
-        <aside class="class-form-sidebar">
-            <section class="class-form-save-card">
-                <span class="sidebar-kicker">
-                    {% if class_instance %}
-                        Update Class
-                    {% else %}
-                        Create Class
-                    {% endif %}
-                </span>
-
-                <h2>
-                    {% if class_instance %}
-                        Save your changes
-                    {% else %}
-                        Ready to create it?
-                    {% endif %}
-                </h2>
-
-                <p>
-                    Required fields are marked with an asterisk.
-                    You can edit the class again from its dashboard.
-                </p>
-
-                <button
-                    class="button primary class-form-submit"
-                    type="submit"
-                >
-                    {% if class_instance %}
-                        Save Changes
-                    {% else %}
-                        Create Class
-                    {% endif %}
-                </button>
-
-                <a
-                    class="button secondary class-form-cancel"
-                    href="{% if class_instance %}{% url 'classes:class_detail' studio.slug class_instance.id %}{% else %}{% url 'classes:class_list' studio.slug %}{% endif %}"
-                >
-                    Cancel
-                </a>
-            </section>
-
-            <section class="class-form-tip-card">
-                <span>ENCORE TIP</span>
-                <strong>Schedule first, details second.</strong>
-                <p>
-                    Add every regular weekly meeting now so calendars,
-                    attendance, and the class dashboard all start correctly.
-                </p>
-            </section>
-        </aside>
+        {% if class_instance %}
+            {% url 'classes:class_detail' studio.slug class_instance.id as form_cancel_url %}
+            {% include "includes/form_action_sidebar.html" with action_kicker="Update Class" action_title="Save your changes" action_description="Required fields are marked with an asterisk. You can edit the class again from its dashboard." submit_label="Save Changes" cancel_url=form_cancel_url tip_title="Schedule first, details second." tip_text="Add every regular weekly meeting now so calendars, attendance, and the class dashboard all start correctly." %}
+        {% else %}
+            {% url 'classes:class_list' studio.slug as form_cancel_url %}
+            {% include "includes/form_action_sidebar.html" with action_kicker="Create Class" action_title="Ready to create it?" action_description="Required fields are marked with an asterisk. You can edit the class again from its dashboard." submit_label="Create Class" cancel_url=form_cancel_url tip_title="Schedule first, details second." tip_text="Add every regular weekly meeting now so calendars, attendance, and the class dashboard all start correctly." %}
+        {% endif %}
     </div>
 </form>
 {% endblock %}
@@ -708,4 +710,16 @@ Class Manager
     src="{% static 'js/encore_class_form.js' %}"
     defer
 ></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const checkbox = document.getElementById("id_use_custom_tuition");
+    const panel = document.getElementById("custom-tuition-fields");
+    if (!checkbox || !panel) return;
+    function syncTuitionOverride() {
+        panel.classList.toggle("visible", checkbox.checked);
+    }
+    checkbox.addEventListener("change", syncTuitionOverride);
+    syncTuitionOverride();
+});
+</script>
 {% endblock %}

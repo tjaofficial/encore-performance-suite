@@ -33,6 +33,11 @@ document.addEventListener("DOMContentLoaded", () => {
         preview.querySelectorAll("[data-layout-card]")
     );
 
+    const cardIsLocked = (card) => (
+        Boolean(card)
+        && card.dataset.locked === "true"
+    );
+
     const enabledCards = () => cardElements().filter(
         (card) => !card.hidden
     );
@@ -92,6 +97,21 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const refreshControls = () => {
+        const locked = cardIsLocked(selectedCard);
+        const fixedNote = document.querySelector(
+            "[data-fixed-size-note]"
+        );
+
+        document.querySelectorAll(
+            "[data-size-setting]"
+        ).forEach((section) => {
+            section.hidden = locked;
+        });
+
+        if (fixedNote) {
+            fixedNote.hidden = !locked;
+        }
+
         document.querySelectorAll("[data-width-choice]").forEach((button) => {
             button.classList.toggle(
                 "active",
@@ -110,6 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     && button.dataset.heightChoice === selectedCard.dataset.height
                 )
             );
+            button.disabled = Boolean(selectedCard && Number(button.dataset.heightChoice) < Number(selectedCard.dataset.minHeight || "1"));
         });
     };
 
@@ -155,6 +176,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const setWidth = (width) => {
         if (
             !selectedCard
+            || cardIsLocked(selectedCard)
             || !["quarter", "half", "three_quarter", "full"].includes(width)
         ) {
             return;
@@ -201,6 +223,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const setHeight = (height) => {
         if (
             !selectedCard
+            || cardIsLocked(selectedCard)
             || !["1", "2"].includes(height)
         ) {
             return;

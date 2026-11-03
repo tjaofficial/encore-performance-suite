@@ -7,6 +7,7 @@ from django.urls import (
 from accounts.dashboard_quick_links import (
     normalize_dashboard_quick_links,
     quick_link_definitions,
+    QUICK_LINK_ICONS,
 )
 from accounts.models import DashboardPreference
 
@@ -49,6 +50,10 @@ def _builtin_url(
 
     if dashboard_kind == "admin":
         mapping = {
+            "approval_codes": (
+                "classes:approval_codes_overview",
+                studio_kwargs,
+            ),
             "calendar": (
                 "scheduling:calendar",
                 studio_kwargs,
@@ -105,16 +110,11 @@ def _builtin_url(
             ),
         }
 
-        if (
-            key == "performance"
-            and performance_plan is not None
-        ):
+
+        if key == "videos" and performance_plan is not None:
             return _safe_reverse(
-                "performance:plan_detail",
-                kwargs={
-                    **studio_kwargs,
-                    "plan_id": performance_plan.id,
-                },
+                "resources:dance_video_manager",
+                kwargs={**studio_kwargs, "plan_id": performance_plan.id},
             )
 
         mapping = {
@@ -123,11 +123,11 @@ def _builtin_url(
                 class_kwargs,
             ),
             "music": (
-                "resources:resource_list",
+                "resources:music_manager",
                 studio_kwargs,
             ),
             "videos": (
-                "resources:resource_list",
+                "resources:video_manager",
                 studio_kwargs,
             ),
             "performance": (
@@ -251,7 +251,7 @@ def dashboard_quick_links(
             {
                 "key": "",
                 "label": row["label"],
-                "icon": "↗",
+                "icon": row["icon"],
                 "url": row["url"],
                 "external": row["url"].startswith(
                     (
@@ -264,3 +264,8 @@ def dashboard_quick_links(
         )
 
     return output
+
+
+@register.simple_tag
+def dashboard_icon_choices():
+    return [(key, key.replace("-", " ").title()) for key in QUICK_LINK_ICONS]

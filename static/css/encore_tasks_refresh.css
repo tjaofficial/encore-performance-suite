@@ -1,0 +1,20 @@
+/* Tasks and Templates: page-wide, consistent workspace visual hierarchy. */
+.task-manager-heading{align-items:center!important;margin-bottom:22px!important;padding:20px 24px!important;border:1px solid #bfcde7;border-radius:18px;background:linear-gradient(120deg,#fff 62%,#edf2ff);box-shadow:0 9px 24px rgba(17,43,98,.04)}
+.task-manager-heading .eyebrow{font-size:.72rem!important;letter-spacing:.12em!important;font-weight:900;color:#2460df}
+.task-manager-heading h1{font-size:clamp(2rem,3.2vw,2.8rem)!important;line-height:1.15}
+.task-manager-heading p:last-child{font-size:.87rem!important;line-height:1.5!important}
+.task-manager-heading .button{white-space:nowrap;min-height:42px;display:inline-flex;align-items:center;padding:0 18px}
+.task-list-controls{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px;padding:12px 16px;border:1px solid #c5d3eb;border-radius:14px;background:#fff}
+.task-list-controls .task-manager-tabs,.task-list-controls .task-manager-toolbar{margin:0!important}
+.task-list-controls .task-manager-tabs{gap:8px}
+.task-list-controls .task-manager-tabs a,.task-list-controls .task-manager-toolbar a{font-size:.79rem!important;padding:10px 13px!important}
+.task-manager-row{border-color:#c4d2ea!important;box-shadow:0 3px 14px rgba(27,51,92,.045)!important;min-height:68px;gap:14px!important;padding:15px 18px!important;transition:border-color .15s,box-shadow .15s}
+.task-manager-row:hover{border-color:#8eace8!important;box-shadow:0 8px 20px rgba(27,51,92,.09)!important}
+.task-title-link{font-size:.9rem!important}.task-manager-row .task-context,.task-manager-row .task-manager-copy p{font-size:.75rem!important;line-height:1.5}
+.template-grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,290px),1fr))!important;gap:16px!important}
+.template-card{padding:20px!important;border:1.5px solid #c1d0e9!important;border-radius:16px!important;gap:12px!important;min-height:170px}
+.template-card h2{font-size:1.12rem!important}.template-card p{font-size:.79rem!important}.template-card-top{font-size:.69rem!important}.template-card-meta span{font-size:.66rem!important;padding:5px 9px!important}
+.task-template-empty{grid-column:1/-1;display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:260px;gap:12px;text-align:center;padding:36px 20px;border:1.5px dashed #aac0e9;border-radius:18px;background:radial-gradient(circle at 95% 5%,#dfe6ff 0 8%,transparent 8.2%),radial-gradient(circle at 7% 93%,#ede5ff 0 7%,transparent 7.2%),#fff}
+.task-template-empty-icon{display:grid;place-items:center;height:54px;width:54px;border-radius:17px;background:#e8efff;color:#245ff0;font-size:1.75rem;font-weight:800}
+.task-template-empty h2{margin:0;font-size:1.2rem;color:#15254b}.task-template-empty p{margin:0;max-width:460px;line-height:1.55;font-size:.85rem;color:#596a86}.task-template-empty .button{min-height:42px;display:inline-flex;align-items:center;padding:0 18px;margin-top:4px}
+@media(max-width:650px){.task-manager-heading{flex-direction:column;align-items:stretch!important;padding:18px!important}.task-list-controls{align-items:stretch}.task-manager-row{grid-template-columns:26px minmax(0,1fr)!important}.task-manager-due{grid-column:2}}

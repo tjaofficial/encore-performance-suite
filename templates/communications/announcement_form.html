@@ -7,6 +7,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/encore_communications.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_announcement_editor.css' %}">
 {% endblock %}
 
 {% block topbar_title %}
@@ -14,6 +15,7 @@
 {% endblock %}
 
 {% block content %}
+<script defer src="{% static 'js/encore_announcement_editor.js' %}"></script>
 <section class="communication-heading">
     <div>
         <a
@@ -67,7 +69,28 @@
                         </label>
                     {% else %}
                         {{ field.label_tag }}
-                        {{ field }}
+                        {% if field.name == 'message' %}
+                            <div class="ann-editor" data-ann-editor>
+                                <div class="ann-editor-toolbar" role="toolbar" aria-label="Announcement formatting">
+                                    <button type="button" data-command="bold" title="Bold"><strong>B</strong></button>
+                                    <button type="button" data-command="italic" title="Italic"><em>I</em></button>
+                                    <button type="button" data-command="underline" title="Underline"><u>U</u></button>
+                                    <button type="button" data-block="h2" title="Heading">H2</button>
+                                    <button type="button" data-command="insertUnorderedList" title="Bullet list">• List</button>
+                                    <button type="button" data-command="insertOrderedList" title="Numbered list">1. List</button>
+                                    <button type="button" data-command="createLink" title="Insert link">🔗 Link</button>
+                                    <button type="button" data-command="unlink" title="Remove link">Unlink</button>
+                                    <button type="button" data-command="undo" title="Undo">↶</button>
+                                    <button type="button" data-command="redo" title="Redo">↷</button>
+                                </div>
+                                <div class="ann-editor-canvas" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Announcement content" data-placeholder="Write your announcement...">{% load announcement_format %}{{ field.value|default:''|announcement_body }}</div>
+                                <div class="ann-editor-footer">Select text to format it. Links can point to a website or an Encore page.</div>
+                            </div>
+                            <div class="ann-editor-original">{{ field }}</div>
+                            <input type="hidden" name="announcement_rich_editor" value="1">
+                        {% else %}
+                            {{ field }}
+                        {% endif %}
                     {% endif %}
 
                     {% if field.help_text %}

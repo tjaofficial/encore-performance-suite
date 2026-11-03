@@ -1,0 +1,77 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+{% block title %}Review Classes | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_import_billing_activation.css' %}"><link rel="stylesheet" href="{% static 'css/encore_special_class_review.css' %}">{% endblock %}
+{% block content %}
+<main class="billing-activation special-review">
+  <a class="back-link" href="{% url 'studios:studio_director_onboarding' studio.slug %}">← Studio Director Playbook</a>
+  <header class="special-heading"><div><p class="eyebrow">OPTIONAL · AFTER TUITION SETUP</p><h1>Review Classes</h1><p>Review each class's age group, level, type, and billing setup. Apply special tuition to individual classes or multiple classes at once. Existing charges won't be changed.</p></div><span class="special-heading-pill">Class tuition review</span></header>
+  {% for message in messages %}<p class="activation-alert">{{ message }}</p>{% endfor %}
+  <section class="activation-panel special-card special-filter-card"><div class="special-section-heading"><div><h2>Find classes</h2><p>Search and filter classes before selecting those that need a different tuition rate.</p></div><span class="special-count">{{ total_matching }} matching</span></div>
+    <form method="get" class="special-filter-grid">
+      <label class="special-search-field">Search <input type="search" name="q" value="{{ q }}" placeholder="Class name, age group, level, type…"></label>
+      <label>Season <select name="season"><option value="">All seasons</option>{% for season in seasons %}<option value="{{ season.pk }}" {% if season_filter == season.pk|stringformat:'s' %}selected{% endif %}>{{ season }}</option>{% endfor %}</select></label>
+      <label>Class type <select name="type"><option value="">All types</option>{% for item in types %}<option value="{{ item.pk }}" {% if type_filter == item.pk|stringformat:'s' %}selected{% endif %}>{{ item.name }}</option>{% endfor %}</select></label>
+      <label>Level <select name="level"><option value="">All levels</option>{% for item in levels %}<option value="{{ item.pk }}" {% if level_filter == item.pk|stringformat:'s' %}selected{% endif %}>{{ item.name }}</option>{% endfor %}</select></label>
+      <label>Age from <input type="number" name="age_min" value="{{ age_min }}" min="0" max="120" step="0.5" placeholder="Any"></label>
+      <label>Age to <input type="number" name="age_max" value="{{ age_max }}" min="0" max="120" step="0.5" placeholder="Any"></label>
+      <label>Pricing <select name="pricing"><option value="">All pricing</option><option value="special" {% if pricing_filter == 'special' %}selected{% endif %}>Special tuition</option><option value="standard" {% if pricing_filter == 'standard' %}selected{% endif %}>Studio-wide pricing</option></select></label>
+      <div class="special-filter-actions"><button type="submit" class="button primary">Apply filters</button><a class="button secondary" href="{% url 'studios:studio_director_special_class_tuition' studio.slug %}">Clear</a></div>
+    </form>
+  </section>
+  <form method="post" id="special-bulk-form">{% csrf_token %}<input type="hidden" name="action" value="bulk_save"><input type="hidden" name="q" value="{{ q }}"><input type="hidden" name="season" value="{{ season_filter }}"><input type="hidden" name="pricing" value="{{ pricing_filter }}"><input type="hidden" name="type" value="{{ type_filter }}"><input type="hidden" name="level" value="{{ level_filter }}"><input type="hidden" name="age_min" value="{{ age_min }}"><input type="hidden" name="age_max" value="{{ age_max }}"><input type="hidden" name="selection" id="bulk-selection" value="selected">
+    <section class="activation-panel special-card"><div class="special-section-heading"><div><h2>Class list</h2><p>Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ total_matching }} classes. Select individual classes, or use the header checkbox to select all {{ total_matching }} matching classes across every page.</p></div><span id="selected-count" class="special-count">0 selected on this page</span></div>
+      <div class="activation-table-wrap"><table class="activation-table special-table"><thead><tr><th class="special-check-column"><label class="special-page-select"><input type="checkbox" id="select-page"><span class="sr-only">Select all matching classes across every page</span></label></th><th>Class name</th><th>Age group</th><th>Level</th><th>Type</th><th>Season</th><th>Tuition</th><th>Billing policy</th></tr></thead><tbody>{% for cls in classes %}<tr><td><input type="checkbox" name="class_ids" value="{{ cls.pk }}" class="special-select" aria-label="Select {{ cls.name }}"></td><td class="special-class-name">{{ cls.name }}</td><td>{{ cls.age_range_label }}</td><td>{{ cls.level.name|default:'—' }}</td><td>{{ cls.class_type.name|default:'—' }}</td><td>{{ cls.season.name }}</td><td>{% if cls.tuition_amount != None %}<span class="special-pricing-tag special">${{ cls.tuition_amount }} custom</span>{% else %}<span class="special-pricing-tag">Studio-wide</span>{% endif %}</td><td>{{ cls.tuition_plan.name|default:'—' }}</td></tr>{% empty %}<tr><td colspan="8" class="special-empty">No classes match these filters. Try clearing or widening the search.</td></tr>{% endfor %}</tbody></table></div>
+      <div class="activation-pages special-pages">{% if page_obj.has_previous %}<a class="button secondary" href="?q={{ q|urlencode }}&amp;season={{ season_filter }}&amp;pricing={{ pricing_filter }}&amp;type={{ type_filter }}&amp;level={{ level_filter }}&amp;age_min={{ age_min }}&amp;age_max={{ age_max }}&amp;page={{ page_obj.previous_page_number }}">← Previous</a>{% endif %}<span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>{% if page_obj.has_next %}<a class="button secondary" href="?q={{ q|urlencode }}&amp;season={{ season_filter }}&amp;pricing={{ pricing_filter }}&amp;type={{ type_filter }}&amp;level={{ level_filter }}&amp;age_min={{ age_min }}&amp;age_max={{ age_max }}&amp;page={{ page_obj.next_page_number }}">Next →</a>{% endif %}</div>
+    </section>
+    <section class="activation-panel special-card special-editor"><div class="special-section-heading"><div><h2>Bulk edit tuition</h2><p>Choose only the fields you want to change. All other class settings stay as they are.</p></div></div>
+      <div class="special-editor-grid"><div class="special-editor-group"><label class="special-check"><input type="checkbox" name="change_pricing" id="change-pricing"><span>Update tuition pricing</span></label><div class="special-editor-fields" id="pricing-fields"><label>Pricing type <select name="pricing_mode"><option value="custom">Special class tuition</option><option value="studio">Use studio-wide tuition</option></select></label><label>Special class charge <input type="number" name="tuition_amount" min="0" step="0.01" placeholder="0.00"></label></div></div>
+      <div class="special-editor-group"><label class="special-check"><input type="checkbox" name="change_policy" id="change-policy"><span>Update billing policy</span></label><div class="special-editor-fields"><label>Billing policy <select name="tuition_plan_id"><option value="">Choose policy</option><option value="clear">Clear policy</option>{% for plan in plans %}<option value="{{ plan.pk }}">{{ plan.name }} ({{ plan.get_frequency_display }})</option>{% endfor %}</select></label></div></div></div>
+      <div class="special-save-actions"><button type="submit" class="button primary">Apply to Selected Classes</button></div><p class="special-note">Changes only affect future billing configuration; existing charges and schedules are not changed.</p>
+    </section>
+  </form>
+  <section class="activation-panel special-card special-finish"><div><h2>Finish reviewing classes</h2><p>When you've finished reviewing and saving changes, mark this step complete. If no review is needed, use <strong>Skip</strong> on the Studio Director Playbook.</p></div><form method="post">{% csrf_token %}<button class="button primary" name="action" value="complete">Complete Step</button></form></section>
+</main>
+<script>(function(){
+  const all=document.getElementById('select-page');
+  const items=[...document.querySelectorAll('.special-select')];
+  const counter=document.getElementById('selected-count');
+  const selection=document.getElementById('bulk-selection');
+  const form=document.getElementById('special-bulk-form');
+  const total={{ total_matching|default:0 }};
+  function update(){
+    const n=items.filter(x=>x.checked).length;
+    if(selection.value==='filtered'){
+      counter.textContent=total+' selected across all pages';
+      all.checked=true;
+      all.indeterminate=false;
+    }else{
+      counter.textContent=n+' selected on this page';
+      all.checked=false;
+      all.indeterminate=n>0;
+    }
+  }
+  all.addEventListener('change',()=>{
+    selection.value=all.checked?'filtered':'selected';
+    items.forEach(x=>x.checked=all.checked);
+    update();
+  });
+  items.forEach(x=>x.addEventListener('change',()=>{
+    if(selection.value==='filtered'){
+      // Switching off select-all prevents accidentally updating unshown pages.
+      selection.value='selected';
+    }
+    update();
+  }));
+  form.addEventListener('submit',e=>{
+    const n=items.filter(x=>x.checked).length;
+    if(selection.value==='filtered'){
+      if(!confirm('Apply changes to all '+total+' classes matching the current filters, including other pages?'))e.preventDefault();
+    }else if(!n){
+      e.preventDefault();
+      alert('Select at least one class first.');
+    }
+  });
+  update();
+})();</script>
+{% endblock %}

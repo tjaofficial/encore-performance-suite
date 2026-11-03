@@ -111,6 +111,19 @@
                 <div class="widget-preview">
                     <iframe src="{{ classes_embed_url }}" title="Class widget preview"></iframe>
                 </div>
+
+                <div class="widget-link-grid">
+                    <div>
+                        <span>Dynamic Class Filters</span>
+                        <p>Website developers can append filters to the class widget URL: <code>class_type</code>, <code>age_group</code>, <code>age</code>, <code>min_age</code>, <code>max_age</code>, <code>level</code>, <code>season</code>, <code>availability</code>, and <code>hide_filters=1</code>.</p>
+                        <code>{{ classes_embed_url }}?class_type=Ballet&amp;age_group=5-6&amp;level=1&amp;hide_filters=1</code>
+                    </div>
+                    <div>
+                        <span>Dynamic Updates</span>
+                        <p>A previous screen can update an already-loaded Encore iframe with <code>postMessage</code> without reloading the host website.</p>
+                        <textarea readonly>document.querySelector('#encore-classes').contentWindow.postMessage({type:'encore:classes:filter', classType:'Ballet', ageGroup:'5-6', level:1}, '*');</textarea>
+                    </div>
+                </div>
             </section>
 
             <section class="widget-config-card">

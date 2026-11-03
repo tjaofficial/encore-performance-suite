@@ -2842,3 +2842,55 @@ body.drawing-board-page .formation-tab > span {
 .board-music-settings-heading > strong {
     display: block;
 }
+
+
+/* =========================================================
+   Drawing Board Copy & Reuse
+   ========================================================= */
+.drawing-board-message-stack{position:fixed;z-index:240;top:12px;left:50%;display:grid;width:min(520px,calc(100vw - 32px));gap:6px;transform:translateX(-50%);pointer-events:none}
+.drawing-board-message{padding:10px 12px;border:1px solid rgba(22,134,92,.18);border-radius:9px;background:rgba(255,255,255,.97);box-shadow:0 8px 24px rgba(0,2,78,.12);color:#16865c;font-size:.56rem;font-weight:850}
+.drawing-board-message.error{border-color:rgba(176,68,68,.22);color:#a13f3f}
+.board-copy-settings-heading{margin-top:14px;padding-top:13px;border-top:1px solid var(--encore-border)}
+.board-copy-action{width:100%}
+.board-copy-help{display:block;margin-top:7px;color:var(--encore-muted);font-size:.48rem;line-height:1.45}
+.board-copy-empty{padding:10px;border:1px dashed var(--encore-border);border-radius:8px;background:#f8faff;color:var(--encore-muted);font-size:.5rem;line-height:1.45}
+.board-copy-dialog{width:min(560px,calc(100vw - 28px));max-height:min(760px,calc(100vh - 28px));padding:0;overflow:hidden;border:1px solid var(--encore-border);border-radius:14px;background:#fff;box-shadow:0 28px 70px rgba(0,2,78,.28)}
+.board-copy-dialog::backdrop{background:rgba(0,2,78,.42);backdrop-filter:blur(3px)}
+.board-copy-form{display:grid;max-height:inherit}
+.board-copy-dialog-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:16px 18px;border-bottom:1px solid var(--encore-border)}
+.board-copy-dialog-heading span{color:var(--encore-primary);font-size:.5rem;font-weight:900;letter-spacing:.05em;text-transform:uppercase}
+.board-copy-dialog-heading h2{margin:3px 0 0;color:var(--encore-primary-deep);font-size:1rem}
+.board-copy-dialog-heading>button{display:grid;width:30px;height:30px;place-items:center;border:0;border-radius:7px;background:var(--encore-background);color:var(--encore-muted);cursor:pointer;font:inherit;font-size:1rem}
+.board-copy-dialog-body{display:grid;gap:14px;padding:17px 18px;overflow-y:auto}
+.board-copy-dialog-body .encore-input{width:100%;min-height:40px;box-sizing:border-box;padding:7px 9px;border:1px solid var(--encore-border);border-radius:8px;background:#fff;color:var(--encore-primary-deep);font:inherit;font-size:.62rem}
+.board-copy-source{display:grid;gap:2px;padding:11px;border:1px solid var(--encore-border);border-radius:9px;background:#f8faff}
+.board-copy-source>span{color:var(--encore-primary);font-size:.47rem;font-weight:900;text-transform:uppercase}
+.board-copy-source>strong{color:var(--encore-primary-deep);font-size:.66rem}
+.board-copy-source>small{color:var(--encore-muted);font-size:.49rem}
+.board-copy-summary{display:grid;grid-template-columns:120px minmax(0,1fr);gap:8px 11px;padding:11px;border:1px solid var(--encore-border);border-radius:9px}
+.board-copy-summary strong{color:var(--encore-primary-deep);font-size:.52rem}
+.board-copy-summary span{color:var(--encore-muted);font-size:.49rem;line-height:1.45}
+.board-copy-confirmation{padding:11px;border:1px solid color-mix(in srgb,var(--encore-primary) 28%,var(--encore-border));border-radius:9px;background:var(--encore-primary-soft)}
+.board-copy-confirmation strong{color:var(--encore-primary);font-size:.56rem}
+.board-copy-confirmation p{margin:5px 0 0;color:var(--encore-primary-deep);font-size:.51rem;line-height:1.45}
+.board-copy-dialog-actions{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid var(--encore-border);background:#fff}
+.board-copy-dialog-actions [hidden]{display:none!important}
+.class-card-action-stack{display:grid;gap:7px}
+.class-card-button.secondary{border:1px solid var(--encore-border);background:#fff;color:var(--encore-primary)}
+
+/* Reusable venue templates in Drawing Board Options */
+.venue-template-settings{display:grid;gap:12px;padding:14px;margin:14px 0;border:1px solid #b7c9f1;border-radius:12px;background:linear-gradient(140deg,#fff,#f4f7ff)}
+.venue-template-settings .board-info-field{margin:0}.venue-template-settings .board-option-row{margin:0}
+.venue-template-save{display:grid;gap:9px;border-top:1px solid #d9e3fa;padding-top:12px}
+.venue-template-status{font-size:.65rem;font-weight:750;color:#1e4fba;line-height:1.5;margin:0}
+
+/* Options-tab groups: accessible collapsible sections, preserving board controls. */
+.drawing-panel-content[data-panel-content="options"] .board-options-accordion {margin:0 0 12px;border:1px solid #b9c9ed;border-radius:13px;background:#fff;overflow:hidden;}
+.drawing-panel-content[data-panel-content="options"] .board-options-accordion > summary {list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 14px;cursor:pointer;font-size:13px;font-weight:800;color:#101d55;background:linear-gradient(120deg,#f7f9ff,#edf2ff);}
+.drawing-panel-content[data-panel-content="options"] .board-options-accordion > summary::-webkit-details-marker {display:none;}
+.drawing-panel-content[data-panel-content="options"] .board-options-accordion > summary:focus-visible {outline:2px solid #2763ff;outline-offset:-2px;}
+.drawing-panel-content[data-panel-content="options"] .board-options-accordion > summary .accordion-chevron {font-size:20px;line-height:1;transition:transform .15s ease;}
+.drawing-panel-content[data-panel-content="options"] .board-options-accordion[open] > summary .accordion-chevron {transform:rotate(180deg);}
+.drawing-panel-content[data-panel-content="options"] .board-accordion-inner {padding:13px 12px;}
+.drawing-panel-content[data-panel-content="options"] .board-accordion-inner > .board-options-accordion {margin-bottom:14px;}
+.drawing-panel-content[data-panel-content="options"] .venue-template-settings {margin:0;border:0;padding:1px;background:transparent;}

@@ -5,6 +5,10 @@ from . import admin_dashboard_views
 from . import class_dashboard_views
 from . import rooms_locations_views
 from . import teacher_dashboard_views
+from . import notification_settings_views
+from . import data_transfer_views
+from . import measurement_settings_views
+from . import registration_policy_views
 
 app_name = "studios"
 
@@ -13,6 +17,26 @@ urlpatterns = [
         "<slug:studio_slug>/settings/",
         onboarding_views.onboarding_home,
         name="onboarding_home",
+    ),
+    path(
+        "<slug:studio_slug>/settings/tour/update/",
+        onboarding_views.onboarding_tour_update,
+        name="onboarding_tour_update",
+    ),
+    path(
+        "<slug:studio_slug>/settings/onboarding-meeting/",
+        onboarding_views.onboarding_meeting_request,
+        name="onboarding_meeting_request",
+    ),
+    path(
+        "<slug:studio_slug>/settings/notifications/",
+        notification_settings_views.notification_settings,
+        name="notification_settings",
+    ),
+    path(
+        "<slug:studio_slug>/settings/measurements/",
+        measurement_settings_views.measurement_settings,
+        name="measurement_settings",
     ),
     path(
         "<slug:studio_slug>/settings/dashboard-layouts/class/",
@@ -43,6 +67,26 @@ urlpatterns = [
         "<slug:studio_slug>/settings/widgets/",
         onboarding_views.widget_settings,
         name="widget_settings",
+    ),
+    path(
+        "<slug:studio_slug>/settings/registration-policies/",
+        registration_policy_views.registration_policy_list,
+        name="registration_policy_list",
+    ),
+    path(
+        "<slug:studio_slug>/settings/registration-policies/add/",
+        registration_policy_views.registration_policy_add,
+        name="registration_policy_add",
+    ),
+    path(
+        "<slug:studio_slug>/settings/registration-policies/<int:policy_id>/edit/",
+        registration_policy_views.registration_policy_edit,
+        name="registration_policy_edit",
+    ),
+    path(
+        "<slug:studio_slug>/settings/registration-policies/<int:policy_id>/toggle/",
+        registration_policy_views.registration_policy_toggle,
+        name="registration_policy_toggle",
     ),
     path(
         "<slug:studio_slug>/settings/locations/",
@@ -110,6 +154,26 @@ urlpatterns = [
         name="class_type_add",
     ),
     path(
+        "<slug:studio_slug>/settings/class-levels/",
+        onboarding_views.class_level_list,
+        name="class_level_list",
+    ),
+    path(
+        "<slug:studio_slug>/settings/class-levels/add/",
+        onboarding_views.class_level_add,
+        name="class_level_add",
+    ),
+    path(
+        "<slug:studio_slug>/settings/class-levels/<int:level_id>/edit/",
+        onboarding_views.class_level_edit,
+        name="class_level_edit",
+    ),
+    path(
+        "<slug:studio_slug>/settings/class-levels/<int:level_id>/remove/",
+        onboarding_views.class_level_delete,
+        name="class_level_delete",
+    ),
+    path(
         "<slug:studio_slug>/settings/class-types/<int:class_type_id>/edit/",
         onboarding_views.class_type_edit,
         name="class_type_edit",
@@ -124,4 +188,130 @@ urlpatterns = [
         onboarding_views.staff_invite,
         name="staff_invite",
     ),
+    path(
+        "<slug:studio_slug>/settings/data/",
+        data_transfer_views.data_transfer_home,
+        name="data_transfer_home",
+    ),
+    path(
+        "<slug:studio_slug>/settings/data/studio-director/",
+        data_transfer_views.studio_director_onboarding,
+        name="studio_director_onboarding",
+    ),
+    path(
+        "<slug:studio_slug>/settings/data/studio-director/instructor-activation/",
+        data_transfer_views.studio_director_instructor_activation,
+        name="studio_director_instructor_activation",
+    ),
+    path(
+        "<slug:studio_slug>/settings/data/studio-director/vocabulary/",
+        data_transfer_views.studio_director_vocabulary,
+        name="studio_director_vocabulary",
+    ),
+    path(
+        "<slug:studio_slug>/settings/data/studio-director/final-review/",
+        data_transfer_views.studio_director_final_review,
+        name="studio_director_final_review",
+    ),
+    path(
+        "<slug:studio_slug>/settings/data/studio-director/special-class-tuition/",
+        data_transfer_views.studio_director_special_class_tuition,
+        name="studio_director_special_class_tuition",
+    ),
+    path(
+        "<slug:studio_slug>/settings/data/studio-director/billing-activation/",
+        data_transfer_views.studio_director_billing_activation,
+        name="studio_director_billing_activation",
+    ),
+    path(
+        "<slug:studio_slug>/settings/data/studio-director/billing-transition/",
+        data_transfer_views.studio_director_billing_transition,
+        name="studio_director_billing_transition",
+    ),
+    path(
+        "<slug:studio_slug>/settings/data/studio-director/billing-transition/review/",
+        data_transfer_views.studio_director_billing_transition_review,
+        name="studio_director_billing_transition_review",
+    ),
+    path(
+        "<slug:studio_slug>/settings/data/studio-director/billing-transition/commit/",
+        data_transfer_views.studio_director_billing_transition_commit,
+        name="studio_director_billing_transition_commit",
+    ),
+    path(
+        "<slug:studio_slug>/settings/data/studio-director/billing-transition/issues.csv",
+        data_transfer_views.studio_director_billing_transition_issues_csv,
+        name="studio_director_billing_transition_issues_csv",
+    ),
+    path(
+        "<slug:studio_slug>/settings/data/studio-director/<slug:step_key>/",
+        data_transfer_views.studio_director_step_upload,
+        name="studio_director_step_upload",
+    ),
+    path(
+        "<slug:studio_slug>/settings/data/studio-director/<slug:step_key>/review/",
+        data_transfer_views.studio_director_discovery_review,
+        name="studio_director_discovery_review",
+    ),
+    path(
+        "<slug:studio_slug>/settings/data/studio-director/<slug:step_key>/commit/",
+        data_transfer_views.studio_director_discovery_commit,
+        name="studio_director_discovery_commit",
+    ),
+    path(
+        "<slug:studio_slug>/settings/data/studio-director/<slug:step_key>/complete/",
+        data_transfer_views.studio_director_mark_manual_step,
+        name="studio_director_mark_manual_step",
+    ),
+    path(
+        "<slug:studio_slug>/settings/data/import/",
+        data_transfer_views.data_import_upload,
+        name="data_import_upload",
+    ),
+    path(
+        "<slug:studio_slug>/settings/data/import/map/",
+        data_transfer_views.data_import_map,
+        name="data_import_map",
+    ),
+    path(
+        "<slug:studio_slug>/settings/data/import/review/",
+        data_transfer_views.data_import_review,
+        name="data_import_review",
+    ),
+    path(
+        "<slug:studio_slug>/settings/data/import/commit/",
+        data_transfer_views.data_import_commit,
+        name="data_import_commit",
+    ),
+    path(
+        "<slug:studio_slug>/settings/data/import/results/<int:job_id>/",
+        data_transfer_views.data_import_result,
+        name="data_import_result",
+    ),
+    path(
+        "<slug:studio_slug>/settings/data/import/results/<int:job_id>/not-imported.csv",
+        data_transfer_views.data_import_rejected_csv,
+        name="data_import_rejected_csv",
+    ),
+    path(
+        "<slug:studio_slug>/settings/data/import/history/",
+        data_transfer_views.data_import_history,
+        name="data_import_history",
+    ),
+    path(
+        "<slug:studio_slug>/settings/data/import/history/<int:job_id>/",
+        data_transfer_views.data_import_history_detail,
+        name="data_import_history_detail",
+    ),
+    path(
+        "<slug:studio_slug>/settings/data/import/history/<int:job_id>/undo/",
+        data_transfer_views.data_import_undo,
+        name="data_import_undo",
+    ),
+    path(
+        "<slug:studio_slug>/settings/data/export/",
+        data_transfer_views.data_export,
+        name="data_export",
+    ),
+
 ]

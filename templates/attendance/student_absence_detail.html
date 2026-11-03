@@ -1,0 +1,130 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ student.first_name }} {{ student.last_name }} Attendance | Encore Performance Suite{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_attendance.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Student Attendance Detail{% endblock %}
+
+{% block content %}
+<section class="attendance-page-shell">
+    <section class="attendance-heading attendance-heading-compact">
+        <div>
+            <p class="eyebrow">Student Attendance</p>
+            <h1>{{ student.first_name }} {{ student.last_name }}</h1>
+            <p>{{ class_instance.name }} · {{ class_instance.class_id }} · {{ month_label }}</p>
+        </div>
+        <a class="button secondary" href="{% url 'attendance:manager' studio.slug %}?tab=absences">Back to Manager</a>
+    </section>
+
+    <section class="attendance-stat-list attendance-stat-list-three">
+        <article>
+            <span>Attendance Rate</span>
+            <strong>{% if attendance_rate is not None %}{{ attendance_rate }}%{% else %}—{% endif %}</strong>
+            <small>For this class in {{ month_label }}</small>
+        </article>
+        <article>
+            <span>Absences</span>
+            <strong>{{ absence_total }}</strong>
+            <small>Unexcused absences this month</small>
+        </article>
+        <article>
+            <span>Makeups Owed</span>
+            <strong>{{ makeups_owed }}</strong>
+            <small>Outstanding for this class</small>
+        </article>
+    </section>
+
+    <section class="attendance-panel">
+        <div class="attendance-panel-header attendance-panel-header-month">
+            <div>
+                <span class="eyebrow">Monthly Status Chart</span>
+                <h2>{{ class_instance.name }}</h2>
+                <p>Each row is a date. The marker shows exactly how the student was recorded that day.</p>
+            </div>
+            <div class="month-navigation">
+                <a class="button secondary" href="?month={{ previous_month }}&class={{ class_instance.id }}">Previous</a>
+                <strong>{{ month_label }}</strong>
+                <a class="button secondary" href="?month={{ next_month }}&class={{ class_instance.id }}">Next</a>
+            </div>
+        </div>
+
+        <form method="get" class="student-chart-filter">
+            <input type="hidden" name="month" value="{{ month_anchor|date:'Y-m' }}">
+            <label>
+                <span>Class</span>
+                <select name="class" onchange="this.form.submit()">
+                    {% for cls in eligible_classes %}
+                        <option value="{{ cls.id }}" {% if selected_class_id == cls.id|stringformat:'s' %}selected{% endif %}>{{ cls.name }} · {{ cls.class_id }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+        </form>
+
+        <div class="status-chart-shell">
+            <table class="status-chart-table">
+                <thead>
+                    <tr>
+                        <th class="chart-date-column">Date</th>
+                        <th class="chart-status-header is-present">Present</th>
+                        <th class="chart-status-header is-absent">Absent</th>
+                        <th class="chart-status-header is-late">Late</th>
+                        <th class="chart-status-header is-excused">Excused</th>
+                        <th class="chart-status-header is-left-early">Left Early</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in chart_rows %}
+                        <tr class="{% if not row.record %}chart-empty-date{% endif %}">
+                            <td class="chart-date-column">
+                                <strong>{{ row.date|date:"D, M j" }}</strong>
+                            </td>
+                            <td>{% if row.record and row.record.status == 'present' %}<span class="chart-marker present" title="Present"></span>{% endif %}</td>
+                            <td>{% if row.record and row.record.status == 'absent' %}<span class="chart-marker absent" title="Absent"></span>{% endif %}</td>
+                            <td>{% if row.record and row.record.status == 'late' %}<span class="chart-marker late" title="Late"></span>{% endif %}</td>
+                            <td>{% if row.record and row.record.status == 'excused' %}<span class="chart-marker excused" title="Excused"></span>{% endif %}</td>
+                            <td>{% if row.record and row.record.status == 'left_early' %}<span class="chart-marker left-early" title="Left Early"></span>{% endif %}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="attendance-panel">
+        <div class="attendance-panel-header">
+            <div>
+                <span class="eyebrow">Recorded Days</span>
+                <h2>Attendance Log</h2>
+                <p>Only dates with an attendance sheet are listed below.</p>
+            </div>
+        </div>
+
+        <div class="attendance-table-shell">
+            <table class="attendance-list-table compact-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Note</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in detail_records %}
+                        <tr>
+                            <td>{{ record.session.session_date|date:"M j, Y" }}</td>
+                            <td><span class="status-text status-{{ record.status }}">{{ record.get_status_display }}</span></td>
+                            <td>{{ record.note|default:'—' }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="3"><div class="empty-state table-empty-state">No attendance sheets were recorded for this student in this class during {{ month_label }}.</div></td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</section>
+{% endblock %}

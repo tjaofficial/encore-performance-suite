@@ -13,6 +13,7 @@ from .models import (
     FamilyAccount,
     PaymentAllocation,
     RecurringChargeSchedule,
+    StudioTuitionSettings,
 )
 
 
@@ -25,6 +26,153 @@ def enrollment_tuition_amount(enrollment):
         or Decimal("0.00")
     )
 
+
+
+def _studio_tuition_settings(studio):
+    settings_obj, _ = StudioTuitionSettings.objects.get_or_create(studio=studio)
+    return settings_obj
+
+
+def weekly_hours_for_class(class_instance):
+    total_minutes = sum(
+        meeting.duration_minutes
+        for meeting in class_instance.meeting_times.all()
+        if meeting.is_active
+    )
+    return Decimal(total_minutes) / Decimal("60")
+
+
+def calculate_studio_wide_tuition(settings_obj, weekly_hours):
+    weekly_hours = Decimal(weekly_hours or 0)
+    if weekly_hours <= 0:
+        return Decimal("0.00")
+
+    if settings_obj.studio_wide_method == settings_obj.StudioWideMethod.FLAT_HOURLY:
+        amount = weekly_hours * (settings_obj.flat_hourly_rate or Decimal("0.00"))
+    else:
+        tiers = list(settings_obj.rate_tiers.order_by("hour_number"))
+        if not tiers:
+            return Decimal("0.00")
+        tier_rates = {tier.hour_number: tier.hourly_rate for tier in tiers}
+        last_tier = tiers[-1]
+        remaining = weekly_hours
+        hour_number = 1
+        amount = Decimal("0.00")
+        while remaining > 0:
+            portion = min(remaining, Decimal("1.00"))
+            rate = tier_rates.get(hour_number)
+            if rate is None:
+                if hour_number > last_tier.hour_number:
+                    rate = (
+                        settings_obj.additional_hour_rate
+                        if settings_obj.additional_hour_rate is not None
+                        else last_tier.hourly_rate
+                    )
+                else:
+                    previous = [
+                        tier.hourly_rate
+                        for tier in tiers
+                        if tier.hour_number < hour_number
+                    ]
+                    rate = previous[-1] if previous else Decimal("0.00")
+            amount += portion * rate
+            remaining -= portion
+            hour_number += 1
+
+    if settings_obj.family_monthly_cap is not None:
+        amount = min(amount, settings_obj.family_monthly_cap)
+    return amount.quantize(Decimal("0.01"))
+
+
+@transaction.atomic
+def sync_studio_wide_billing_for_family(family, season):
+    if family is None:
+        return {"action": "no_family"}
+
+    studio = family.studio
+    settings_obj = _studio_tuition_settings(studio)
+    if not settings_obj.is_studio_wide:
+        return {"action": "not_studio_wide"}
+
+    policy = settings_obj.default_tuition_plan
+    if policy is None:
+        return {"action": "missing_policy"}
+
+    account, _ = FamilyAccount.objects.get_or_create(
+        family=family, defaults={"studio": studio}
+    )
+
+    enrollments = list(
+        Enrollment.objects.filter(
+            student__family=family,
+            class_instance__studio=studio,
+            class_instance__season=season,
+            status=Enrollment.Status.ACTIVE,
+            tuition_override__isnull=True,
+            class_instance__tuition_amount__isnull=True,
+        )
+        .select_related("student", "class_instance", "class_instance__season")
+        .prefetch_related("class_instance__meeting_times")
+    )
+
+    weekly_hours = sum(
+        (weekly_hours_for_class(enrollment.class_instance) for enrollment in enrollments),
+        Decimal("0.00"),
+    )
+    amount = calculate_studio_wide_tuition(settings_obj, weekly_hours)
+
+    schedule = (
+        RecurringChargeSchedule.objects.select_for_update()
+        .filter(account=account, season=season, universal_tuition=True)
+        .first()
+    )
+
+    if not enrollments or amount <= Decimal("0.00"):
+        if schedule:
+            schedule.is_active = False
+            schedule.next_charge_date = None
+            schedule.amount_override = amount
+            schedule.save(
+                update_fields=[
+                    "is_active",
+                    "next_charge_date",
+                    "amount_override",
+                    "updated_at",
+                ]
+            )
+        return {"action": "stopped", "weekly_hours": weekly_hours, "amount": amount}
+
+    schedule, created = RecurringChargeSchedule.objects.update_or_create(
+        account=account,
+        season=season,
+        universal_tuition=True,
+        defaults={
+            "enrollment": None,
+            "student": None,
+            "class_instance": None,
+            "tuition_plan": policy,
+            "schedule_type": RecurringChargeSchedule.ScheduleType.TUITION,
+            "start_date": season.start_date,
+            "end_date": season.end_date,
+            "amount_override": amount,
+            "is_active": True,
+            "notes": (
+                "Automatically managed from the family's active studio-wide "
+                "tuition enrollments."
+            ),
+        },
+    )
+    if created or schedule.next_charge_date is None:
+        schedule.next_charge_date = season.start_date
+        schedule.save(update_fields=["next_charge_date", "updated_at"])
+
+    return {
+        "action": "studio_wide_schedule",
+        "schedule_id": schedule.pk,
+        "created": created,
+        "weekly_hours": weekly_hours,
+        "amount": amount,
+    }
 
 def _get_family_account_for_enrollment(enrollment):
     family = enrollment.student.family
@@ -124,6 +272,34 @@ def sync_billing_for_enrollment(enrollment):
         schedule = enrollment.billing_schedule
     except RecurringChargeSchedule.DoesNotExist:
         schedule = None
+
+    settings_obj = _studio_tuition_settings(enrollment.class_instance.studio)
+    uses_studio_wide = (
+        settings_obj.is_studio_wide
+        and enrollment.tuition_override is None
+        and enrollment.class_instance.tuition_amount is None
+    )
+
+    if uses_studio_wide:
+        if schedule and schedule.is_active:
+            schedule.is_active = False
+            schedule.next_charge_date = None
+            schedule.save(
+                update_fields=["is_active", "next_charge_date", "updated_at"]
+            )
+
+        if enrollment.status == Enrollment.Status.ACTIVE:
+            account = _get_family_account_for_enrollment(enrollment)
+            if account is not None and settings_obj.default_tuition_plan_id:
+                original_policy = enrollment.class_instance.tuition_plan
+                if original_policy is None:
+                    enrollment.class_instance.tuition_plan = settings_obj.default_tuition_plan
+                _create_registration_fee_if_needed(enrollment, account)
+                enrollment.class_instance.tuition_plan = original_policy
+
+        return sync_studio_wide_billing_for_family(
+            enrollment.student.family, enrollment.class_instance.season
+        )
 
     if enrollment.status != Enrollment.Status.ACTIVE:
         if schedule and schedule.is_active:
@@ -414,6 +590,13 @@ def next_schedule_date(schedule, current_date):
 
 
 def _recurring_description(schedule, charge_date):
+    if schedule.universal_tuition:
+        return (
+            f"Studio-Wide Tuition · "
+            f"{schedule.account.family.family_name} · "
+            f"{charge_date.strftime('%B %Y')}"
+        )
+
     enrollment = schedule.enrollment
 
     if enrollment:
@@ -446,7 +629,7 @@ def generate_due_recurring_charges(
 
     schedules = (
         RecurringChargeSchedule.objects
-        .select_for_update()
+        .select_for_update(of=("self",))
         .select_related(
             "account",
             "account__family",

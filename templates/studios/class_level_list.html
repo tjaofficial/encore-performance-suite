@@ -1,0 +1,43 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+{% block title %}Class Levels | Encore{% endblock %}
+{% block topbar_title %}Class Levels{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}">{% endblock %}
+{% block content %}
+<div class="settings-workspace">
+    {% include "includes/settings_nav.html" %}
+    <main class="settings-workspace-content">
+        <section class="settings-heading">
+            <div>
+                <p class="eyebrow">Classes</p>
+                <h1>Class Levels</h1>
+                <p>Define what Level 1, Level 2, and other experience levels mean for {{ studio.name }}. Aliases let imports recognize studio-defined level shorthand such as Exp., Int., or Adv. Terms that mean something else at this studio belong in Import Vocabulary.</p>
+            </div>
+            <a class="button primary" href="{% url 'studios:class_level_add' studio.slug %}">Add Class Level</a>
+        </section>
+        {% if messages %}<div class="message-stack">{% for message in messages %}<div class="message-banner {{ message.tags }}">{{ message }}</div>{% endfor %}</div>{% endif %}
+        <section class="settings-section-block">
+            <div class="settings-feature-list">
+                {% for level in class_levels %}
+                    <div class="settings-feature-row">
+                        <span class="settings-icon">{{ level.number }}</span>
+                        <div>
+                            <strong>Level {{ level.number }} — {{ level.name }}</strong>
+                            <p>{% if level.aliases %}Aliases: {{ level.aliases|join:", " }}{% else %}No aliases configured.{% endif %}</p>
+                            {% if level.description %}<p>{{ level.description }}</p>{% endif %}
+                        </div>
+                        <span class="settings-feature-state">{% if level.is_active %}Active{% else %}Inactive{% endif %}</span>
+                        <a class="button secondary" href="{% url 'studios:class_level_edit' studio.slug level.id %}">Edit</a>
+                        <form method="post" action="{% url 'studios:class_level_delete' studio.slug level.id %}" onsubmit="return confirm('Remove this class level?');">{% csrf_token %}<button class="button secondary" type="submit">Remove</button></form>
+                    </div>
+                {% empty %}
+                    <div class="settings-empty-state">
+                        <strong>No class levels yet.</strong>
+                        <p>Add the studio's experience levels before running the Studio Director Classes + Meetings import.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
+</div>
+{% endblock %}

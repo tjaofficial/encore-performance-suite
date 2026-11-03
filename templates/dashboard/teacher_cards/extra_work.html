@@ -1,22 +1,19 @@
-<article class="dashboard-widget teacher-card-shell">
-    <div class="widget-heading">
+<article class="dashboard-widget teacher-card-shell teacher-extra-work-widget">
+    <div class="widget-heading teacher-extra-work-heading">
         <div class="widget-title-group">
-            <span class="widget-icon">◷</span>
-
-            <span class="widget-kicker">
-                Time & Extra Work
-            </span>
+            <span class="widget-kicker">Time & Extra Work</span>
+            <h2>Extra Work Logs</h2>
         </div>
 
         <a
-            class="teacher-card-action"
+            class="task-card-header-action"
             href="{% url 'timekeeping:extra_work_list' studio.slug %}"
         >
             View All
         </a>
     </div>
 
-    <div class="teacher-extra-work-list">
+    <div class="teacher-extra-work-list teacher-extra-work-clean">
         {% for entry in recent_extra_work %}
             <div class="teacher-extra-work-row">
                 <div class="extra-work-mini-date">
@@ -49,7 +46,7 @@
     </div>
 
     <a
-        class="teacher-card-footer-action"
+        class="dashboard-task-footer"
         href="{% url 'timekeeping:extra_work_create' studio.slug %}"
     >
         + Log Extra Work

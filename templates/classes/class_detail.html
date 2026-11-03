@@ -6,6 +6,28 @@
 {% endblock %}
 
 {% block extra_css %}
+<style>
+.class-header-dress-code {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 8px 12px;
+    align-items: baseline;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(44, 65, 110, .12);
+}
+.class-header-dress-code small {
+    color: var(--encore-muted);
+    font-size: .68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+.class-header-dress-code strong {
+    color: var(--encore-primary-deep);
+    font-size: .76rem;
+    line-height: 1.45;
+}
+</style>
 <link
     rel="stylesheet"
     href="{% static 'css/encore_class_dashboard.css' %}"
@@ -13,7 +35,7 @@
 <link
     rel="stylesheet"
     href="{% static 'css/encore_tasks.css' %}"
->
+><link rel="stylesheet" href="{% static 'css/encore_stopwatch.css' %}">
 {% endblock %}
 
 {% block topbar_title %}
@@ -95,7 +117,7 @@ Class Dashboard
             <span>
                 <small>Ages</small>
                 <strong>
-                    {{ age_label }}
+                    {% if class_instance.min_age is not None and class_instance.max_age is not None %}Ages {{ class_instance.min_age|floatformat:"0" }}–{{ class_instance.max_age|floatformat:"0" }}{% elif class_instance.min_age is not None %}Ages {{ class_instance.min_age|floatformat:"0" }}+{% elif class_instance.max_age is not None %}Up to age {{ class_instance.max_age|floatformat:"0" }}{% else %}No restriction{% endif %}
                 </strong>
             </span>
 
@@ -134,6 +156,18 @@ Class Dashboard
                 </span>
             {% endif %}
         </div>
+
+        <div class="class-header-meetings"><small>Weekly Class Times</small><div class="class-header-meeting-pills">{% for meeting in meetings %}<span><strong>{{ meeting.get_day_of_week_display }}</strong> {{ meeting.start_time|time:"g:i A" }}{% if meeting.end_time %} – {{ meeting.end_time|time:"g:i A" }}{% endif %}</span>{% empty %}<span>Schedule not set</span>{% endfor %}</div></div>
+        <div class="class-header-dress-code">
+            <small>Dress Code</small>
+            <strong>
+                {% if class_instance.dress_code %}
+                    {{ class_instance.dress_code }}
+                {% else %}
+                    Not Set
+                {% endif %}
+            </strong>
+        </div>
     </div>
 
     {% if role == "administrator" %}
@@ -147,19 +181,25 @@ Class Dashboard
 
     {% dashboard_quick_links request.user studio "class" class_instance performance_plan as class_quick_links %}
 
-    <div class="class-quick-actions">
+    <div class="class-quick-actions-wrap">
+        <span class="class-quick-actions-label">
+            Quick Actions
+        </span>
+
+        <div class="class-quick-actions">
         {% for link in class_quick_links %}
             <a
-                href="{{ link.url }}"
+                href="{% if link.key == 'performance' %}{% url 'performance:plan_list' studio.slug %}?class={{ class_instance.pk }}{% elif link.key == 'music' %}{% url 'resources:music_manager' studio.slug %}?class={{ class_instance.pk }}&amp;next={{ request.get_full_path|urlencode }}{% elif link.key == 'videos' %}{% url 'resources:video_manager' studio.slug %}?class={{ class_instance.pk }}&amp;next={{ request.get_full_path|urlencode }}{% else %}{{ link.url }}{% endif %}"
                 {% if link.external %}
                     target="_blank"
                     rel="noopener noreferrer"
                 {% endif %}
             >
-                <span>{{ link.icon }}</span>
+                <span class="encore-shortcut-icon">{% include "includes/dashboard_shortcut_icon.html" %}</span>
                 <strong>{{ link.label }}</strong>
             </a>
         {% endfor %}
+        </div>
     </div>
 </section>
 
@@ -190,7 +230,7 @@ Class Dashboard
 </section>
 {% endblock %}
 
-{% block extra_js %}
+{% block extra_js %}<script defer src="{% static 'js/encore_stopwatch.js' %}"></script>
 <script
     src="{% static 'js/encore_quick_tasks.js' %}"
     defer

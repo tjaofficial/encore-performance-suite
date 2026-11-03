@@ -192,6 +192,113 @@ class StudentMeasurementSet(models.Model):
         )
 
 
+class Vendor(models.Model):
+    studio = models.ForeignKey(
+        Studio,
+        on_delete=models.CASCADE,
+        related_name="costume_vendors",
+    )
+    name = models.CharField(max_length=200)
+    abbreviation = models.CharField(max_length=50, blank=True)
+    contact_name = models.CharField(max_length=200, blank=True)
+    address_line_1 = models.CharField(max_length=255, blank=True)
+    address_line_2 = models.CharField(max_length=255, blank=True)
+    city = models.CharField(max_length=120, blank=True)
+    state = models.CharField(max_length=100, blank=True)
+    postal_code = models.CharField(max_length=30, blank=True)
+    phone = models.CharField(max_length=60, blank=True)
+    fax = models.CharField(max_length=60, blank=True)
+    email = models.EmailField(blank=True)
+    customer_number = models.CharField(max_length=100, blank=True)
+    website = models.URLField(blank=True)
+    notes = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["studio", "name"],
+                name="unique_costume_vendor_name_per_studio",
+            )
+        ]
+
+    def __str__(self):
+        return self.name
+
+
+class VendorSizeChart(models.Model):
+    class Gender(models.TextChoices):
+        ALL = "all", "All"
+        FEMALE = "female", "Female"
+        MALE = "male", "Male"
+
+    vendor = models.ForeignKey(
+        Vendor,
+        on_delete=models.CASCADE,
+        related_name="size_charts",
+    )
+    name = models.CharField(max_length=150)
+    gender = models.CharField(
+        max_length=20,
+        choices=Gender.choices,
+        default=Gender.ALL,
+    )
+    notes = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["sort_order", "name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["vendor", "name"],
+                name="unique_vendor_size_chart_name",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.vendor.name} — {self.name}"
+
+
+class VendorSizeEntry(models.Model):
+    chart = models.ForeignKey(
+        VendorSizeChart,
+        on_delete=models.CASCADE,
+        related_name="entries",
+    )
+    size_label = models.CharField(max_length=100)
+    sort_order = models.PositiveIntegerField(default=0)
+
+    bust_min = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
+    bust_max = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
+    waist_min = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
+    waist_max = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
+    hips_min = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
+    hips_max = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
+    girth_min = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
+    girth_max = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
+    inseam_min = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
+    inseam_max = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
+    outseam_min = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
+    outseam_max = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
+    height_min = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
+    height_max = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
+    age_min = models.PositiveIntegerField(null=True, blank=True)
+    age_max = models.PositiveIntegerField(null=True, blank=True)
+    notes = models.CharField(max_length=255, blank=True)
+
+    class Meta:
+        ordering = ["sort_order", "id"]
+
+    def __str__(self):
+        return f"{self.chart} — {self.size_label}"
+
+
 class Costume(models.Model):
     studio = models.ForeignKey(
         Studio,
@@ -207,6 +314,33 @@ class Costume(models.Model):
 
     name = models.CharField(
         max_length=200,
+    )
+
+    class GenderScope(models.TextChoices):
+        ALL = "all", "All"
+        FEMALE = "female", "Female"
+        MALE = "male", "Male"
+
+    gender_scope = models.CharField(
+        max_length=20,
+        choices=GenderScope.choices,
+        default=GenderScope.ALL,
+    )
+
+    vendor = models.ForeignKey(
+        Vendor,
+        on_delete=models.SET_NULL,
+        related_name="costumes",
+        null=True,
+        blank=True,
+    )
+
+    vendor_size_chart = models.ForeignKey(
+        VendorSizeChart,
+        on_delete=models.SET_NULL,
+        related_name="costumes",
+        null=True,
+        blank=True,
     )
 
     student_notes = models.TextField(
@@ -264,6 +398,18 @@ class Costume(models.Model):
                     )
                 }
             )
+
+        if (
+            self.vendor_id
+            and self.vendor.studio_id != self.studio_id
+        ):
+            raise ValidationError({"vendor": "Vendor must belong to the same studio."})
+
+        if self.vendor_size_chart_id:
+            if not self.vendor_id:
+                raise ValidationError({"vendor_size_chart": "Select a vendor first."})
+            if self.vendor_size_chart.vendor_id != self.vendor_id:
+                raise ValidationError({"vendor_size_chart": "Size chart must belong to the selected vendor."})
 
     @property
     def class_instance(self):

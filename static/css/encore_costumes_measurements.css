@@ -277,7 +277,7 @@
     margin-bottom: 10px;
 }
 
-.measurement-current-grid span {
+.measurement-current-grid > span {
     display: grid;
     gap: 2px;
     padding: 8px;
@@ -852,3 +852,32 @@
         display: none;
     }
 }
+
+
+/* Vendor Conversions + enhanced measurement workflow */
+.wardrobe-header-actions,.vendor-heading-actions,.costume-header-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.costume-header-actions{align-items:flex-end}.measurement-toolbar{align-items:flex-end;flex-wrap:wrap}.measurement-vendor-selector{display:grid;min-width:260px;gap:4px}.measurement-vendor-selector label{display:grid;gap:4px}.measurement-vendor-selector label>span{font-size:.53rem;font-weight:850;color:var(--encore-primary-deep)}.measurement-vendor-selector select{min-height:36px;padding:7px 9px;border:1px solid var(--encore-border);border-radius:8px;background:#fff}.measurement-vendor-selector small{color:var(--encore-muted);font-size:.52rem}.measurement-conversion-panel{margin:10px 0;padding:10px;border:1px solid color-mix(in srgb,var(--encore-primary) 18%,var(--encore-border));border-radius:10px;background:color-mix(in srgb,var(--encore-primary) 3%,#fff)}.conversion-heading{display:flex;justify-content:space-between;gap:10px;margin-bottom:7px}.conversion-heading span{font-size:.5rem;font-weight:900;text-transform:uppercase;color:var(--encore-primary)}.conversion-measurement-row{display:grid;grid-template-columns:90px 70px minmax(0,1fr);gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--encore-border);font-size:.57rem}.conversion-measurement-row>div{display:flex;gap:5px;flex-wrap:wrap}.conversion-chip{padding:3px 6px;border-radius:999px;background:var(--encore-primary-soft);color:var(--encore-primary-deep)}.conversion-chip b{margin-right:3px}.conversion-none{color:var(--encore-muted)}.measurement-card-actions>div{display:flex;gap:6px}.vendor-attach-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.vendor-attach-fields label{display:grid;gap:5px}.vendor-chart-label,.family-costume-vendor{font-size:.6rem}.family-costume-vendor{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px;border:1px solid var(--encore-border);border-radius:8px;background:var(--encore-surface)}.recommended-size{font-size:.58rem;font-weight:850;color:var(--encore-primary)}.costume-assignment-header,.costume-assignment-row{grid-template-columns:minmax(150px,1.5fr) minmax(90px,.8fr) minmax(90px,.8fr) minmax(90px,.8fr) minmax(110px,1fr)}@media(max-width:800px){.vendor-attach-fields{grid-template-columns:1fr}.conversion-measurement-row{grid-template-columns:1fr}.costume-assignment-header{display:none}.costume-assignment-row{grid-template-columns:1fr}}
+
+
+/* Vendor attachment preview */
+.vendor-attached-preview:not(:empty) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    grid-column: 1 / -1;
+    padding: 11px 12px;
+    border: 1px solid color-mix(in srgb, var(--encore-primary) 18%, var(--encore-border));
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--encore-primary) 4%, #fff);
+}
+.vendor-attached-preview span { display:block; color:var(--encore-muted); font-size:.5rem; font-weight:850; text-transform:uppercase; }
+.vendor-attached-preview strong { display:block; color:var(--encore-primary-deep); font-size:.68rem; }
+.vendor-attached-preview p { margin:3px 0 0; color:var(--encore-muted); font-size:.56rem; }
+.vendor-attached-preview a { color:var(--encore-primary); font-size:.58rem; font-weight:900; text-decoration:none; white-space:nowrap; }
+.parent-costume-meta small { display:block; margin-top:2px; color:var(--encore-primary); font-size:.48rem; font-weight:800; }
+
+/* Clear validation instead of silently staying on the form. */
+.wardrobe-validation-summary{margin:16px 0;padding:18px 20px;border:1.5px solid #de6b72;border-left:5px solid #c83247;background:#fff2f4;border-radius:14px;color:#812234;box-shadow:0 8px 22px #81162812}
+.wardrobe-validation-summary strong{font-size:1rem}.wardrobe-validation-summary p{margin:7px 0 0;font-size:.85rem}.wardrobe-required-mark,.wardrobe-required-hint strong{color:#bc2440}
+.wardrobe-required-hint{color:#52607a;font-size:.8rem;margin:12px 0 16px}
+.costume-form label:has(select:invalid),.costume-form label:has(input:invalid){color:#a9293c}

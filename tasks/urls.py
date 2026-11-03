@@ -9,6 +9,7 @@ urlpatterns = [
     path("<slug:studio_slug>/add/", views.task_create, name="task_create"),
     path("<slug:studio_slug>/quick-add/", views.task_quick_add, name="task_quick_add"),
     path("<slug:studio_slug>/roster-options/", views.class_roster_options, name="class_roster_options"),
+    path("<slug:studio_slug>/<int:task_id>/", views.task_detail, name="task_detail"),
     path("<slug:studio_slug>/<int:task_id>/edit/", views.task_edit, name="task_edit"),
     path("<slug:studio_slug>/<int:task_id>/delete/", views.task_delete, name="task_delete"),
     path("<slug:studio_slug>/<int:task_id>/toggle/", views.task_toggle_complete, name="task_toggle_complete"),

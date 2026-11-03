@@ -117,28 +117,6 @@
                     </div>
                 </div>
 
-                <div class="plan-section">
-                    <h3>2. Choose how you use Encore</h3>
-                    <div class="plan-card-grid">
-                        {% for value, label in form.payment_mode.field.choices %}
-                            <label class="select-card">
-                                <input
-                                    type="radio"
-                                    name="payment_mode"
-                                    value="{{ value }}"
-                                    {% if form.payment_mode.value == value %}checked{% endif %}
-                                >
-                                <strong>{{ label }}</strong>
-                                {% if value == "software_payments" %}
-                                    <span>Lower software price + payment processing</span>
-                                {% else %}
-                                    <span>Use Encore without Encore Payments</span>
-                                {% endif %}
-                            </label>
-                        {% endfor %}
-                    </div>
-                </div>
-
                 <label class="addon-card">
                     {{ form.drawing_board_enabled }}
                     <span>
@@ -149,8 +127,17 @@
 
                 <label class="terms-line">
                     {{ form.agree_to_terms }}
-                    <span>{{ form.agree_to_terms.label }}</span>
+                    <span>
+                        I agree to Encore's
+                        <button
+                            type="button"
+                            class="terms-link-button"
+                            data-open-terms-modal
+                        >Terms &amp; Conditions</button>
+                        and recurring monthly billing.
+                    </span>
                 </label>
+                {{ form.agree_to_terms.errors }}
 
                 <button class="signup-button" type="submit">
                     Continue to Secure Checkout
@@ -164,5 +151,265 @@
         </div>
     </section>
 </main>
+
+
+<dialog id="terms-modal" class="terms-modal" aria-labelledby="terms-modal-title">
+    <div class="terms-modal-card">
+        <div class="terms-modal-header">
+            <div>
+                <p class="eyebrow">Encore Performance Suite</p>
+                <h2 id="terms-modal-title">Terms &amp; Conditions</h2>
+                <p class="terms-effective-date">Effective October 2, 2026</p>
+            </div>
+            <button
+                type="button"
+                class="terms-modal-close"
+                aria-label="Close Terms & Conditions"
+                data-close-terms-modal
+            >×</button>
+        </div>
+
+        <div class="terms-modal-scroll">
+            <p>
+                These Terms &amp; Conditions ("Terms") govern your studio's access to and
+                use of Encore Performance Suite ("Encore," "we," "us," or "our"). By
+                creating a studio account, completing checkout, or using Encore, you agree
+                to these Terms on behalf of yourself and the studio or organization you
+                represent.
+            </p>
+
+            <section>
+                <h3>1. Account authority and responsibility</h3>
+                <p>
+                    You confirm that you are authorized to create and manage the Encore
+                    account for your studio. You are responsible for keeping account
+                    credentials secure, assigning appropriate user access, and ensuring
+                    information entered into Encore is accurate and lawful.
+                </p>
+            </section>
+
+            <section>
+                <h3>2. Subscription plans and student-record pricing</h3>
+                <p>
+                    Encore is offered through Essentials and Pro subscription plans. Monthly
+                    software pricing is based on the studio's applicable student-record band.
+                    New studios begin in the 0–100 student-record band. Encore may review the
+                    number of student records associated with a studio and move the studio to
+                    the appropriate pricing band for a future billing cycle.
+                </p>
+                <p>
+                    Encore will provide notice of an automatic student-band pricing change
+                    through the application and/or the studio email address on file before the
+                    new price takes effect.
+                </p>
+            </section>
+
+            <section>
+                <h3>3. Optional add-ons</h3>
+                <p>
+                    Optional paid features, including Drawing Board, may be added to an
+                    eligible Encore subscription. Add-ons are billed in addition to the base
+                    software subscription at the price shown when the add-on is selected.
+                    Additions may take effect immediately and may be prorated. Scheduled
+                    removals may remain available through the end of the current billing
+                    period.
+                </p>
+            </section>
+
+            <section>
+                <h3>4. Recurring billing and payment authorization</h3>
+                <p>
+                    Encore subscriptions are billed on a recurring monthly basis unless
+                    cancelled. By completing checkout, you authorize Encore and its payment
+                    provider to charge the payment method associated with your subscription
+                    for recurring subscription fees, applicable add-ons, taxes, and other
+                    amounts you expressly authorize.
+                </p>
+                <p>
+                    You are responsible for maintaining a valid subscription payment method.
+                    If a payment fails, Encore may retry the payment and may place the account
+                    into a grace, past-due, restricted, or suspended state until payment is
+                    resolved.
+                </p>
+            </section>
+
+            <section>
+                <h3>5. Plan changes and cancellation</h3>
+                <p>
+                    Plan upgrades may take effect immediately and may be prorated for the
+                    current billing period. Plan downgrades generally take effect at the next
+                    billing cycle. You may schedule cancellation through Encore. Unless stated
+                    otherwise at the time of cancellation, access continues through the end of
+                    the current paid billing period and the subscription will not renew after
+                    that period.
+                </p>
+            </section>
+
+            <section>
+                <h3>6. Refunds</h3>
+                <p>
+                    Subscription charges are generally non-refundable once a billing period
+                    begins, except where required by law or where Encore expressly approves a
+                    refund. Cancelling a subscription does not automatically create a refund
+                    for unused time remaining in the current billing period.
+                </p>
+            </section>
+
+            <section>
+                <h3>7. Studio payment processing</h3>
+                <p>
+                    Encore may allow a studio to connect a third-party payment processor,
+                    such as Stripe, so the studio can accept payments from families and other
+                    customers. Payment processing is separate from the studio's Encore
+                    software subscription price unless Encore expressly states otherwise.
+                </p>
+                <p>
+                    The studio is responsible for its merchant account, payment-processing
+                    obligations, refunds, disputes, chargebacks, customer-facing policies, and
+                    compliance with the payment provider's terms. Third-party processing fees
+                    are governed by the studio's agreement with the applicable payment
+                    provider.
+                </p>
+            </section>
+
+            <section>
+                <h3>8. Studio data and authorized use</h3>
+                <p>
+                    You retain responsibility for the studio, student, family, staff,
+                    financial, scheduling, communication, and other information your studio
+                    enters or uploads to Encore. You may use Encore only for lawful studio
+                    operations and may not use the service to violate another person's rights,
+                    distribute unlawful or malicious content, interfere with the service, or
+                    attempt to gain unauthorized access to another studio's account or data.
+                </p>
+            </section>
+
+            <section>
+                <h3>9. Communications and electronic notices</h3>
+                <p>
+                    You agree that Encore may provide service-related communications,
+                    subscription notices, billing notices, security messages, and other
+                    account information electronically through Encore or the email addresses
+                    associated with the account.
+                </p>
+            </section>
+
+            <section>
+                <h3>10. Availability, maintenance, and changes</h3>
+                <p>
+                    Encore may update, improve, modify, or discontinue features as the product
+                    evolves. We aim to provide reliable service but do not guarantee that the
+                    service will be uninterrupted or error-free at all times. Maintenance,
+                    third-party outages, internet failures, security events, and other factors
+                    may occasionally affect availability.
+                </p>
+            </section>
+
+            <section>
+                <h3>11. Third-party services</h3>
+                <p>
+                    Encore may integrate with third-party products and services. Your use of
+                    those services may be subject to separate terms and privacy practices from
+                    the third-party provider. Encore is not responsible for a third party's
+                    independent services, policies, or outages.
+                </p>
+            </section>
+
+            <section>
+                <h3>12. Suspension and termination</h3>
+                <p>
+                    Encore may suspend or terminate access for nonpayment, fraud, security
+                    risk, unlawful use, material violation of these Terms, or conduct that
+                    threatens Encore, its customers, or its systems. Where practical, Encore
+                    may provide notice and an opportunity to resolve the issue before
+                    termination.
+                </p>
+            </section>
+
+            <section>
+                <h3>13. Disclaimer and limitation of liability</h3>
+                <p>
+                    Encore is provided on an "as available" basis to the extent permitted by
+                    law. Encore is a studio-management platform and does not replace your
+                    studio's professional, accounting, tax, legal, employment, payment, or
+                    regulatory obligations. To the maximum extent permitted by applicable law,
+                    Encore will not be liable for indirect, incidental, special, consequential,
+                    or punitive damages arising from use of or inability to use the service.
+                </p>
+            </section>
+
+            <section>
+                <h3>14. Changes to these Terms</h3>
+                <p>
+                    Encore may update these Terms as the service, business, or legal
+                    requirements change. Material changes may be communicated through the
+                    service or by email. Continued use of Encore after updated Terms become
+                    effective constitutes acceptance of the updated Terms where permitted by
+                    law.
+                </p>
+            </section>
+
+            <section>
+                <h3>15. Contact</h3>
+                <p>
+                    Questions about these Terms or an Encore subscription may be sent to
+                    info@encoreperformancesuite.com.
+                </p>
+            </section>
+        </div>
+
+        <div class="terms-modal-actions">
+            <button type="button" class="signup-button terms-accept-button" data-accept-terms>
+                I Understand
+            </button>
+        </div>
+    </div>
+</dialog>
+
+<script>
+(function () {
+    const password = document.getElementById("id_password");
+    const confirmation = document.getElementById("id_password_confirm");
+    const termsModal = document.getElementById("terms-modal");
+    const termsCheckbox = document.getElementById("id_agree_to_terms");
+
+    function updatePasswordMatch() {
+        if (!password || !confirmation) return;
+
+        const matches = (
+            password.value.length > 0 &&
+            confirmation.value.length > 0 &&
+            password.value === confirmation.value
+        );
+
+        password.classList.toggle("password-match", matches);
+        confirmation.classList.toggle("password-match", matches);
+    }
+
+    password?.addEventListener("input", updatePasswordMatch);
+    confirmation?.addEventListener("input", updatePasswordMatch);
+    updatePasswordMatch();
+
+    document.querySelectorAll("[data-open-terms-modal]").forEach((button) => {
+        button.addEventListener("click", () => termsModal?.showModal());
+    });
+
+    document.querySelectorAll("[data-close-terms-modal]").forEach((button) => {
+        button.addEventListener("click", () => termsModal?.close());
+    });
+
+    document.querySelectorAll("[data-accept-terms]").forEach((button) => {
+        button.addEventListener("click", () => {
+            if (termsCheckbox) termsCheckbox.checked = true;
+            termsModal?.close();
+        });
+    });
+
+    termsModal?.addEventListener("click", (event) => {
+        if (event.target === termsModal) termsModal.close();
+    });
+})();
+</script>
+
 </body>
 </html>

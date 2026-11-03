@@ -1,0 +1,30 @@
+/* Consistent page width and information-dense time-off lists */
+.time-off-page {width:100%; max-width:1160px; margin-inline:auto; box-sizing:border-box;}
+.time-off-page-header {display:flex; align-items:center; justify-content:space-between; gap:18px;}
+.time-off-page-header > div {min-width:0;}
+.time-off-summary {margin-top:26px;}
+.time-off-summary-header {padding:22px 26px; border:1px solid #aec3ee; border-radius:16px 16px 0 0; background:radial-gradient(circle at 98% 0%,#dbe5ff 0 65px,transparent 66px),#fff;}
+.time-off-summary-header h2 {font-size:23px; margin:5px 0; color:#121d44;}
+.time-off-summary-header p:last-child {color:#536483; margin:0;}
+.time-off-summary-filters {display:flex; align-items:end; flex-wrap:wrap; gap:14px; padding:18px 22px; border:1px solid #aec3ee; border-top:0; background:#f8faff;}
+.time-off-summary-filters label {display:grid; gap:6px; font-size:12px; font-weight:800; color:#344a75;}
+.time-off-summary-filters input,.time-off-summary-filters select {height:39px; min-width:200px; border:1px solid #afc3e9; border-radius:9px; background:white; padding:0 11px; font-size:13px; color:#17234a;}
+.time-off-summary-table-wrap {border:1px solid #aec3ee; border-top:0; border-radius:0 0 16px 16px; overflow:hidden; background:#fff;}
+.time-off-summary-table,.my-time-off-table {width:100%; border-collapse:collapse; text-align:left;}
+.time-off-summary-table th,.my-time-off-table th {background:#edf2ff; color:#314777; font-size:11px; text-transform:uppercase; letter-spacing:.065em; padding:13px 18px;}
+.time-off-summary-table td {padding:12px 18px; border-top:1px solid #e0e8f6; font-size:13px; color:#18264a;}
+.time-off-summary-table td:last-child,.time-off-summary-table th:last-child {text-align:right; width:150px;}
+.time-off-summary-table tbody tr:hover,.my-time-off-table tbody tr:hover {background:#f6f9ff;}
+.my-time-off-table-wrap {border:1px solid #afc3e9; border-radius:15px; background:#fff; overflow:hidden; box-shadow:0 8px 24px rgba(25,50,94,.045);}
+.my-time-off-table th,.my-time-off-table td {padding:15px 18px; vertical-align:middle;}
+.my-time-off-table td {border-top:1px solid #e0e8f6; color:#16244a; font-size:13px;}
+.my-time-off-table th:nth-child(1) {width:31%;} .my-time-off-table th:nth-child(2) {width:36%;}.my-time-off-table th:nth-child(3) {width:13%;}
+.my-time-off-reason {font-size:14px; font-weight:800;}.my-time-off-note {margin-top:4px; color:#65738d; line-height:1.45;}
+.my-time-off-dates {display:flex; flex-wrap:wrap; gap:5px;}
+.my-time-off-date {background:#f2f5fc; border:1px solid #e0e7f5; border-radius:7px; padding:5px 8px; font-weight:650; white-space:nowrap;}
+.my-time-off-date small {font-weight:500;color:#64748f;}
+.my-time-off-actions {display:flex; align-items:center; gap:7px; justify-content:flex-end; white-space:nowrap;}
+.my-time-off-actions form {margin:0;}.my-time-off-actions .button {font-size:12px; padding:8px 11px;}
+.my-time-off-locked {color:#72809a; font-size:11px; white-space:nowrap;}
+.my-time-off-empty {padding:36px!important; text-align:center; color:#627493!important;}
+@media(max-width:760px){.time-off-summary-filters input,.time-off-summary-filters select{min-width:0;width:100%;}.time-off-summary-filters label{flex:1 1 180px;}.my-time-off-header{align-items:stretch;flex-direction:column;}.my-time-off-table thead{display:none;}.my-time-off-table,.my-time-off-table tbody,.my-time-off-table tr,.my-time-off-table td{display:block;width:100%;box-sizing:border-box;}.my-time-off-table tr{padding:12px;border-top:1px solid #e0e8f6;}.my-time-off-table td{padding:7px 5px;border:0;}.my-time-off-table td:before{content:attr(data-label);display:block;font-size:10px;text-transform:uppercase;letter-spacing:.05em;font-weight:800;color:#58709e;margin-bottom:3px;}.my-time-off-actions{justify-content:flex-start;}}

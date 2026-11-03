@@ -1,0 +1,7 @@
+<article class="admin-dashboard-card admin-analytics-card analytics-attendance-card card-tone-teal">
+    <div class="card-heading"><h2>Attendance Rate</h2><a href="{% url 'attendance:manager' studio.slug %}" aria-label="View Attendance Manager">View All →</a><span class="analytics-icon analytics-icon-attendance" aria-hidden="true">✓</span></div>
+    <div class="attendance-analytics-layout">
+        <div class="attendance-ring" style="--attendance-rate: {{ admin_analytics.attendance_rate.rate }}%;"><div><strong>{{ admin_analytics.attendance_rate.rate }}%</strong><span>Present</span></div></div>
+        <div class="attendance-stat-list"><div><span>Present / Late</span><strong>{{ admin_analytics.attendance_rate.present }}</strong></div><div><span>Absent</span><strong>{{ admin_analytics.attendance_rate.absent }}</strong></div><div><span>Excused</span><strong>{{ admin_analytics.attendance_rate.excused }}</strong></div></div>
+    </div>
+</article>

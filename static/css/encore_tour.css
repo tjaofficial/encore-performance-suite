@@ -1,0 +1,281 @@
+/* =========================================================
+   Encore guided product tour
+   ========================================================= */
+.encore-tour-blocker,
+.encore-tour-hole-blocker,
+.encore-tour-outline,
+.encore-tour-card,
+.encore-tour-arrow {
+    position: fixed;
+}
+
+.encore-tour-blocker,
+.encore-tour-hole-blocker {
+    z-index: 20000;
+}
+
+.encore-tour-blocker {
+    background: rgba(4, 9, 35, .72);
+    backdrop-filter: blur(1px);
+}
+
+.encore-tour-hole-blocker {
+    background: transparent;
+}
+
+.encore-tour-outline {
+    z-index: 20001;
+    border: 2px solid rgba(82, 124, 255, .95);
+    border-radius: 14px;
+    box-shadow:
+        0 0 0 4px rgba(82, 124, 255, .16),
+        0 12px 36px rgba(0, 8, 50, .24);
+    pointer-events: none;
+}
+
+.encore-tour-card {
+    z-index: 20010;
+    width: min(390px, calc(100vw - 32px));
+    padding: 22px;
+    border: 1px solid rgba(86, 116, 245, .20);
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 24px 75px rgba(3, 10, 48, .28);
+    color: #10153f;
+}
+
+.encore-tour-card.is-welcome {
+    width: min(470px, calc(100vw - 32px));
+    text-align: left;
+}
+
+.encore-tour-kicker {
+    display: inline-flex;
+    margin-bottom: 8px;
+    color: #3156ff;
+    font-size: .68rem;
+    font-weight: 900;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.encore-tour-card h2 {
+    margin: 0 0 8px;
+    color: #0a1038;
+    font-size: 1.4rem;
+    letter-spacing: -.035em;
+}
+
+.encore-tour-card p {
+    margin: 0;
+    color: #626a84;
+    font-size: .82rem;
+    line-height: 1.65;
+}
+
+.encore-tour-card p + p {
+    margin-top: 10px;
+}
+
+.encore-tour-card a {
+    color: #3156ff;
+    font-weight: 850;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.encore-tour-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 9px;
+    margin-top: 20px;
+}
+
+.encore-tour-button {
+    min-height: 40px;
+    padding: 0 15px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    font: inherit;
+    font-size: .72rem;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.encore-tour-button.primary {
+    background: linear-gradient(135deg, #3156ff, #4938f5);
+    color: #fff;
+}
+
+.encore-tour-button.secondary {
+    border-color: #dce2f1;
+    background: #fff;
+    color: #66708a;
+}
+
+.encore-tour-button:hover {
+    transform: translateY(-1px);
+}
+
+.encore-tour-step-label {
+    margin-top: 14px;
+    color: #9aa2b7;
+    font-size: .62rem;
+    font-weight: 800;
+}
+
+.encore-tour-arrow {
+    z-index: 20008;
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    color: #3156ff;
+    font-size: 2rem;
+    font-weight: 900;
+    pointer-events: none;
+    animation: encoreTourNudge 1s ease-in-out infinite;
+    filter: drop-shadow(0 4px 10px rgba(49, 86, 255, .28));
+}
+
+@keyframes encoreTourNudge {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(-8px); }
+}
+
+body.encore-tour-active {
+    overflow: hidden;
+}
+
+@media (max-width: 800px) {
+    .encore-tour-card {
+        width: calc(100vw - 24px);
+        padding: 18px;
+    }
+}
+
+/* =========================================================
+   Onboarding meeting request
+   ========================================================= */
+.onboarding-meeting-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 18px;
+    align-items: start;
+}
+
+.onboarding-help-panel {
+    display: grid;
+    gap: 18px;
+}
+
+.onboarding-checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.onboarding-checkbox-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 9px 11px;
+    border: 1px solid var(--encore-border);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--encore-text);
+    font-size: .68rem;
+    font-weight: 750;
+}
+
+.onboarding-checkbox-option input {
+    width: 16px;
+    height: 16px;
+}
+
+.onboarding-notes-field textarea {
+    min-height: 120px;
+    padding: 11px;
+    resize: vertical;
+}
+
+.onboarding-meeting-expectations {
+    position: sticky;
+    top: 90px;
+    padding: 18px;
+    border: 1px solid var(--encore-border);
+    border-radius: 15px;
+    background: linear-gradient(145deg, #f8faff, #fff);
+    box-shadow: var(--encore-shadow);
+}
+
+.onboarding-meeting-expectations > span,
+.onboarding-request-success span {
+    color: var(--encore-primary);
+    font-size: .58rem;
+    font-weight: 900;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.onboarding-meeting-expectations h2,
+.onboarding-request-success h2 {
+    margin: 4px 0 8px;
+    color: var(--encore-primary-deep);
+    font-size: 1rem;
+}
+
+.onboarding-meeting-expectations p,
+.onboarding-meeting-expectations li,
+.onboarding-meeting-expectations small,
+.onboarding-request-success p {
+    color: var(--encore-muted);
+    font-size: .65rem;
+    line-height: 1.55;
+}
+
+.onboarding-meeting-expectations ol {
+    display: grid;
+    gap: 7px;
+    padding-left: 18px;
+}
+
+.onboarding-request-success {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+    gap: 16px;
+    align-items: center;
+}
+
+.onboarding-request-success-icon {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(37, 151, 105, .10);
+    color: #247d5a;
+    font-size: 1.1rem;
+    font-weight: 900;
+}
+
+@media (max-width: 900px) {
+    .onboarding-meeting-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .onboarding-meeting-expectations {
+        position: static;
+    }
+}
+
+@media (max-width: 650px) {
+    .onboarding-checkbox-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .onboarding-request-success {
+        grid-template-columns: 1fr;
+    }
+}

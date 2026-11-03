@@ -1950,3 +1950,1434 @@ day column so month cells stay square instead of compressed.
         gap: var(--sidebar-row-gap);
     }
 }
+
+
+/* =========================================================
+   Calendar Usability / Contrast Upgrade
+   ========================================================= */
+
+:root {
+    --sidebar-collapsed-width: 58px;
+    --encore-border-strong: #B9C8E6;
+    --encore-grid-line: #D6E0F0;
+    --encore-surface-soft: #F8FAFE;
+}
+
+/* The sidebar is user-resizable on desktop. */
+.calendar-app {
+    transition: grid-template-columns .18s ease;
+}
+
+.calendar-sidebar {
+    z-index: 40;
+    box-shadow: 10px 0 30px rgba(14, 22, 86, .035);
+}
+
+body.is-resizing-calendar-sidebar {
+    cursor: col-resize;
+    user-select: none;
+}
+
+
+/* Collapsed rail */
+.calendar-app.sidebar-is-collapsed {
+    grid-template-columns: var(--sidebar-collapsed-width) minmax(0, 1fr);
+}
+
+.sidebar-is-collapsed .calendar-sidebar {
+    overflow: visible;
+}
+
+.sidebar-is-collapsed .calendar-brand {
+    justify-content: center;
+    padding-inline: 8px;
+}
+
+.sidebar-is-collapsed .calendar-brand-copy,
+.sidebar-is-collapsed .calendar-create-wrap,
+.sidebar-is-collapsed .calendar-sidebar-scroll,
+.sidebar-is-collapsed .calendar-sidebar-resizer {
+    display: none;
+}
+
+
+.sidebar-is-collapsed .calendar-brand-mark {
+    width: 38px;
+    height: 38px;
+}
+
+/* Stronger page/surface contrast */
+.calendar-main {
+    background:
+        linear-gradient(180deg, #F5F8FE 0, #F1F5FB 100%);
+}
+
+.calendar-topbar {
+    margin-inline: -18px;
+    padding-inline: 22px;
+    border-bottom-color: var(--encore-border-strong);
+    background: rgba(255,255,255,.72);
+    backdrop-filter: blur(10px);
+}
+
+.calendar-surface {
+    border-color: var(--encore-border-strong);
+    box-shadow:
+        0 18px 46px rgba(23, 40, 90, .09),
+        0 0 0 1px rgba(46, 60, 241, .025);
+}
+
+.fc {
+    --fc-border-color: var(--encore-grid-line);
+}
+
+.fc .fc-scrollgrid,
+.fc-theme-standard td,
+.fc-theme-standard th {
+    border-color: var(--encore-grid-line);
+}
+
+.fc .fc-col-header-cell {
+    background: #F7F9FD;
+}
+
+.fc .fc-timegrid-slot-label {
+    border-color: var(--encore-grid-line);
+    color: #45526E;
+    font-size: .63rem;
+    font-weight: 760;
+}
+
+.fc .fc-timegrid-axis,
+.fc .fc-timegrid-slot {
+    border-color: var(--encore-grid-line);
+}
+
+.fc .fc-timegrid-now-indicator-line {
+    border-color: #FF4D75;
+}
+
+.fc .fc-timegrid-now-indicator-arrow {
+    border-color: #FF4D75;
+    border-top-color: transparent;
+    border-bottom-color: transparent;
+}
+
+/* Week + Day must scroll vertically inside the calendar surface. */
+.fc .fc-timeGridWeek-view,
+.fc .fc-timeGridDay-view,
+.fc .fc-timegrid-body,
+.fc .fc-timegrid-body > table {
+    min-height: 0;
+}
+
+.fc .fc-timeGridWeek-view .fc-scroller,
+.fc .fc-timeGridDay-view .fc-scroller {
+    overscroll-behavior: contain;
+}
+
+/* Grouped sidebar controls */
+.calendar-source-section {
+    gap: 5px;
+}
+
+.calendar-group-row {
+    grid-template-columns: 17px 12px minmax(0, 1fr) 28px;
+    border-color: #E1E8F4;
+    background: #FBFCFF;
+}
+
+.calendar-group-row:hover {
+    border-color: #C7D4EE;
+    background: #F4F7FF;
+}
+
+.calendar-group-row > label {
+    min-width: 0;
+    color: var(--encore-deep);
+    font-weight: 850;
+    cursor: pointer;
+}
+
+.calendar-group-toggle {
+    display: grid;
+    width: 26px;
+    height: 26px;
+    place-items: center;
+    justify-self: end;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--encore-muted);
+    font-weight: 900;
+    cursor: pointer;
+    transition:
+        transform .15s ease,
+        background .15s ease,
+        color .15s ease;
+}
+
+.calendar-group-toggle:hover {
+    background: #EAF0FF;
+    color: var(--encore-primary);
+}
+
+.calendar-group-toggle.is-collapsed {
+    transform: rotate(-90deg);
+}
+
+[data-source-group].is-collapsed {
+    display: none !important;
+}
+
+.calendar-filter-group {
+    display: grid;
+    gap: 1px;
+}
+
+.calendar-source-row input:indeterminate {
+    accent-color: var(--encore-primary);
+}
+
+/* Clearer hierarchy and more breathing room */
+.calendar-section-heading {
+    margin-top: 2px;
+    padding-top: 10px;
+}
+
+.calendar-section-heading strong {
+    font-size: .71rem;
+}
+
+.calendar-source-row {
+    color: #24304E;
+}
+
+.calendar-subsource-list {
+    margin-bottom: 6px;
+}
+
+.calendar-subsource-list label {
+    color: #5A6680;
+}
+
+.calendar-subsource-list label:hover {
+    color: var(--encore-deep);
+}
+
+.calendar-source-parent {
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 0;
+    border-radius: 9px;
+}
+
+.calendar-sidebar-actions {
+    border-top-color: var(--encore-border-strong);
+}
+
+/* Event popover: category color becomes a real header. */
+.calendar-popover {
+    overflow: hidden;
+    padding: 0;
+    border-color: color-mix(in srgb, var(--event-color, var(--encore-primary)) 30%, #D7E1F1);
+    background: #fff;
+}
+
+.calendar-popover-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: start;
+    padding: 15px 14px 14px 16px;
+    background:
+        linear-gradient(
+            135deg,
+            color-mix(in srgb, var(--event-color, var(--encore-primary)) 92%, #fff),
+            var(--event-color, var(--encore-primary))
+        );
+    color: #fff;
+}
+
+.calendar-popover-heading {
+    min-width: 0;
+}
+
+.calendar-popover-heading small {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: rgba(255,255,255,.86);
+    font-size: .54rem;
+    font-weight: 900;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.calendar-popover-heading h2 {
+    margin: 5px 0 0;
+    color: #fff;
+    font-size: .92rem;
+    line-height: 1.25;
+}
+
+.calendar-popover-dot {
+    position: static;
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    margin-right: 5px;
+    border: 2px solid rgba(255,255,255,.92);
+    border-radius: 3px;
+    background: var(--event-color, var(--encore-primary));
+    box-shadow: 0 0 0 1px rgba(0,0,0,.08);
+    vertical-align: -1px;
+}
+
+.calendar-popover-actions {
+    align-items: center;
+}
+
+.calendar-popover-actions button {
+    color: rgba(255,255,255,.92);
+}
+
+.calendar-popover-actions button:hover {
+    background: rgba(255,255,255,.18);
+    color: #fff;
+}
+
+.calendar-popover-body {
+    display: grid;
+    gap: 7px;
+    padding: 14px 16px 16px;
+}
+
+.calendar-popover-body p {
+    margin: 0;
+    color: var(--encore-muted);
+    font-size: .62rem;
+    line-height: 1.5;
+}
+
+.calendar-popover-time {
+    color: var(--encore-deep) !important;
+    font-weight: 760;
+}
+
+.calendar-popover-link {
+    margin-top: 3px;
+}
+
+/* Event blocks get a little more definition without getting noisy. */
+.fc-event:not(.encore-task-event) {
+    border: 1px solid rgba(0, 2, 78, .08);
+    box-shadow: 0 2px 5px rgba(15, 28, 73, .07);
+}
+
+.fc .fc-timegrid-event {
+    overflow: hidden;
+}
+
+.fc .fc-timegrid-event .fc-event-main {
+    padding: 2px 3px;
+}
+
+/* More obvious active toolbar controls */
+.fc .fc-button {
+    border-color: #C6D2E8;
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active {
+    box-shadow: 0 5px 12px rgba(46,60,241,.18) !important;
+}
+
+@media (max-width: 900px) {
+    .calendar-sidebar-edge-toggle,
+    .calendar-sidebar-resizer {
+        display: none;
+    }
+
+    .calendar-app.sidebar-is-collapsed {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar-is-collapsed .calendar-brand-copy,
+    .sidebar-is-collapsed .calendar-create-wrap,
+    .sidebar-is-collapsed .calendar-sidebar-scroll {
+        display: block;
+    }
+
+    .calendar-topbar {
+        margin-inline: -10px;
+        padding-inline: 14px;
+    }
+}
+
+
+/* Sidebar edge collapse/expand rail */
+.calendar-sidebar-edge-toggle {
+    position: absolute;
+    z-index: 8;
+    top: 0;
+    right: -12px;
+    width: 12px;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    border-left: 1px solid #C8D5EC;
+    border-right: 1px solid #D9E2F1;
+    background: rgba(248, 250, 255, .86);
+    color: #7180A0;
+    cursor: pointer;
+    transition:
+        background .14s ease,
+        border-color .14s ease,
+        color .14s ease;
+}
+
+.calendar-sidebar-edge-toggle span {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: grid;
+    width: 10px;
+    height: 24px;
+    place-items: center;
+    transform: translate(-50%, -50%);
+    border-radius: 4px;
+    background: transparent;
+    color: currentColor;
+    font-size: .62rem;
+    font-weight: 900;
+    line-height: 1;
+    transition:
+        background .14s ease,
+        color .14s ease;
+}
+
+.calendar-sidebar-edge-toggle:hover {
+    border-left-color: #AFC0E1;
+    border-right-color: #C7D4E8;
+    background: #EEF3FC;
+    color: var(--encore-primary);
+}
+
+.calendar-sidebar-edge-toggle:hover span {
+    background: rgba(46, 60, 241, .07);
+}
+
+/*
+The resize zone stays INSIDE the sidebar edge while the collapse rail
+sits OUTSIDE it. This keeps both interactions available at the same time.
+*/
+.calendar-sidebar-resizer {
+    position: absolute;
+    z-index: 11;
+    top: 0;
+    right: 0;
+    width: 6px;
+    height: 100%;
+    cursor: col-resize;
+    touch-action: none;
+    background: transparent;
+}
+
+.calendar-sidebar-resizer::after {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 2px;
+    height: 100%;
+    border-radius: 0;
+    background: transparent;
+    content: "";
+    transition: background .14s ease;
+}
+
+.calendar-sidebar-resizer:hover::after,
+body.is-resizing-calendar-sidebar .calendar-sidebar-resizer::after {
+    background: rgba(46, 60, 241, .24);
+}
+
+.sidebar-is-collapsed .calendar-sidebar-edge-toggle {
+    right: -12px;
+}
+
+.sidebar-is-collapsed .calendar-sidebar-resizer {
+    display: none;
+}
+
+/* Let labels actually use the extra width when the sidebar is widened. */
+.calendar-source-row,
+.calendar-subsource-list label {
+    min-width: 0;
+}
+
+.calendar-source-row > span:last-child,
+.calendar-source-row > label,
+.calendar-source-row > strong,
+.calendar-subsource-list label > span:last-child {
+    min-width: 0;
+    overflow: visible;
+    white-space: nowrap;
+    text-overflow: clip;
+}
+
+.calendar-nested-group .calendar-subsource-list label {
+    grid-template-columns: 16px minmax(0, 1fr);
+}
+
+.calendar-nested-group .calendar-subsource-list label .source-swatch {
+    display: none;
+}
+
+/* Keep long class/teacher names on one line when there is room.
+   Only wrap when the sidebar is genuinely too narrow. */
+.calendar-nested-group .calendar-subsource-list label > span:last-child {
+    line-height: 1.25;
+    white-space: nowrap;
+}
+
+@media (max-width: 290px) {
+    .calendar-nested-group .calendar-subsource-list label > span:last-child {
+        white-space: normal;
+    }
+}
+
+
+/* =========================================================
+   Header / Sidebar Separation
+   The top header never collapses; only the sidebar below it does.
+   ========================================================= */
+
+:root {
+    --calendar-header-height: 70px;
+    --calendar-header-brand-width: 260px;
+    --sidebar-collapsed-width: 18px;
+}
+
+/* Parent is now just two stacked rows: fixed header + working area. */
+.calendar-app {
+    display: grid;
+    height: 100vh;
+    min-height: 0;
+    grid-template-columns: 1fr !important;
+    grid-template-rows: var(--calendar-header-height) minmax(0, 1fr);
+    overflow: hidden;
+}
+
+.calendar-header-row {
+    position: relative;
+    z-index: 45;
+    display: grid;
+    min-width: 0;
+    grid-template-columns: var(--calendar-header-brand-width) minmax(0, 1fr);
+    border-bottom: 1px solid var(--encore-border-strong);
+    background: #fff;
+}
+
+.calendar-header-row .calendar-brand {
+    min-height: var(--calendar-header-height);
+    height: var(--calendar-header-height);
+    border-right: 1px solid var(--encore-border-strong);
+    border-bottom: 0;
+}
+
+.calendar-header-row .calendar-topbar {
+    min-height: var(--calendar-header-height);
+    height: var(--calendar-header-height);
+    margin: 0;
+    padding: 0 22px;
+    border-bottom: 0;
+    background: rgba(255,255,255,.96);
+}
+
+/* Only this row changes width when the sidebar collapses/resizes. */
+.calendar-body-row {
+    display: grid;
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+    overflow: hidden;
+    transition: grid-template-columns .18s ease;
+}
+
+.calendar-body-row.sidebar-is-collapsed {
+    grid-template-columns: var(--sidebar-collapsed-width) minmax(0, 1fr);
+}
+
+.calendar-body-row .calendar-sidebar {
+    position: relative;
+    top: auto;
+    min-width: 0;
+    width: auto;
+    height: 100%;
+    overflow: visible;
+    border-right: 1px solid var(--encore-border-strong);
+}
+
+.calendar-body-row .calendar-sidebar-scroll {
+    height: calc(100% - 62px);
+}
+
+.calendar-body-row .calendar-main {
+    min-width: 0;
+    min-height: 0;
+    width: auto;
+    height: 100%;
+    padding: 0 18px 24px;
+    background:
+        linear-gradient(180deg, #F5F8FE 0, #F1F5FB 100%);
+}
+
+/* There is no topbar inside main anymore. */
+.calendar-body-row .calendar-surface {
+    height: calc(100% - 14px);
+    margin-top: 14px;
+}
+
+/* Full-height rail begins at the TOP OF THE SIDEBAR BODY,
+   which is directly under the fixed header. */
+.calendar-body-row .calendar-sidebar-edge-toggle {
+    top: 0;
+    height: 100%;
+}
+
+/* Collapse much farther than before. */
+.calendar-body-row.sidebar-is-collapsed .calendar-create-wrap,
+.calendar-body-row.sidebar-is-collapsed .calendar-sidebar-scroll,
+.calendar-body-row.sidebar-is-collapsed .calendar-sidebar-resizer {
+    display: none;
+}
+
+.calendar-body-row.sidebar-is-collapsed .calendar-sidebar {
+    border-right-color: #D8E1F0;
+    background: #fff;
+}
+
+.calendar-body-row.sidebar-is-collapsed .calendar-sidebar-edge-toggle {
+    right: -12px;
+}
+
+/* Old whole-app collapsed rules must not hide or resize the fixed header. */
+.calendar-app.sidebar-is-collapsed {
+    grid-template-columns: 1fr !important;
+}
+
+.calendar-app.sidebar-is-collapsed .calendar-brand-copy,
+.calendar-app.sidebar-is-collapsed .calendar-create-wrap,
+.calendar-app.sidebar-is-collapsed .calendar-sidebar-scroll,
+.calendar-app.sidebar-is-collapsed .calendar-sidebar-resizer {
+    display: revert;
+}
+
+/* Wider sidebar = labels can actually consume the extra room. */
+.calendar-body-row .calendar-subsource-list label,
+.calendar-body-row .calendar-source-row {
+    width: 100%;
+}
+
+.calendar-body-row .calendar-subsource-list label > span:last-child,
+.calendar-body-row .calendar-source-row > span:last-child,
+.calendar-body-row .calendar-source-row > label {
+    max-width: none;
+    white-space: nowrap;
+}
+
+/* On small screens keep the existing stacked/mobile behavior. */
+@media (max-width: 900px) {
+    .calendar-app {
+        height: auto;
+        min-height: 100vh;
+        overflow: visible;
+        grid-template-rows: auto auto;
+    }
+
+    .calendar-header-row {
+        grid-template-columns: 1fr;
+    }
+
+    .calendar-header-row .calendar-brand {
+        display: none;
+    }
+
+    .calendar-header-row .calendar-topbar {
+        min-height: 64px;
+        height: auto;
+    }
+
+    .calendar-body-row,
+    .calendar-body-row.sidebar-is-collapsed {
+        display: grid;
+        height: auto;
+        min-height: 0;
+        grid-template-columns: 1fr;
+        overflow: visible;
+    }
+
+    .calendar-body-row .calendar-sidebar {
+        height: auto;
+    }
+
+    .calendar-body-row .calendar-sidebar-scroll {
+        height: auto;
+        max-height: 320px;
+    }
+
+    .calendar-body-row .calendar-main {
+        height: auto;
+        min-height: 700px;
+        padding: 0 10px 18px;
+    }
+
+    .calendar-body-row .calendar-surface {
+        height: auto;
+        min-height: 680px;
+    }
+}
+
+
+/* =========================================================
+   Calendar Event Detail Card
+   ========================================================= */
+
+.calendar-detail-card {
+    width: min(405px, calc(100vw - 24px));
+    max-height: min(620px, calc(100vh - 24px));
+    overflow: auto;
+    padding: 0;
+    border: 1px solid color-mix(
+        in srgb,
+        var(--event-color, var(--encore-primary)) 24%,
+        #D8E1F0
+    );
+    border-radius: 15px;
+    background: #fff;
+    box-shadow:
+        0 24px 70px rgba(14, 24, 72, .22),
+        0 4px 16px rgba(14, 24, 72, .08);
+}
+
+.calendar-detail-card .calendar-popover-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: start;
+    padding: 14px 12px 13px 16px;
+    background:
+        linear-gradient(
+            135deg,
+            color-mix(
+                in srgb,
+                var(--event-color, var(--encore-primary)) 96%,
+                #fff
+            ),
+            var(--event-color, var(--encore-primary))
+        );
+    color: #fff;
+}
+
+.calendar-popover-kicker-row {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 6px;
+}
+
+.calendar-detail-card .calendar-popover-heading small {
+    overflow: hidden;
+    color: rgba(255,255,255,.92);
+    font-size: .54rem;
+    font-weight: 900;
+    letter-spacing: .055em;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.calendar-popover-badge {
+    flex: 0 0 auto;
+    margin-left: auto;
+    padding: 3px 6px;
+    border: 1px solid rgba(255,255,255,.34);
+    border-radius: 999px;
+    background: rgba(255,255,255,.16);
+    color: #fff;
+    font-size: .46rem;
+    font-weight: 900;
+    letter-spacing: .04em;
+}
+
+.calendar-detail-card .calendar-popover-heading h2 {
+    margin: 5px 0 2px;
+    color: #fff;
+    font-size: 1rem;
+    line-height: 1.18;
+}
+
+.calendar-popover-header-time {
+    margin: 0;
+    color: rgba(255,255,255,.88);
+    font-size: .58rem;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.calendar-detail-card .calendar-popover-actions {
+    flex: 0 0 auto;
+}
+
+.calendar-detail-card .calendar-popover-actions button {
+    width: 27px;
+    height: 27px;
+    color: rgba(255,255,255,.94);
+}
+
+.calendar-detail-card .calendar-popover-actions button:hover {
+    background: rgba(255,255,255,.18);
+    color: #fff;
+}
+
+.calendar-detail-card .calendar-popover-body {
+    display: block;
+    padding: 0;
+}
+
+.calendar-class-detail,
+.calendar-generic-detail {
+    padding: 14px 16px 16px;
+}
+
+.calendar-detail-status {
+    display: flex;
+    width: fit-content;
+    align-items: center;
+    gap: 5px;
+    margin: 0 auto 14px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: rgba(1, 151, 252, .09);
+    color: #087AAD;
+    font-size: .49rem;
+    font-weight: 900;
+    letter-spacing: .025em;
+    text-transform: uppercase;
+}
+
+.calendar-detail-status strong {
+    color: inherit;
+    font-size: inherit;
+}
+
+.calendar-detail-list {
+    display: grid;
+    gap: 7px;
+    margin: 0;
+}
+
+.calendar-detail-list > div {
+    display: grid;
+    grid-template-columns: minmax(90px, .72fr) minmax(0, 1.28fr);
+    gap: 12px;
+    align-items: baseline;
+}
+
+.calendar-detail-list dt {
+    color: var(--encore-text);
+    font-size: .6rem;
+    font-weight: 830;
+}
+
+.calendar-detail-list dd {
+    min-width: 0;
+    margin: 0;
+    color: #536078;
+    font-size: .6rem;
+    line-height: 1.35;
+    text-align: right;
+    overflow-wrap: anywhere;
+}
+
+.calendar-class-detail-link,
+.calendar-generic-detail .calendar-popover-link {
+    display: flex;
+    width: fit-content;
+    align-items: center;
+    justify-content: center;
+    margin: 14px auto 0;
+    color: var(--encore-blue);
+    font-size: .58rem;
+    font-weight: 900;
+    text-decoration: none;
+}
+
+.calendar-class-detail-link:hover,
+.calendar-generic-detail .calendar-popover-link:hover {
+    text-decoration: underline;
+}
+
+.calendar-class-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    margin-top: 15px;
+    padding: 14px 0 11px;
+    border-top: 1px solid #E3E9F3;
+    border-bottom: 1px solid #E3E9F3;
+}
+
+.calendar-class-stats > div {
+    display: grid;
+    gap: 2px;
+    place-items: center;
+    text-align: center;
+}
+
+.calendar-class-stats > div + div {
+    border-left: 1px solid #E3E9F3;
+}
+
+.calendar-class-stats strong {
+    color: var(--encore-deep);
+    font-size: 1.05rem;
+    line-height: 1;
+}
+
+.calendar-class-stats > div:nth-child(2) strong {
+    color: var(--encore-blue);
+}
+
+.calendar-class-stats span {
+    color: var(--encore-muted);
+    font-size: .51rem;
+    font-weight: 760;
+}
+
+.calendar-class-mini-stats {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    align-items: center;
+    padding-top: 10px;
+}
+
+.calendar-class-mini-stats span {
+    color: var(--encore-text);
+    font-size: .57rem;
+    font-weight: 820;
+}
+
+.calendar-class-mini-stats strong {
+    color: var(--encore-muted);
+    font-size: .58rem;
+}
+
+.calendar-generic-detail-list > div {
+    min-height: 26px;
+    align-items: start;
+    padding-bottom: 7px;
+    border-bottom: 1px solid #EEF2F8;
+}
+
+.calendar-detail-description {
+    display: grid;
+    gap: 5px;
+    margin-top: 12px;
+    padding: 11px 12px;
+    border: 1px solid #E2E9F5;
+    border-radius: 10px;
+    background: #F8FAFE;
+}
+
+.calendar-detail-description > span {
+    color: var(--encore-deep);
+    font-size: .52rem;
+    font-weight: 900;
+    letter-spacing: .035em;
+    text-transform: uppercase;
+}
+
+.calendar-detail-description p {
+    margin: 0;
+    color: #536078;
+    font-size: .6rem;
+    line-height: 1.5;
+}
+
+/* Keep event color visible without making the body noisy. */
+.calendar-detail-card .calendar-popover-dot {
+    position: static;
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    flex: 0 0 auto;
+    margin: 0;
+    border: 1px solid rgba(255,255,255,.9);
+    border-radius: 3px;
+    background: var(--event-color, var(--encore-primary));
+    box-shadow: none;
+}
+
+@media (max-width: 520px) {
+    .calendar-detail-card {
+        width: min(360px, calc(100vw - 18px));
+    }
+
+    .calendar-detail-list > div {
+        grid-template-columns: 1fr;
+        gap: 2px;
+    }
+
+    .calendar-detail-list dd {
+        text-align: left;
+    }
+}
+
+
+/* =========================================================
+   User-created Event Detail Expansion
+   ========================================================= */
+
+.calendar-generic-detail .calendar-detail-list {
+    gap: 0;
+}
+
+.calendar-generic-detail .calendar-detail-list > div {
+    min-height: 31px;
+    padding: 7px 0;
+}
+
+.calendar-generic-detail .calendar-detail-list > div:first-child {
+    padding-top: 0;
+}
+
+.calendar-generic-detail .calendar-detail-list dt {
+    color: var(--encore-deep);
+    font-weight: 850;
+}
+
+.calendar-generic-detail .calendar-detail-list dd {
+    color: #526078;
+}
+
+.calendar-detail-notes {
+    border-color: #E6DFCE;
+    background: #FFFDF7;
+}
+
+.calendar-detail-notes > span {
+    color: #866725;
+}
+
+.calendar-detail-card:has(.calendar-generic-detail:not([hidden])) {
+    width: min(420px, calc(100vw - 24px));
+}
+
+
+/* =========================================================
+   Calendar Contrast + Visual Separation Pass
+   ========================================================= */
+
+:root {
+    --calendar-page-bg: #EEF3FA;
+    --calendar-panel-bg: #FFFFFF;
+    --calendar-panel-border: #BFCDE4;
+    --calendar-grid-border: #C9D5E7;
+    --calendar-soft-border: #D6E0EE;
+    --calendar-rail-bg: #E7EDF8;
+    --calendar-rail-border: #AFC0DB;
+}
+
+/* Give the overall workspace a stronger base so white surfaces read as surfaces. */
+body {
+    background: var(--calendar-page-bg);
+}
+
+.calendar-main {
+    background:
+        linear-gradient(
+            180deg,
+            #EEF3FA 0%,
+            #E9EFF8 100%
+        ) !important;
+}
+
+/* Header should feel like a deliberate fixed surface. */
+.calendar-header-row {
+    border-bottom: 1px solid var(--calendar-panel-border);
+    background: #FFFFFF;
+    box-shadow: 0 2px 10px rgba(28, 47, 94, .05);
+}
+
+.calendar-header-row .calendar-brand {
+    border-right: 1px solid var(--calendar-panel-border);
+}
+
+.calendar-header-row .calendar-topbar {
+    background: #FFFFFF;
+}
+
+/* Sidebar gets a defined panel edge instead of fading into the page. */
+.calendar-sidebar {
+    border-right: 1px solid var(--calendar-panel-border) !important;
+    background: #FBFCFF;
+    box-shadow: 5px 0 18px rgba(28, 47, 94, .055);
+}
+
+.calendar-create-button {
+    border-color: #C4D1E6;
+    background: #FFFFFF;
+    box-shadow:
+        0 5px 16px rgba(27, 47, 96, .07),
+        0 0 0 1px rgba(255,255,255,.75) inset;
+}
+
+.calendar-group-row {
+    border-color: #CFDAEB;
+    background: #F6F9FE;
+}
+
+.calendar-group-row:hover {
+    border-color: #ABC0DF;
+    background: #EEF4FD;
+}
+
+/* Full sidebar edge rail should be easy to find but still subtle. */
+.calendar-sidebar-edge-toggle {
+    border-left: 1px solid var(--calendar-rail-border) !important;
+    border-right: 1px solid #C5D2E5 !important;
+    background: var(--calendar-rail-bg) !important;
+    color: #5A6A89 !important;
+    box-shadow:
+        2px 0 5px rgba(27, 46, 88, .05) inset,
+        1px 0 0 rgba(255,255,255,.7);
+}
+
+.calendar-sidebar-edge-toggle span {
+    border: 0 !important;
+    background: transparent !important;
+    color: #657595 !important;
+    box-shadow: none !important;
+}
+
+.calendar-sidebar-edge-toggle:hover {
+    border-left-color: #8FA7CC !important;
+    border-right-color: #AFC0DA !important;
+    background: #DCE6F4 !important;
+    color: var(--encore-primary) !important;
+    box-shadow:
+        3px 0 8px rgba(27, 46, 88, .07) inset,
+        1px 0 0 rgba(255,255,255,.75);
+}
+
+.calendar-sidebar-edge-toggle:hover span {
+    background: transparent !important;
+    color: var(--encore-primary) !important;
+}
+
+/* Keep the resize edge discoverable without competing with the collapse rail. */
+.calendar-sidebar-resizer::after {
+    background: rgba(130, 151, 187, .18);
+}
+
+.calendar-sidebar-resizer:hover::after,
+body.is-resizing-calendar-sidebar .calendar-sidebar-resizer::after {
+    background: rgba(46, 60, 241, .34);
+}
+
+/* Make the calendar itself read as the main card/surface. */
+.calendar-surface {
+    border: 1px solid var(--calendar-panel-border) !important;
+    background: var(--calendar-panel-bg);
+    box-shadow:
+        0 18px 38px rgba(28, 47, 94, .08),
+        0 2px 8px rgba(28, 47, 94, .04);
+}
+
+/* Toolbar separation */
+.fc .fc-header-toolbar {
+    margin: 0 !important;
+    padding: 14px 14px 13px;
+    border-bottom: 1px solid var(--calendar-soft-border);
+    background: #FBFCFF;
+}
+
+.fc .fc-toolbar-title {
+    color: var(--encore-deep);
+}
+
+.fc .fc-button {
+    border-color: #B9C8E0 !important;
+    background: #FFFFFF !important;
+    color: #233152 !important;
+    box-shadow: 0 2px 5px rgba(24, 44, 91, .045);
+}
+
+.fc .fc-button:hover {
+    border-color: #91A8CC !important;
+    background: #F2F6FC !important;
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active {
+    border-color: var(--encore-primary) !important;
+    background: var(--encore-primary) !important;
+    color: #FFFFFF !important;
+}
+
+/* Calendar grid contrast */
+.fc {
+    --fc-border-color: var(--calendar-grid-border) !important;
+    background: #FFFFFF;
+}
+
+.fc-theme-standard td,
+.fc-theme-standard th,
+.fc .fc-scrollgrid {
+    border-color: var(--calendar-grid-border) !important;
+}
+
+.fc .fc-col-header-cell {
+    background: #F3F6FB !important;
+}
+
+.fc .fc-col-header-cell-cushion {
+    color: #50607E;
+    font-weight: 850;
+}
+
+.fc .fc-daygrid-day,
+.fc .fc-timegrid-col {
+    background: #FFFFFF;
+}
+
+.fc .fc-day-other {
+    background: #F8FAFD;
+}
+
+.fc .fc-day-today {
+    background: #EEF2FF !important;
+}
+
+.fc .fc-daygrid-day-number {
+    color: #2C3957;
+    font-weight: 700;
+}
+
+.fc .fc-day-other .fc-daygrid-day-number {
+    color: #A4AEC0;
+}
+
+/* Slightly stronger event definition without getting heavy. */
+.fc-event:not(.encore-task-event) {
+    border: 1px solid rgba(30, 43, 86, .12) !important;
+    box-shadow: 0 2px 6px rgba(24, 40, 84, .08);
+}
+
+/* Stronger footer/action separations in sidebar. */
+.calendar-sidebar-actions {
+    border-top-color: var(--calendar-panel-border) !important;
+}
+
+.calendar-sidebar-actions button,
+.calendar-sidebar-actions a {
+    color: #586985;
+}
+
+.calendar-sidebar-actions button:hover,
+.calendar-sidebar-actions a:hover {
+    color: var(--encore-primary);
+}
+
+/* Collapsed rail still has a visible edge. */
+.calendar-body-row.sidebar-is-collapsed .calendar-sidebar {
+    border-right-color: var(--calendar-panel-border) !important;
+    background: #F9FBFE;
+}
+
+@media (max-width: 900px) {
+    .calendar-surface {
+        box-shadow: 0 8px 24px rgba(28, 47, 94, .07);
+    }
+}
+
+
+/* =========================================================
+   Calendar Event Click / Layering Fix
+   ========================================================= */
+
+/*
+Keep FullCalendar's event layer above the day-cell backgrounds.
+The contrast pass strengthened cell backgrounds, so make the event
+interaction layer explicit instead of relying on browser stacking.
+*/
+.fc .fc-daygrid-event-harness,
+.fc .fc-timegrid-event-harness,
+.fc .fc-list-event {
+    z-index: 5;
+    pointer-events: auto;
+}
+
+/*
+Do NOT force FullCalendar event harnesses to position:relative.
+FullCalendar uses absolute-positioned day-grid harnesses to span
+multi-day events across multiple columns. Overriding that positioning
+collapses each segment back into a single day cell.
+*/
+.fc .fc-daygrid-event-harness-abs {
+    position: absolute !important;
+}
+
+.fc .fc-event,
+.fc a.fc-event,
+.fc .fc-daygrid-event,
+.fc .fc-timegrid-event {
+    z-index: 6;
+    pointer-events: auto !important;
+    cursor: pointer;
+}
+
+/* Decorative/calendar backgrounds should never intercept event clicks. */
+.fc .fc-daygrid-day-bg,
+.fc .fc-timegrid-bg-harness,
+.fc .fc-bg-event {
+    pointer-events: none;
+}
+
+/* Ensure the detail card always renders above the calendar/header surfaces. */
+.calendar-popover,
+.calendar-detail-card {
+    z-index: 1000 !important;
+    pointer-events: auto;
+}
+
+/* =========================================================
+   Calendar season tree + category color controls
+   ========================================================= */
+
+.calendar-season-tree {
+    max-height: min(46vh, 470px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin: 2px 0 6px;
+    padding: 2px 4px 4px 0;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+}
+
+.calendar-season-group {
+    margin: 2px 0 5px 24px;
+}
+
+.calendar-season-group > summary {
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr);
+    align-items: center;
+    gap: 7px;
+    min-height: 31px;
+    padding: 4px 7px;
+    border-radius: 7px;
+    color: #33415f;
+    font-size: .61rem;
+    font-weight: 850;
+    list-style: none;
+    cursor: pointer;
+}
+
+.calendar-season-group > summary::-webkit-details-marker {
+    display: none;
+}
+
+.calendar-season-group > summary:hover {
+    background: var(--encore-soft);
+    color: var(--encore-deep);
+}
+
+.calendar-season-group > summary input {
+    width: 14px;
+    height: 14px;
+    margin: 0;
+    accent-color: var(--encore-primary);
+}
+
+.calendar-season-children {
+    position: relative;
+    margin-left: 8px;
+    padding-left: 2px;
+}
+
+.calendar-season-empty {
+    margin: 5px 8px 8px 31px;
+    color: var(--encore-muted);
+    font-size: .58rem;
+}
+
+.settings-category-list .settings-category-row {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 9px;
+    align-items: center;
+}
+
+.settings-category-row input[type="color"] {
+    width: 32px;
+    min-height: 28px;
+    height: 28px;
+    padding: 2px;
+    border: 1px solid var(--encore-border);
+    border-radius: 7px;
+    background: #fff;
+    cursor: pointer;
+}
+
+/* Absence records are attendance warnings, not ordinary past events. Keep
+   them fully visible even when the user dims normal past calendar events. */
+.fc-event.encore-absence-event {
+    border: 1px solid rgba(174, 52, 88, .42) !important;
+    background: #F3C6D3 !important;
+    color: #761F3A !important;
+    font-weight: 850;
+    opacity: 1 !important;
+}
+
+.fc-event.encore-absence-event.is-past-event {
+    opacity: 1 !important;
+}
+
+.calendar-season-group > summary {
+    grid-template-columns: 16px minmax(0, 1fr) auto;
+}
+
+.calendar-season-group > summary::after {
+    content: "›";
+    color: var(--encore-muted);
+    font-size: .76rem;
+    transition: transform .15s ease;
+}
+
+.calendar-season-group[open] > summary::after {
+    transform: rotate(90deg);
+}
+
+
+/* Student-based calendar navigation, shown to families only. */
+.family-calendar-heading label { font-weight: 850; }
+.family-student-tree { display: grid; gap: 8px; padding: 5px 0 9px; }
+.family-student-group { border: 1px solid #DEE6F4; border-radius: 12px; background: #FBFCFF; overflow: hidden; }
+.family-student-group > summary, .family-class-group > summary { display: flex; align-items: center; gap: 8px; cursor: pointer; list-style: none; }
+.family-student-group > summary { padding: 10px; font-size: .69rem; font-weight: 800; color: #121A57; }
+.family-student-group > summary::-webkit-details-marker, .family-class-group > summary::-webkit-details-marker { display: none; }
+.family-student-group > summary::after, .family-class-group > summary::after { content: '›'; margin-left: auto; color: #6174A9; font-size: 1rem; }
+.family-student-group[open] > summary::after, .family-class-group[open] > summary::after { transform: rotate(90deg); }
+.family-student-group summary input, .family-class-group summary input, .family-calendar-modes input { flex: 0 0 auto; width: 15px; height: 15px; accent-color: #3464E4; cursor: pointer; }
+.family-class-group { margin: 0 8px 8px 12px; background: white; border: 1px solid #E5EAF5; border-radius: 9px; }
+.family-class-group > summary { padding: 9px; font-size: .63rem; font-weight: 750; }
+.family-calendar-modes { padding: 0 8px 8px 26px; display: grid; gap: 5px; }
+.family-calendar-modes label { display: flex; gap: 7px; align-items: center; padding: 6px; border-radius: 7px; cursor: pointer; font-size: .62rem; }
+.family-calendar-modes label:hover { background: #EFF4FF; }
+.family-color-dot { width: 10px; height: 10px; border-radius: 3px; }
+.family-color-dot.is-enrolled { background: #2458D8; }
+.family-color-dot.is-makeup { background: #8950D2; }
+.fc-event.encore-makeup-event { background: #8950D2 !important; border-color: #8950D2 !important; color: white !important; font-weight: 800; opacity: 1; }

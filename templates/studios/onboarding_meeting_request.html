@@ -1,0 +1,157 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Request Onboarding Meeting | Encore{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}">
+{% endblock %}
+{% block topbar_title %}Onboarding Meeting{% endblock %}
+
+{% block content %}
+<div class="settings-workspace">
+    {% include "includes/settings_nav.html" %}
+
+    <main class="settings-workspace-content">
+        <section class="settings-heading onboarding-meeting-heading">
+            <div>
+                <a class="back-link" href="{% url 'studios:data_transfer_home' studio.slug %}">← Back to Data Import &amp; Export</a>
+                <p class="eyebrow">Encore Onboarding</p>
+                <h1>Request an Onboarding Meeting</h1>
+                <p>
+                    Tell us where you're coming from and what you want help moving.
+                    Encore will use these details to prepare for the meeting before we reach out.
+                </p>
+            </div>
+        </section>
+
+        {% if messages %}
+            <div class="message-stack">
+                {% for message in messages %}<div class="message-banner {{ message.tags }}">{{ message }}</div>{% endfor %}
+            </div>
+        {% endif %}
+
+        {% if submitted %}
+            <section class="settings-section-block onboarding-request-success">
+                <div class="onboarding-request-success-icon">✓</div>
+                <div>
+                    <span>Request Sent</span>
+                    <h2>We'll be in touch.</h2>
+                    <p>
+                        Your onboarding meeting request has been sent to Encore. We'll review your
+                        migration needs and contact you using the email address you provided.
+                    </p>
+                </div>
+                <a class="button primary" href="{% url 'studios:data_transfer_home' studio.slug %}">
+                    Return to Data Import &amp; Export
+                </a>
+            </section>
+        {% else %}
+            <div class="onboarding-meeting-layout">
+                <form method="post" class="settings-form onboarding-meeting-form">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="form-errors">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <section class="settings-panel">
+                        <div class="settings-form-grid">
+                            <div class="settings-field">
+                                {{ form.name.label_tag }}
+                                {{ form.name }}
+                                {% for error in form.name.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+                            </div>
+
+                            <div class="settings-field">
+                                {{ form.email.label_tag }}
+                                {{ form.email }}
+                                {% for error in form.email.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+                            </div>
+
+                            <div class="settings-field">
+                                {{ form.phone.label_tag }}
+                                {{ form.phone }}
+                                {% for error in form.phone.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+                            </div>
+
+                            <div class="settings-field">
+                                {{ form.current_platform.label_tag }}
+                                {{ form.current_platform }}
+                                {% for error in form.current_platform.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+                            </div>
+
+                            <div class="settings-field">
+                                {{ form.student_count.label_tag }}
+                                {{ form.student_count }}
+                                {% for error in form.student_count.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+                            </div>
+
+                            <div class="settings-field">
+                                {{ form.timezone.label_tag }}
+                                {{ form.timezone }}
+                                {% if form.timezone.help_text %}<small>{{ form.timezone.help_text }}</small>{% endif %}
+                                {% for error in form.timezone.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+                            </div>
+
+                            <div class="settings-field">
+                                {{ form.preferred_date.label_tag }}
+                                {{ form.preferred_date }}
+                                {% for error in form.preferred_date.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+                            </div>
+
+                            <div class="settings-field">
+                                {{ form.preferred_time.label_tag }}
+                                {{ form.preferred_time }}
+                                {% for error in form.preferred_time.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="settings-panel onboarding-help-panel">
+                        <div class="settings-field">
+                            <label>{{ form.migration_help.label }}</label>
+                            <div class="onboarding-checkbox-grid">
+                                {% for checkbox in form.migration_help %}
+                                    <label class="onboarding-checkbox-option">
+                                        {{ checkbox.tag }}
+                                        <span>{{ checkbox.choice_label }}</span>
+                                    </label>
+                                {% endfor %}
+                            </div>
+                            {% for error in form.migration_help.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+                        </div>
+
+                        <div class="settings-field onboarding-notes-field">
+                            {{ form.notes.label_tag }}
+                            {{ form.notes }}
+                            {% for error in form.notes.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+                        </div>
+                    </section>
+
+                    <div class="form-actions">
+                        <a class="button secondary" href="{% url 'studios:data_transfer_home' studio.slug %}">Cancel</a>
+                        <button class="button primary" type="submit">Send Meeting Request</button>
+                    </div>
+                </form>
+
+                <aside class="onboarding-meeting-expectations">
+                    <span>What happens next</span>
+                    <h2>We'll prepare before we meet.</h2>
+                    <p>
+                        The details you send help Encore understand your current platform,
+                        studio size, and migration priorities before the call.
+                    </p>
+                    <ol>
+                        <li>Encore reviews your request.</li>
+                        <li>We contact you to confirm a meeting time.</li>
+                        <li>We map out the safest onboarding path for your studio.</li>
+                    </ol>
+                    <small>
+                        You can keep using the manual CSV import tools while you're waiting.
+                    </small>
+                </aside>
+            </div>
+        {% endif %}
+    </main>
+</div>
+{% endblock %}

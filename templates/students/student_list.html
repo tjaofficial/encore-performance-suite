@@ -5,6 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/encore_people_manager.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_list_views.css' %}">
 {% endblock %}
 
 {% block topbar_title %}Student Manager{% endblock %}
@@ -29,6 +30,7 @@
 </section>
 
 <form method="get" class="people-filters">
+    <input type="hidden" name="page_size" value="{{ page_size }}">
     <div class="wide-filter">
         <label>Search</label>
         <input
@@ -84,11 +86,21 @@
         <table class="people-table">
             <thead>
                 <tr>
-                    <th>Student</th>
-                    <th>Age</th>
-                    <th>Family</th>
-                    <th>Classes</th>
-                    <th>Status</th>
+                    <th><a class="encore-sort-heading{% if sort_columns.student.active %} active{% endif %}" href="{{ sort_columns.student.url }}">
+<span>Student</span><span class="sort-indicator">{% if sort_columns.student.active %}{% if sort_columns.student.direction == "asc" %}↑{% else %}↓{% endif %}{% else %}↕{% endif %}</span>
+</a></th>
+                    <th><a class="encore-sort-heading{% if sort_columns.age.active %} active{% endif %}" href="{{ sort_columns.age.url }}">
+<span>Age</span><span class="sort-indicator">{% if sort_columns.age.active %}{% if sort_columns.age.direction == "asc" %}↑{% else %}↓{% endif %}{% else %}↕{% endif %}</span>
+</a></th>
+                    <th><a class="encore-sort-heading{% if sort_columns.family.active %} active{% endif %}" href="{{ sort_columns.family.url }}">
+<span>Family</span><span class="sort-indicator">{% if sort_columns.family.active %}{% if sort_columns.family.direction == "asc" %}↑{% else %}↓{% endif %}{% else %}↕{% endif %}</span>
+</a></th>
+                    <th><a class="encore-sort-heading{% if sort_columns.classes.active %} active{% endif %}" href="{{ sort_columns.classes.url }}">
+<span>Classes</span><span class="sort-indicator">{% if sort_columns.classes.active %}{% if sort_columns.classes.direction == "asc" %}↑{% else %}↓{% endif %}{% else %}↕{% endif %}</span>
+</a></th>
+                    <th><a class="encore-sort-heading{% if sort_columns.status.active %} active{% endif %}" href="{{ sort_columns.status.url }}">
+<span>Status</span><span class="sort-indicator">{% if sort_columns.status.active %}{% if sort_columns.status.direction == "asc" %}↑{% else %}↓{% endif %}{% else %}↕{% endif %}</span>
+</a></th>
                     <th></th>
                 </tr>
             </thead>
@@ -171,4 +183,6 @@
         </table>
     </div>
 </section>
+
+{% include "includes/list_pagination.html" with pagination_label="Student pages" %}
 {% endblock %}

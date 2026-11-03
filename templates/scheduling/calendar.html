@@ -11,6 +11,12 @@
     <title>{{ studio.name }} Calendar | Encore Performance Suite</title>
 
     <link
+        rel="icon"
+        type="image/png"
+        href="{% static 'images/icon.png' %}"
+    >
+
+    <link
         rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/index.global.min.css"
     >
@@ -35,17 +41,76 @@
     {{ preference.source_visibility|json_script:"calendar-source-visibility" }}
 
     <div class="calendar-app">
-        <aside class="calendar-sidebar">
+        <div class="calendar-header-row">
             <div class="calendar-brand">
                 <span class="calendar-brand-mark">E</span>
 
-                <div>
+                <div class="calendar-brand-copy">
                     <strong>Encore Calendar</strong>
                     <small>{{ studio.name }}</small>
                 </div>
             </div>
 
-            {% if can_create_main or can_create_personal %}
+            
+
+            <header class="calendar-topbar">
+                <div>
+                    <p class="eyebrow">Calendar</p>
+                    <h1>{{ studio.name }}</h1>
+                </div>
+
+                <div class="calendar-topbar-actions">
+                    {% if role == "administrator" %}
+                        <a
+                            class="calendar-dashboard-link"
+                            href="{% url 'dashboard:admin_dashboard' studio.slug %}"
+                        >
+                            ← Dashboard
+                        </a>
+                    {% elif role == "teacher" %}
+                        <a
+                            class="calendar-dashboard-link"
+                            href="{% url 'dashboard:teacher_dashboard' studio.slug %}"
+                        >
+                            ← Dashboard
+                        </a>
+                    {% elif role == "family" %}
+                        <a
+                            class="calendar-dashboard-link"
+                            href="{% url 'dashboard:family_dashboard' studio.slug %}"
+                        >
+                            ← Dashboard
+                        </a>
+                    {% elif role == "student" %}
+                        <a
+                            class="calendar-dashboard-link"
+                            href="{% url 'dashboard:student_dashboard' studio.slug %}"
+                        >
+                            ← Dashboard
+                        </a>
+                    {% endif %}
+
+                    <div class="calendar-role-pill">
+                        {{ role|title }} View
+                    </div>
+                </div>
+            </header>
+
+            
+        </div>
+
+        <div class="calendar-body-row" data-calendar-body>
+            <aside class="calendar-sidebar" data-calendar-sidebar>
+            <button
+                type="button"
+                class="calendar-sidebar-edge-toggle"
+                data-sidebar-collapse
+                aria-label="Collapse calendar sidebar"
+                title="Collapse sidebar"
+            >
+                <span aria-hidden="true">‹</span>
+            </button>
+{% if can_create_main or can_create_personal %}
                 <div class="calendar-create-wrap">
                     <button
                         type="button"
@@ -93,21 +158,31 @@
                         <strong>My Calendars</strong>
                     </div>
 
-                    <label class="calendar-source-row">
+                    <div class="calendar-source-row calendar-group-row">
                         <input
+                            id="calendar-main-events"
                             type="checkbox"
                             data-source-toggle="main"
+                            data-group-parent="main"
                             checked
                         >
                         <span
                             class="source-swatch"
                             style="--swatch:#2E3CF1"
                         ></span>
-                        <span>Main Events</span>
-                    </label>
+                        <label for="calendar-main-events">Main Events</label>
+                        <button
+                            type="button"
+                            class="calendar-group-toggle"
+                            data-group-toggle="main"
+                            aria-expanded="true"
+                            title="Collapse Main Events"
+                        >⌄</button>
+                    </div>
 
                     <div
                         class="calendar-subsource-list"
+                        data-source-group="main"
                         data-main-category-list
                     >
                         {% for category in main_categories %}
@@ -115,6 +190,7 @@
                                 <input
                                     type="checkbox"
                                     data-category-toggle="{{ category.id }}"
+                                    data-group-child="main"
                                     checked
                                 >
                                 <span
@@ -127,21 +203,31 @@
                     </div>
 
                     {% if can_create_personal %}
-                        <label class="calendar-source-row">
+                        <div class="calendar-source-row calendar-group-row">
                             <input
+                                id="calendar-personal-events"
                                 type="checkbox"
                                 data-source-toggle="personal"
+                                data-group-parent="personal"
                                 checked
                             >
                             <span
                                 class="source-swatch"
                                 style="--swatch:#0197FC"
                             ></span>
-                            <span>My Personal Calendar</span>
-                        </label>
+                            <label for="calendar-personal-events">My Personal Calendar</label>
+                            <button
+                                type="button"
+                                class="calendar-group-toggle"
+                                data-group-toggle="personal"
+                                aria-expanded="true"
+                                title="Collapse My Personal Calendar"
+                            >⌄</button>
+                        </div>
 
                         <div
                             class="calendar-subsource-list"
+                            data-source-group="personal"
                             data-personal-category-list
                         >
                             {% for category in personal_categories %}
@@ -161,56 +247,125 @@
                         </div>
                     {% endif %}
 
-                    <label class="calendar-source-row">
+                    {% if role == "family" %}
+                    <div class="calendar-source-row calendar-group-row family-calendar-heading">
+                        <input type="checkbox" id="calendar-classes" data-source-toggle="classes" data-family-all checked>
+                        <span class="source-swatch" style="--swatch:#2458D8"></span>
+                        <label for="calendar-classes">My Students</label>
+                    </div>
+                    <div class="family-student-tree" data-family-tree>
+                    {% for group in family_calendar_students %}
+                        <details class="family-student-group" open>
+                            <summary>
+                                <input type="checkbox" data-family-student="{{ group.student.id }}" checked aria-label="Show all classes for {{ group.student.first_name }}">
+                                <span>{{ group.student.first_name }} {{ group.student.last_name }}</span>
+                            </summary>
+                            {% for class_instance in group.classes %}
+                                <details class="family-class-group" open>
+                                    <summary>
+                                        <input type="checkbox" data-family-class="{{ group.student.id }}:{{ class_instance.id }}" checked aria-label="Show {{ class_instance.name }}">
+                                        <span>{{ class_instance.name }}</span>
+                                    </summary>
+                                    <div class="family-calendar-modes">
+                                        <label><input type="checkbox" data-family-leaf="{{ group.student.id }}:{{ class_instance.id }}" data-family-mode="regular" checked><span class="family-color-dot is-enrolled"></span>Enrolled</label>
+                                        <label><input type="checkbox" data-family-leaf="{{ group.student.id }}:{{ class_instance.id }}" data-family-mode="makeup" checked><span class="family-color-dot is-makeup"></span>Make-Up</label>
+                                    </div>
+                                </details>
+                            {% empty %}
+                                <p class="calendar-season-empty">No active class enrollments.</p>
+                            {% endfor %}
+                        </details>
+                    {% empty %}
+                        <p class="calendar-season-empty">No students linked to this family.</p>
+                    {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="calendar-source-row calendar-group-row">
                         <input
+                            id="calendar-classes"
                             type="checkbox"
                             data-source-toggle="classes"
+                            data-group-parent="classes"
                             checked
                         >
                         <span
                             class="source-swatch"
                             style="--swatch:#0E169D"
                         ></span>
-                        <span>Classes</span>
-                    </label>
+                        <label for="calendar-classes">Classes</label>
+                        <button
+                            type="button"
+                            class="calendar-group-toggle"
+                            data-group-toggle="classes"
+                            aria-expanded="true"
+                            title="Collapse Classes"
+                        >⌄</button>
+                    </div>
 
-                    <details class="calendar-nested-group">
-                        <summary>By Class</summary>
-
-                        <div class="calendar-subsource-list">
-                            {% for class_instance in visible_classes %}
-                                <label>
+                    <div class="calendar-filter-group calendar-season-tree" data-source-group="classes">
+                        {% for group in calendar_seasons %}
+                            <details class="calendar-season-group" open>
+                                <summary>
                                     <input
                                         type="checkbox"
-                                        data-class-toggle="{{ class_instance.id }}"
+                                        data-season-toggle="{{ group.season.id }}"
+                                        data-group-child="classes"
                                         checked
+                                        aria-label="Show {{ group.season.name }}"
                                     >
-                                    <span>{{ class_instance.name }}</span>
-                                </label>
-                            {% endfor %}
-                        </div>
-                    </details>
+                                    <span>{{ group.season.name }}</span>
+                                </summary>
 
-                    {% if role == "administrator" and instructors %}
-                        <details class="calendar-nested-group">
-                            <summary>By Teacher</summary>
+                                <div class="calendar-season-children">
+                                    <details class="calendar-nested-group">
+                                        <summary>By Class</summary>
 
-                            <div class="calendar-subsource-list">
-                                {% for instructor in instructors %}
-                                    <label>
-                                        <input
-                                            type="checkbox"
-                                            data-instructor-toggle="{{ instructor.id }}"
-                                            checked
-                                        >
-                                        <span>
-                                            {{ instructor.first_name }}
-                                            {{ instructor.last_name }}
-                                        </span>
-                                    </label>
-                                {% endfor %}
-                            </div>
-                        </details>
+                                        <div class="calendar-subsource-list">
+                                            {% for class_instance in group.classes %}
+                                                <label>
+                                                    <input
+                                                        type="checkbox"
+                                                        data-class-toggle="{{ class_instance.id }}"
+                                                        data-season-id="{{ group.season.id }}"
+                                                        data-group-child="classes"
+                                                        checked
+                                                    >
+                                                    <span>{{ class_instance.name }}</span>
+                                                </label>
+                                            {% endfor %}
+                                        </div>
+                                    </details>
+
+                                    {% if role == "administrator" and group.instructors %}
+                                        <details class="calendar-nested-group">
+                                            <summary>By Teacher</summary>
+
+                                            <div class="calendar-subsource-list">
+                                                {% for instructor in group.instructors %}
+                                                    <label>
+                                                        <input
+                                                            type="checkbox"
+                                                            data-instructor-toggle="{{ instructor.id }}"
+                                                            data-season-id="{{ group.season.id }}"
+                                                            data-group-child="classes"
+                                                            checked
+                                                        >
+                                                        <span>
+                                                            {{ instructor.first_name }}
+                                                            {{ instructor.last_name }}
+                                                        </span>
+                                                    </label>
+                                                {% endfor %}
+                                            </div>
+                                        </details>
+                                    {% endif %}
+                                </div>
+                            </details>
+                        {% empty %}
+                            <p class="calendar-season-empty">No class seasons are available.</p>
+                        {% endfor %}
+                    </div>
+
                     {% endif %}
 
                     <label class="calendar-source-row">
@@ -240,20 +395,33 @@
                             <span>Absences</span>
                         </label>
 
-                        <div class="calendar-source-row calendar-source-parent">
-                            <span></span>
+                        <div class="calendar-source-row calendar-source-parent calendar-group-row">
+                            <input
+                                id="calendar-time-off"
+                                type="checkbox"
+                                data-group-parent="time_off"
+                                checked
+                            >
                             <span
                                 class="source-swatch"
                                 style="--swatch:#169C90"
                             ></span>
-                            <strong>Teacher Time Off</strong>
+                            <label for="calendar-time-off">Teacher Time Off</label>
+                            <button
+                                type="button"
+                                class="calendar-group-toggle"
+                                data-group-toggle="time_off"
+                                aria-expanded="true"
+                                title="Collapse Teacher Time Off"
+                            >⌄</button>
                         </div>
 
-                        <div class="calendar-subsource-list">
+                        <div class="calendar-subsource-list" data-source-group="time_off">
                             <label>
                                 <input
                                     type="checkbox"
                                     data-source-toggle="time_off_requested"
+                                    data-group-child="time_off"
                                     checked
                                 >
                                 <span
@@ -267,6 +435,7 @@
                                 <input
                                     type="checkbox"
                                     data-source-toggle="time_off_approved"
+                                    data-group-child="time_off"
                                     checked
                                 >
                                 <span
@@ -320,123 +489,212 @@
                     </button>
                 </section>
             </div>
+
+            <div
+                class="calendar-sidebar-resizer"
+                data-sidebar-resizer
+                role="separator"
+                aria-orientation="vertical"
+                aria-label="Resize calendar sidebar"
+                title="Drag to resize sidebar"
+            ></div>
         </aside>
 
         <main class="calendar-main">
-            <header class="calendar-topbar">
-                <div>
-                    <p class="eyebrow">Calendar</p>
-                    <h1>{{ studio.name }}</h1>
-                </div>
-
-                <div class="calendar-topbar-actions">
-                    {% if role == "administrator" %}
-                        <a
-                            class="calendar-dashboard-link"
-                            href="{% url 'dashboard:admin_dashboard' studio.slug %}"
-                        >
-                            ← Dashboard
-                        </a>
-                    {% elif role == "teacher" %}
-                        <a
-                            class="calendar-dashboard-link"
-                            href="{% url 'dashboard:teacher_dashboard' studio.slug %}"
-                        >
-                            ← Dashboard
-                        </a>
-                    {% elif role == "family" %}
-                        <a
-                            class="calendar-dashboard-link"
-                            href="{% url 'dashboard:family_dashboard' studio.slug %}"
-                        >
-                            ← Dashboard
-                        </a>
-                    {% elif role == "student" %}
-                        <a
-                            class="calendar-dashboard-link"
-                            href="{% url 'dashboard:student_dashboard' studio.slug %}"
-                        >
-                            ← Dashboard
-                        </a>
-                    {% endif %}
-
-                    <div class="calendar-role-pill">
-                        {{ role|title }} View
-                    </div>
-                </div>
-            </header>
-
-            <section class="calendar-surface">
+<section class="calendar-surface">
                 <div id="encore-calendar"></div>
             </section>
         </main>
+        </div>
     </div>
 
     <div
-        class="calendar-popover"
+        class="calendar-popover calendar-detail-card"
         data-event-popover
         hidden
     >
-        <div class="calendar-popover-actions">
-            <button
-                type="button"
-                title="Edit"
-                data-popover-edit
-                hidden
-            >
-                ✎
-            </button>
+        <div class="calendar-popover-header">
+            <div class="calendar-popover-heading">
+                <div class="calendar-popover-kicker-row">
+                    <span class="calendar-popover-dot" data-popover-dot></span>
+                    <small data-popover-type></small>
+                    <span class="calendar-popover-badge" data-popover-badge></span>
+                </div>
+                <h2 data-popover-title></h2>
+                <p class="calendar-popover-header-time" data-popover-header-time></p>
+            </div>
 
-            <button
-                type="button"
-                title="Delete"
-                data-popover-delete
-                hidden
-                aria-label="Delete event"
-            >
-                <svg
-                    viewBox="0 0 24 24"
-                    width="16"
-                    height="16"
-                    aria-hidden="true"
-                    focusable="false"
+            <div class="calendar-popover-actions">
+                <button
+                    type="button"
+                    title="Edit"
+                    data-popover-edit
+                    hidden
+                    aria-label="Edit event"
                 >
-                    <path
-                        d="M9 3h6l1 2h4v2H4V5h4l1-2Zm-2 6h10l-1 11H8L7 9Zm3 2v7h2v-7h-2Zm4 0v7h2v-7h-2Z"
-                        fill="currentColor"
-                    />
-                </svg>
-            </button>
+                    ✎
+                </button>
 
-            <button
-                type="button"
-                data-popover-close
-                aria-label="Close"
-            >
-                ×
-            </button>
+                <button
+                    type="button"
+                    title="Delete"
+                    data-popover-delete
+                    hidden
+                    aria-label="Delete event"
+                >
+                    <svg
+                        viewBox="0 0 24 24"
+                        width="16"
+                        height="16"
+                        aria-hidden="true"
+                        focusable="false"
+                    >
+                        <path
+                            d="M9 3h6l1 2h4v2H4V5h4l1-2Zm-2 6h10l-1 11H8L7 9Zm3 2v7h2v-7h-2Zm4 0v7h2v-7h-2Z"
+                            fill="currentColor"
+                        />
+                    </svg>
+                </button>
+
+                <button
+                    type="button"
+                    data-popover-close
+                    aria-label="Close"
+                    title="Close"
+                >
+                    ×
+                </button>
+            </div>
         </div>
 
-        <span
-            class="calendar-popover-dot"
-            data-popover-dot
-        ></span>
+        <div class="calendar-popover-body">
+            <div class="calendar-class-detail" data-class-popover hidden>
+                <div class="calendar-detail-status" data-class-status-row>
+                    <span>STATUS:</span>
+                    <strong data-class-status>Active</strong>
+                </div>
 
-        <div class="calendar-popover-copy">
-            <small data-popover-type></small>
-            <h2 data-popover-title></h2>
-            <p data-popover-time></p>
-            <p data-popover-location hidden></p>
-            <p data-popover-description hidden></p>
+                <dl class="calendar-detail-list">
+                    <div data-class-code-row>
+                        <dt>Class ID</dt>
+                        <dd data-class-code></dd>
+                    </div>
+                    <div data-class-type-row>
+                        <dt>Class Type</dt>
+                        <dd data-class-type></dd>
+                    </div>
+                    <div data-class-season-row>
+                        <dt>Season</dt>
+                        <dd data-class-season></dd>
+                    </div>
+                    <div data-class-location-row>
+                        <dt>Location</dt>
+                        <dd data-class-location></dd>
+                    </div>
+                    <div data-class-room-row>
+                        <dt>Room</dt>
+                        <dd data-class-room></dd>
+                    </div>
+                    <div data-class-fee-row>
+                        <dt>Tuition</dt>
+                        <dd data-class-fee></dd>
+                    </div>
+                    <div data-class-instructor-row>
+                        <dt>Instructor</dt>
+                        <dd data-class-instructor></dd>
+                    </div>
+                </dl>
 
-            <a
-                href="#"
-                class="calendar-popover-link"
-                data-popover-detail-link
-                hidden
-            >
-                Open →
-            </a>
+                <div
+                    class="calendar-detail-description"
+                    data-class-dress-code-wrap
+                    hidden
+                >
+                    <span>Dress Code</span>
+                    <p data-class-dress-code></p>
+                </div>
+
+                <a
+                    href="#"
+                    class="calendar-popover-link calendar-class-detail-link"
+                    data-popover-detail-link
+                    hidden
+                >
+                    More Details →
+                </a>
+
+                <div class="calendar-class-stats" data-class-stats>
+                    <div>
+                        <strong data-class-openings>—</strong>
+                        <span>Openings</span>
+                    </div>
+                    <div>
+                        <strong data-class-current-size>—</strong>
+                        <span>Current Size</span>
+                    </div>
+                    <div>
+                        <strong data-class-capacity>—</strong>
+                        <span>Max Size</span>
+                    </div>
+                </div>
+
+                <div class="calendar-class-mini-stats">
+                    <span>Waitlist</span>
+                    <strong data-class-waitlist>0</strong>
+                </div>
+            </div>
+
+            <div class="calendar-generic-detail" data-generic-popover>
+                <dl class="calendar-detail-list calendar-generic-detail-list">
+                    <div data-generic-event-type-row>
+                        <dt>Event Type</dt>
+                        <dd data-generic-event-type></dd>
+                    </div>
+                    <div data-generic-category-row>
+                        <dt>Category</dt>
+                        <dd data-generic-category></dd>
+                    </div>
+                    <div data-generic-start-row>
+                        <dt>Starts</dt>
+                        <dd data-generic-start></dd>
+                    </div>
+                    <div data-generic-end-row>
+                        <dt>Ends</dt>
+                        <dd data-generic-end></dd>
+                    </div>
+                    <div data-generic-all-day-row>
+                        <dt>All Day</dt>
+                        <dd data-generic-all-day></dd>
+                    </div>
+                    <div data-generic-repeats-row>
+                        <dt>Repeats</dt>
+                        <dd data-generic-repeats></dd>
+                    </div>
+                    <div data-generic-location-row hidden>
+                        <dt>Location</dt>
+                        <dd data-popover-location></dd>
+                    </div>
+                </dl>
+
+                <div class="calendar-detail-description" data-generic-description-wrap hidden>
+                    <span>Description</span>
+                    <p data-popover-description></p>
+                </div>
+
+                <div class="calendar-detail-description calendar-detail-notes" data-generic-notes-wrap hidden>
+                    <span>Notes</span>
+                    <p data-generic-notes></p>
+                </div>
+
+                <a
+                    href="#"
+                    class="calendar-popover-link"
+                    data-generic-detail-link
+                    hidden
+                >
+                    More Details →
+                </a>
+            </div>
         </div>
     </div>
 
@@ -545,6 +803,11 @@
                         </select>
                     </label>
                 </div>
+
+                <label class="calendar-all-day-date" data-all-day-date-row hidden>
+                    <span>Event Date</span>
+                    <input type="date" name="event_date" data-all-day-event-date>
+                </label>
 
                 <div class="calendar-editor-row date-row">
                     <label>
@@ -873,11 +1136,14 @@
                         >
                             {% if role == "administrator" %}
                                 {% for category in main_categories %}
-                                    <div>
-                                        <span
-                                            class="source-swatch"
-                                            style="--swatch:{{ category.color }}"
-                                        ></span>
+                                    <div class="settings-category-row" data-settings-category-id="{{ category.id }}">
+                                        <input
+                                            type="color"
+                                            name="category_color_{{ category.id }}"
+                                            value="{{ category.color }}"
+                                            data-category-color-id="{{ category.id }}"
+                                            aria-label="Color for {{ category.name }}"
+                                        >
                                         <span>
                                             {{ category.name }}
                                             <small>Main</small>
@@ -966,5 +1232,48 @@
         src="{% static 'js/encore_calendar.js' %}"
         defer
     ></script>
+    <script defer>
+      document.addEventListener('DOMContentLoaded', () => {
+        const form = document.querySelector('[data-calendar-event-form]');
+        if (!form) return;
+        const allDay = form.querySelector('[name="all_day"]');
+        const eventDate = form.querySelector('[data-all-day-event-date]');
+        const dateRow = form.querySelector('[data-all-day-date-row]');
+        const timedRow = form.querySelector('.date-row');
+        const start = form.querySelector('[name="start_at"]');
+        const end = form.querySelector('[name="end_at"]');
+        if (!allDay || !eventDate || !dateRow || !timedRow || !start || !end) return;
+
+        function updateAllDay() {
+          const checked = allDay.checked;
+          dateRow.hidden = !checked;
+          timedRow.hidden = checked;
+          if (checked && !eventDate.value) {
+            eventDate.value = (start.value || '').slice(0, 10) || new Date().toLocaleDateString('en-CA');
+          }
+          eventDate.required = checked;
+          start.required = !checked;
+          end.required = !checked;
+        }
+        allDay.addEventListener('change', updateAllDay);
+        // Sync when the existing editor opens an event for editing or resets a form.
+        form.addEventListener('reset', () => requestAnimationFrame(updateAllDay));
+        form.addEventListener('submit', () => {
+          if (allDay.checked && eventDate.value) {
+            start.value = eventDate.value + 'T00:00';
+            end.value = eventDate.value + 'T23:59';
+          }
+        }, true);
+        // Existing calendar JS loads event values dynamically into this modal.
+        const observer = new MutationObserver(updateAllDay);
+        observer.observe(form, {attributes:true, attributeFilter:['style', 'class']});
+        updateAllDay();
+      });
+    </script>
+    <style>
+      .calendar-all-day-date[hidden], .calendar-editor-row.date-row[hidden] { display: none !important; }
+      .calendar-all-day-date { display: flex; flex-direction: column; gap: 8px; }
+      .calendar-all-day-date input { width: 100%; }
+    </style>
 </body>
 </html>

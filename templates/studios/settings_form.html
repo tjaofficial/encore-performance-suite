@@ -30,8 +30,34 @@
             <section class="settings-panel">
                 <div class="settings-form-grid">
                     {% for field in form %}
-                    <div class="settings-field">
-                        {% if field.field.widget.input_type == "checkbox" %}
+                    <div class="settings-field{% if settings_section == 'branding' and field.name == 'logo' %} settings-logo-field{% endif %}">
+                        {% if settings_section == 'branding' and field.name == 'logo' %}
+                        <label for="{{ field.id_for_label }}">Studio Logo</label>
+                        <div class="settings-logo-preview">
+                            <div class="settings-logo-stage" id="studio-logo-stage-preview">
+                                <img id="studio-logo-live-preview" src="{% if studio.settings.logo %}{{ studio.settings.logo.url }}{% else %}{% static 'images/logo.png' %}{% endif %}" alt="Sidebar logo preview">
+                            </div>
+                            <div class="settings-logo-copy"><strong>Workspace sidebar preview</strong><span>Your logo appears in Admin, Teacher, and Parent sidebars. Without one, Encore’s logo is shown.</span><span>Recommended: transparent PNG or WebP. The image will retain its proportions.</span></div>
+                        </div>
+                        <div class="settings-logo-controls">
+                            {% if studio.settings.logo %}
+                            <div class="settings-logo-current-row">
+                                <div class="settings-logo-current-file">
+                                    <span class="settings-logo-control-title">Current logo</span>
+                                    <a href="{{ studio.settings.logo.url }}" target="_blank" rel="noopener noreferrer">View uploaded logo</a>
+                                </div>
+                                <label class="settings-logo-clear" for="logo-clear_id">
+                                    <input type="checkbox" name="logo-clear" id="logo-clear_id">
+                                    <span>Remove current logo</span>
+                                </label>
+                            </div>
+                            {% endif %}
+                            <div class="settings-logo-upload-row">
+                                <label class="settings-logo-control-title" for="{{ field.id_for_label }}">{% if studio.settings.logo %}Replace logo{% else %}Upload logo{% endif %}</label>
+                                <input type="file" name="{{ field.html_name }}" id="{{ field.id_for_label }}" accept="image/*" {% if field.field.required %}required{% endif %}>
+                            </div>
+                        </div>
+                        {% elif field.field.widget.input_type == "checkbox" %}
                         <label class="checkbox-line">{{ field }}<span>{{ field.label }}</span></label>
                         {% else %}
                         {{ field.label_tag }}{{ field }}
@@ -53,6 +79,28 @@
                 <button class="button primary" type="submit">Save</button>
             </div>
         </form>
+        {% if settings_section == 'branding' %}
+        <script>
+        (() => {
+            const file = document.getElementById('id_logo');
+            const preview = document.getElementById('studio-logo-live-preview');
+            if (!file || !preview) return;
+            const bgColor = document.getElementById('id_parent_logo_header_color');
+            const stage = document.getElementById('studio-logo-stage-preview');
+            const updateBackground = () => { if (stage && bgColor) stage.style.backgroundColor = bgColor.value; };
+            if (bgColor) { bgColor.addEventListener('input', updateBackground); updateBackground(); }
+            let objectUrl = null;
+            file.addEventListener('change', () => {
+                if (objectUrl) URL.revokeObjectURL(objectUrl);
+                objectUrl = null;
+                const image = file.files && file.files[0];
+                if (!image || !image.type.startsWith('image/')) return;
+                objectUrl = URL.createObjectURL(image);
+                preview.src = objectUrl;
+            });
+        })();
+        </script>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

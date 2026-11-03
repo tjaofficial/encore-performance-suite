@@ -18,6 +18,12 @@ from families.models import Guardian
 from instructors.models import Instructor
 from studios.models import StudioMembership
 
+from communications.models import WorkspaceNotification
+from communications.notification_services import (
+    create_workspace_notification,
+    notification_enabled,
+)
+
 from .models import (
     Task,
     TaskAssignment,
@@ -303,6 +309,11 @@ def notify_task_assignment(
     if (
         not user
         or not task.notify_assignees
+        or not notification_enabled(
+            user,
+            task.studio,
+            "task_assigned",
+        )
     ):
         return
 
@@ -409,7 +420,18 @@ def synchronize_task_assignments(
     selected_teachers=None,
     selected_students=None,
     template_batch=False,
+    is_update=False,
 ):
+    previous_user_ids = set(
+        task.assignments.filter(
+            recipient_type=TaskAssignment.RecipientType.USER,
+            user__isnull=False,
+        ).values_list(
+            "user_id",
+            flat=True,
+        )
+    )
+
     task.assignments.all().delete()
 
     selected_teachers = list(
@@ -437,6 +459,7 @@ def synchronize_task_assignments(
             task,
             creator,
             template_batch=template_batch,
+            notify=not is_update,
         )
 
     elif audience == Task.AudienceType.ADMIN:
@@ -444,39 +467,24 @@ def synchronize_task_assignments(
             Task.ContextType.ADMIN
         )
 
-        if role == StudioMembership.Role.TEACHER:
-            task.approval_status = (
-                Task.ApprovalStatus.PENDING
-            )
-            task.approval_requested_at = (
-                timezone.now()
+        if role != StudioMembership.Role.ADMINISTRATOR:
+            raise ValueError(
+                "Only an administrator can assign a task to administrators."
             )
 
-            for admin in _admin_users(
-                task.studio
-            ):
-                TaskNotification.objects.create(
-                    studio=task.studio,
-                    user=admin,
-                    task=task,
-                    kind=TaskNotification.Kind.APPROVAL,
-                    title="Task Approval Requested",
-                    message=task.title,
-                )
+        task.approval_status = (
+            Task.ApprovalStatus.APPROVED
+        )
 
-        else:
-            task.approval_status = (
-                Task.ApprovalStatus.APPROVED
-            )
-
-            for admin in _admin_users(
-                task.studio
-            ):
-                _create_user_assignment(
-                    task,
-                    admin,
-                    template_batch=template_batch,
-                )
+        # Admin-created Admin tasks are intentionally personal by default:
+        # "Admin" means the administrator creating the task, not every admin
+        # in the studio. This matches the UI rule that an admin selects Myself.
+        _create_user_assignment(
+            task,
+            creator,
+            template_batch=template_batch,
+            notify=not is_update,
+        )
 
     elif audience == Task.AudienceType.SELECTED_TEACHERS:
         for user in selected_teachers:
@@ -484,6 +492,7 @@ def synchronize_task_assignments(
                 task,
                 user,
                 template_batch=template_batch,
+                notify=not is_update,
             )
 
     elif audience == Task.AudienceType.ALL_TEACHERS:
@@ -494,6 +503,7 @@ def synchronize_task_assignments(
                 task,
                 user,
                 template_batch=template_batch,
+                notify=not is_update,
             )
 
     elif audience == Task.AudienceType.CLASS_STAFF:
@@ -505,6 +515,7 @@ def synchronize_task_assignments(
                     task,
                     user,
                     template_batch=template_batch,
+                    notify=not is_update,
                 )
 
     elif audience == Task.AudienceType.SELECTED_STUDENTS:
@@ -513,6 +524,7 @@ def synchronize_task_assignments(
                 task,
                 student,
                 template_batch=template_batch,
+                notify=not is_update,
             )
 
     elif audience == Task.AudienceType.RELATED_STUDENT:
@@ -528,6 +540,7 @@ def synchronize_task_assignments(
                 task,
                 student,
                 template_batch=template_batch,
+                notify=not is_update,
             )
 
     elif audience == Task.AudienceType.ALL_STUDENTS_IN_CLASS:
@@ -549,6 +562,7 @@ def synchronize_task_assignments(
                     task,
                     enrollment.student,
                     template_batch=template_batch,
+                    notify=not is_update,
                 )
 
     first_user_assignment = (
@@ -580,6 +594,42 @@ def synchronize_task_assignments(
         )
         task.assigned_to = creator
 
+    if is_update:
+        current_user_ids = set(
+            task.assignments.filter(
+                recipient_type=TaskAssignment.RecipientType.USER,
+                user__isnull=False,
+            ).values_list(
+                "user_id",
+                flat=True,
+            )
+        )
+
+        newly_assigned_ids = (
+            current_user_ids
+            - previous_user_ids
+        )
+
+        for reassigned_user in User.objects.filter(
+            pk__in=newly_assigned_ids,
+            is_active=True,
+        ):
+            create_workspace_notification(
+                studio=task.studio,
+                user=reassigned_user,
+                category=WorkspaceNotification.Category.TASK,
+                kind="task_reassigned",
+                title="Task Reassigned",
+                message=task.title,
+                action_url=f"/tasks/{task.studio.slug}/{task.pk}/",
+                dedupe_key=(
+                    f"task-reassigned-{task.pk}-"
+                    f"{reassigned_user.pk}-"
+                    f"{task.updated_at.isoformat()}"
+                ),
+                preference_field="task_reassigned",
+            )
+
     task.save(
         update_fields=[
             "context_type",
@@ -592,12 +642,14 @@ def synchronize_task_assignments(
         ]
     )
 
-
 def complete_or_reopen_for_user(
     task,
     user,
     role,
 ):
+    if (task.description or "").startswith("[Encore make-up tracker:"):
+        # Only the attendance reconciliation service may close/reopen these.
+        return None
     assignment = task_assignment_for_user(
         task,
         user,
@@ -625,6 +677,26 @@ def complete_or_reopen_for_user(
         task=task,
         user=user,
     )
+
+    if (
+        task.created_by_id
+        and task.created_by_id != user.pk
+    ):
+        create_workspace_notification(
+            studio=task.studio,
+            user=task.created_by,
+            category=WorkspaceNotification.Category.TASK,
+            kind="task_completed",
+            title="Task Completed",
+            message=f"{user.get_full_name() or user.email} completed {task.title}.",
+            action_url=f"/tasks/{task.studio.slug}/{task.pk}/",
+            dedupe_key=(
+                f"task-completed-{task.pk}-"
+                f"{assignment.pk}-"
+                f"{assignment.completed_at.isoformat()}"
+            ),
+            preference_field="task_creator_completed",
+        )
 
     return True
 

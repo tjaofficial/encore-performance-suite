@@ -1,0 +1,329 @@
+.availability-editor-list {
+    display: grid;
+    gap: 14px;
+}
+
+.availability-block {
+    padding: 16px;
+    border: 1px solid var(--encore-border);
+    border-radius: 14px;
+    background: #fbfcff;
+}
+
+.availability-block-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.availability-block-heading > div {
+    display: grid;
+    gap: 2px;
+}
+
+.availability-block-heading span {
+    color: var(--encore-primary);
+    font-size: .55rem;
+    font-weight: 900;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+}
+
+.availability-block-heading strong {
+    color: var(--encore-primary-deep);
+    font-size: .8rem;
+}
+
+.availability-remove {
+    border: 0;
+    background: transparent;
+    color: #a94242;
+    font: inherit;
+    font-size: .62rem;
+    font-weight: 850;
+    cursor: pointer;
+}
+
+.availability-block-grid {
+    display: grid;
+    grid-template-columns: 170px minmax(300px, 1fr) 140px 140px;
+    gap: 12px;
+    align-items: end;
+}
+
+.availability-block-grid > div {
+    display: grid;
+    gap: 6px;
+}
+
+.availability-block-grid label {
+    color: var(--encore-muted);
+    font-size: .61rem;
+    font-weight: 850;
+}
+
+.availability-notes-field {
+    grid-column: 1 / -1;
+}
+
+.availability-day-shortcuts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.availability-day-shortcuts button {
+    padding: 5px 8px;
+    border: 1px solid var(--encore-border);
+    border-radius: 7px;
+    background: #fff;
+    color: var(--encore-primary);
+    font-size: .53rem;
+    font-weight: 850;
+    cursor: pointer;
+}
+
+.availability-day-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(42px, 1fr));
+    gap: 5px;
+}
+
+.availability-day-grid label {
+    display: grid;
+    min-height: 38px;
+    place-items: center;
+    position: relative;
+    border: 1px solid var(--encore-border);
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+}
+
+.availability-day-grid input {
+    position: absolute;
+    opacity: 0;
+}
+
+.availability-day-grid label:has(input:checked) {
+    border-color: var(--encore-primary);
+    background: var(--encore-primary);
+    color: #fff;
+}
+
+.availability-add-button {
+    margin-top: 14px;
+}
+
+.instructor-activation-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.instructor-activation-table th,
+.instructor-activation-table td {
+    padding: 11px 10px;
+    border-bottom: 1px solid var(--encore-border);
+    text-align: left;
+    font-size: .68rem;
+}
+
+.activation-status {
+    display: inline-flex;
+    min-height: 23px;
+    align-items: center;
+    padding: 0 8px;
+    border-radius: 999px;
+    font-size: .52rem;
+    font-weight: 900;
+}
+
+.activation-status.claimed {
+    background: rgba(22, 134, 92, .11);
+    color: #16865c;
+}
+
+.activation-status.invite_sent {
+    background: rgba(35, 104, 255, .10);
+    color: var(--encore-primary);
+}
+
+.activation-status.needs_activation,
+.activation-status.active_unclaimed {
+    background: #fff3d8;
+    color: #8a6710;
+}
+
+.activation-status.missing_email {
+    background: rgba(185, 63, 63, .10);
+    color: #a13d3d;
+}
+
+.claim-shell {
+    width: min(920px, calc(100% - 32px));
+    margin: 36px auto;
+}
+
+.claim-card {
+    padding: 24px;
+    border: 1px solid var(--encore-border, #dfe4ee);
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 16px 48px rgba(23, 34, 58, .10);
+}
+
+.claim-card + .claim-card {
+    margin-top: 16px;
+}
+
+.claim-heading {
+    margin-bottom: 20px;
+}
+
+.claim-heading .eyebrow {
+    margin-bottom: 4px;
+}
+
+.claim-heading h1 {
+    margin: 0 0 6px;
+}
+
+.claim-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.claim-form-grid .full {
+    grid-column: 1 / -1;
+}
+
+.claim-field {
+    display: grid;
+    gap: 6px;
+}
+
+.claim-field label {
+    font-size: .64rem;
+    font-weight: 850;
+}
+
+.claim-field small {
+    color: #748096;
+    font-size: .57rem;
+}
+
+.claim-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 18px;
+}
+
+.time-off-request-list {
+    display: grid;
+    gap: 8px;
+}
+
+.time-off-request-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--encore-border);
+    border-radius: 9px;
+    background: #fff;
+    text-align: left;
+    cursor: pointer;
+}
+
+.time-off-request-row > div {
+    display: grid;
+    gap: 2px;
+}
+
+.time-off-request-row strong {
+    font-size: .67rem;
+}
+
+.time-off-request-row small {
+    color: var(--encore-muted);
+    font-size: .55rem;
+}
+
+.time-off-detail-dialog {
+    width: min(620px, calc(100% - 24px));
+    border: 0;
+    border-radius: 16px;
+    padding: 0;
+    box-shadow: 0 24px 70px rgba(10, 20, 45, .28);
+}
+
+.time-off-detail-dialog::backdrop {
+    background: rgba(10, 20, 40, .55);
+}
+
+.time-off-modal-body {
+    padding: 20px;
+}
+
+.time-off-modal-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.time-off-modal-dates {
+    display: grid;
+    gap: 6px;
+    margin: 12px 0;
+}
+
+.time-off-modal-date {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: #f6f8fc;
+}
+
+.time-off-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.denial-note[hidden] {
+    display: none !important;
+}
+
+@media (max-width: 850px) {
+    .availability-block-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .availability-days-field {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 560px) {
+    .availability-block-grid,
+    .claim-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .claim-form-grid .full {
+        grid-column: auto;
+    }
+
+    .availability-day-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}

@@ -1,0 +1,150 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ step.title }} | Studio Director Onboarding{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}"><link rel="stylesheet" href="{% static 'css/encore_class_naming.css' %}">{% endblock %}
+{% block topbar_title %}Studio Director Onboarding{% endblock %}
+
+{% block content %}
+<div class="settings-workspace">
+    {% include "includes/settings_nav.html" %}
+    <main class="settings-workspace-content">
+        <section class="settings-heading">
+            <div>
+                <a class="back-link" href="{% url 'studios:studio_director_onboarding' studio.slug %}">← Back to Studio Director Playbook</a>
+                <p class="eyebrow">Studio Director · Step {{ step.number }}</p>
+                <h1>{{ step.title }}</h1>
+                <p>Expected report: <strong>{{ step.report }}</strong></p>
+            </div>
+        </section>
+
+        {% if messages %}
+            <div class="message-stack">
+                {% for message in messages %}<div class="message-banner {{ message.tags }}">{{ message }}</div>{% endfor %}
+            </div>
+        {% endif %}
+
+        <section class="settings-section-block vendor-report-guide">
+            <div class="settings-section-heading">
+                <div>
+                    <span>Known Vendor Profile</span>
+                    <h2>Encore already knows this Studio Director report</h2>
+                    <p>{{ step.description }}</p>
+                </div>
+            </div>
+            <div class="vendor-rule-pills">
+                {% if step.key == 'student_measurements' %}
+                    <span>Student identity matching</span>
+                    <span>Date Last Measured → Measured at</span>
+                    <span>Numeric measurement validation</span>
+                {% elif step.key == 'costume_vendors' %}
+                    <span>Vendor de-duplication</span>
+                    <span>Multi-line Notes repair</span>
+                    <span>Email / website cleanup</span>
+                {% elif step.key == 'costume_vendor_size_charts' %}
+                    <span>Existing vendor matching</span>
+                    <span>Vendor / chart name splitting</span>
+                    <span>Girth range validation</span>
+                    <span>Gender inferred from chart name</span>
+                {% else %}
+                    <span>Known column mapping</span>
+                    <span>Safe email cleanup</span>
+                {% endif %}
+                {% if step.key == 'families' %}<span>Family last-name copy rule</span>{% endif %}
+                {% if step.key == 'students' %}<span>Guardian-name family matching</span><span>Studio Director date parsing</span>{% endif %}
+                {% if step.key == 'instructors' %}<span>Emergency contact parsing</span>{% endif %}
+            </div>
+        </section>
+
+        {% if step.key == 'student_measurements' %}
+            <div class="message-banner info">
+                Studio Director's Costume / Student Measurement Worksheet is not a normal one-row-per-student export.
+                Use the cleaned Encore measurement CSV created from that worksheet. Encore will match students first,
+                flag duplicate-name ambiguity, reject malformed numeric values instead of guessing, and preserve the
+                source measurement date.
+            </div>
+        {% endif %}
+
+        {% if step.key == 'costume_vendors' %}
+            <div class="message-banner info">
+                Encore repairs Studio Director Costume Vendors exports that contain unquoted multi-line Notes, then imports
+                each usable vendor once. Run this step before Costume Vendor Size Charts.
+            </div>
+        {% elif step.key == 'costume_vendor_size_charts' %}
+            <div class="message-banner info">
+                Size-chart rows are attached to vendors that already exist in Encore. This Studio Director report contains
+                Vendor / Chart, Girth From, Girth To, Size, and Notes, so it imports girth-based entries and does not invent
+                age, chest, waist, hip, inseam, outseam, or height ranges that are not present in the source report.
+            </div>
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data" class="settings-form data-import-form">
+            {% csrf_token %}
+            {% if step.key == 'classes_meetings' %}
+            <section class="settings-panel class-name-config">
+                <h2>Class name builder</h2>
+                <p>Drag a field into the pattern, or click it to insert at your cursor. Type any separators you want between fields. The next screen compares each Studio Director name with its proposed Encore name before import.</p>
+                <div class="class-name-fields" aria-label="Available class name fields">
+                    <button type="button" draggable="true" data-name-token="{TYPE}">Type</button>
+                    <button type="button" draggable="true" data-name-token="{LEVEL_NAME}">Level name</button>
+                    <button type="button" draggable="true" data-name-token="{LEVEL_NUMBER}">Level number</button>
+                    <button type="button" draggable="true" data-name-token="{AGE_GROUP}">Age group</button>
+                    <button type="button" draggable="true" data-name-token="{SOURCE_NAME}">Original name</button>
+                </div>
+                <label for="class-name-template"><strong>Class name pattern</strong></label>
+                <input id="class-name-template" class="encore-input" name="class_name_template" value="{{ class_name_default }}" maxlength="180" required spellcheck="false" aria-describedby="class-name-hint">
+                <small id="class-name-hint">Example: {TYPE} {LEVEL_NUMBER} - {AGE_GROUP}. Missing source values may leave out the corresponding text; verify the proposed names on the next screen.</small>
+            </section>
+            {% endif %}
+            <section class="settings-panel">
+                <div class="settings-field data-file-field">
+                    <label for="csv_file">{% if step.key == 'student_measurements' %}Cleaned Student Measurements CSV{% else %}{{ step.report }} CSV{% endif %}</label>
+                    <input class="encore-input" id="csv_file" name="csv_file" type="file" accept=".csv,text/csv" required>
+                    <small>
+                        {% if step.discovery %}
+                            Encore will scan this report for unique Studio Director records and relationships before anything is created.
+                        {% else %}
+                            Encore will pre-fill the Studio Director mapping. You can still review and change it before validation.
+                        {% endif %}
+                    </small>
+                </div>
+            </section>
+            <div class="form-actions">
+                <a class="button secondary" href="{% url 'studios:studio_director_onboarding' studio.slug %}">Cancel</a>
+                <button class="button primary" type="submit">{% if step.key == 'student_measurements' %}Analyze Student Measurements →{% else %}Analyze {{ step.report }} →{% endif %}</button>
+            </div>
+        </form>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  const input = document.getElementById('class-name-template');
+  if (!input) return;
+  let dragging = '';
+  document.querySelectorAll('[data-name-token]').forEach(button => {
+    const token = button.dataset.nameToken;
+    button.addEventListener('click', () => insert(token));
+    button.addEventListener('dragstart', event => {
+      dragging = token;
+      event.dataTransfer.setData('text/plain', token);
+    });
+    button.addEventListener('dragend', () => { dragging = ''; });
+  });
+  function insert(token) {
+    const start = input.selectionStart ?? input.value.length;
+    const end = input.selectionEnd ?? start;
+    input.setRangeText(token, start, end, 'end');
+    input.focus();
+  }
+  input.addEventListener('dragover', event => event.preventDefault());
+  input.addEventListener('drop', event => {
+    event.preventDefault();
+    insert(dragging || event.dataTransfer.getData('text/plain'));
+    dragging = '';
+  });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,12 @@
+.ann-editor {border:1px solid #b9caed;border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 2px 10px rgba(20,50,120,.035)}
+.ann-editor:focus-within {border-color:#3264ff;box-shadow:0 0 0 3px rgba(50,100,255,.12)}
+.ann-editor-toolbar {display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:10px;background:#f3f6ff;border-bottom:1px solid #d6e0f3}
+.ann-editor-toolbar button {font:inherit;font-weight:700;font-size:12px;min-height:32px;min-width:34px;padding:5px 9px;color:#152b60;background:#fff;border:1px solid #cbd7f1;border-radius:7px;cursor:pointer}
+.ann-editor-toolbar button:hover,.ann-editor-toolbar button:focus-visible {background:#e8efff;border-color:#3570ff}
+.ann-editor-canvas {padding:18px;min-height:210px;line-height:1.6;outline:none;color:#182848;overflow-wrap:anywhere}
+.ann-editor-canvas:empty::before {content:attr(data-placeholder);color:#8694ae}
+.ann-editor-canvas a,.announcement-body a,.parent-announcement-message a {color:#1d5fff;text-decoration:underline;text-underline-offset:2px}
+.ann-editor-canvas h2,.ann-editor-canvas h3 {margin:12px 0 6px;font-weight:750}
+.ann-editor-canvas p {margin:0 0 10px}.ann-editor-canvas ul,.ann-editor-canvas ol {padding-left:24px}
+.ann-editor-footer {padding:9px 13px;color:#617191;font-size:12px;border-top:1px solid #e0e7f4}
+.ann-editor-original {display:none}

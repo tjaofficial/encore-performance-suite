@@ -1,0 +1,8 @@
+<div class="encore-event-details" role="group" aria-label="Event details">
+    <strong>{{ event.title }}</strong>
+    <span>📅 {{ event.start_at|date:"M j, Y" }}{% if event.all_day %} · All day{% else %} · {{ event.start_at|date:"g:i A" }}–{{ event.end_at|date:"g:i A" }}{% endif %}</span>
+    {% if event.location %}<span>📍 {{ event.location }}</span>{% endif %}
+    {% if event.class_instance %}<span>Class: {{ event.class_instance.name }}</span>{% endif %}
+    {% if event.description %}<p>{{ event.description|truncatechars:220 }}</p>{% endif %}
+    <a href="{% url 'scheduling:calendar' studio.slug %}">Open Calendar →</a>
+</div>

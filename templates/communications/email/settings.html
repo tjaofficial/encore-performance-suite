@@ -18,7 +18,8 @@
         <dl class="email-detail-list">
             <div><dt>Default Name</dt><dd>{{ email_config.from_name }}</dd></div>
             <div><dt>Notifications From</dt><dd>{{ email_config.no_reply }}</dd></div>
-            <div><dt>Reply-To / Information</dt><dd>{{ email_config.reply_to }}</dd></div>
+            <div><dt>Studio Reply-To</dt><dd>{{ email_config.reply_to }}{% if not email_config.studio_email_configured %} <small>(Encore fallback)</small>{% endif %}</dd></div>
+            <div><dt>Manage Studio Email</dt><dd><a href="{% url 'studios:studio_profile' studio.slug %}">Edit Studio Profile →</a></dd></div>
             <div><dt>SES Region</dt><dd>{{ email_config.region }}</dd></div>
             <div><dt>Configuration Set</dt><dd>{{ email_config.configuration_set }}</dd></div>
         </dl>

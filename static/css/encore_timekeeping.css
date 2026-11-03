@@ -390,3 +390,25 @@
         gap: 4px;
     }
 }
+
+/* Current-pay-period entry controls */
+.extra-work-entry-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.extra-work-entry-actions form { margin:0; }
+.extra-work-entry-actions .button { padding:7px 11px; font-size:12px; }
+
+/* Extra Work history: aligned data columns on every row */
+.extra-work-table-wrap{width:100%;overflow-x:auto;border:1px solid #c0ceeb;border-radius:12px;}
+.extra-work-data-table{width:100%;border-collapse:collapse;table-layout:fixed;text-align:left;}
+.extra-work-data-table th{background:#eef3ff;text-transform:uppercase;letter-spacing:.055em;font-size:11px;font-weight:850;color:#344979;padding:12px 14px;}
+.extra-work-data-table th:nth-child(1){width:18%;}.extra-work-data-table th:nth-child(2){width:47%;}.extra-work-data-table th:nth-child(3){width:12%;}.extra-work-data-table th:nth-child(4){width:23%;text-align:right;}
+.extra-work-data-table td{padding:14px;border-top:1px solid #dce5f5;vertical-align:middle;font-size:13px;color:#14214a;}
+.extra-work-data-table tbody tr:hover{background:#f6f9ff;}
+.extra-work-description{margin-top:4px;font-size:12px;color:#60708c;line-height:1.4;overflow-wrap:anywhere;}
+.extra-work-hours{font-size:15px;color:#165dfa;white-space:nowrap;}
+.extra-work-row-actions{display:flex;justify-content:flex-end;align-items:center;gap:8px;}
+.extra-work-row-actions form{margin:0;}.extra-work-row-actions .button{padding:8px 11px;font-size:12px;white-space:nowrap;}
+.extra-work-locked{color:#6c7d9d;font-size:12px;}
+.extra-work-data-table tfoot td{background:#f0f5ff;font-weight:800;color:#203c74;}
+.extra-work-data-table tfoot td:nth-child(2){color:#145ff3;font-size:15px;}
+.extra-work-empty{padding:35px!important;text-align:center;color:#60708c!important;}
+@media(max-width:700px){.extra-work-data-table{min-width:590px;}}

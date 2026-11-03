@@ -6,14 +6,29 @@ app_name = "registration_portal"
 
 urlpatterns = [
     path(
+        "public/<slug:studio_slug>/register/<uuid:token>/validate-class-code/",
+        views.validate_registration_class_code,
+        name="validate_registration_class_code",
+    ),
+    path(
+        "public/<slug:studio_slug>/register-existing/<int:student_id>/",
+        views.register_existing_student,
+        name="register_existing_student",
+    ),
+    path(
         "public/<slug:studio_slug>/register/start/",
         views.registration_wizard_start,
         name="registration_wizard_start",
     ),
     path(
-        "public/<slug:studio_slug>/register/<uuid:token>/<str:step>/",
-        views.registration_wizard,
-        name="registration_wizard",
+        "public/<slug:studio_slug>/register/<uuid:token>/verify-pending/",
+        views.registration_verification_pending,
+        name="registration_verification_pending",
+    ),
+    path(
+        "public/<slug:studio_slug>/register/<uuid:token>/verify-email/",
+        views.registration_verify_email,
+        name="registration_verify_email",
     ),
     path(
         "public/<slug:studio_slug>/register/<uuid:token>/complete-free/",
@@ -29,6 +44,11 @@ urlpatterns = [
         "public/<slug:studio_slug>/register/<uuid:token>/complete/",
         views.registration_complete,
         name="registration_complete",
+    ),
+    path(
+        "public/<slug:studio_slug>/register/<uuid:token>/<str:step>/",
+        views.registration_wizard,
+        name="registration_wizard",
     ),
     path(
         "public/<slug:studio_slug>/calendar/",
@@ -77,8 +97,8 @@ urlpatterns = [
     ),
     path(
         "complete/<slug:studio_slug>/<int:request_id>/",
-        views.registration_complete,
-        name="registration_complete",
+        views.legacy_registration_complete,
+        name="legacy_registration_complete",
     ),
     path(
         "embed/<slug:studio_slug>/classes/",

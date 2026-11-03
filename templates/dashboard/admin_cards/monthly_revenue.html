@@ -1,0 +1,8 @@
+<article class="admin-dashboard-card admin-analytics-card analytics-revenue-card card-tone-green">
+    <div class="card-heading"><h2>Monthly Revenue</h2><span class="analytics-icon" aria-hidden="true">$</span></div>
+    <div class="analytics-metric-block">
+        <strong>${{ admin_analytics.monthly_revenue.total|floatformat:2 }}</strong>
+        <span class="analytics-change is-{{ admin_analytics.monthly_revenue.change.direction }}">{% if admin_analytics.monthly_revenue.change.direction == "up" %}↑{% elif admin_analytics.monthly_revenue.change.direction == "down" %}↓{% else %}—{% endif %} {{ admin_analytics.monthly_revenue.change.label }}</span>
+    </div>
+    <div class="analytics-mini-footer"><span>{{ admin_analytics.monthly_revenue.payment_count }} successful payment{{ admin_analytics.monthly_revenue.payment_count|pluralize }}</span><span>Prev. ${{ admin_analytics.monthly_revenue.previous_total|floatformat:2 }}</span></div>
+</article>

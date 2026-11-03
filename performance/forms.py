@@ -79,6 +79,7 @@ class ChoreographyPlanForm(forms.ModelForm):
                     studio=studio,
                     resource_type=ClassResource.ResourceType.MUSIC,
                     is_active=True,
+                    approval_status=ClassResource.ApprovalStatus.APPROVED,
                 )
 
                 class_id = (

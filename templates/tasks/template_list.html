@@ -1,7 +1,8 @@
 {% extends "dashboard/base_dashboard.html" %}
 {% load static %}
 {% block title %}Task Templates | Encore{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_tasks.css' %}">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_tasks.css' %}">
+<link rel="stylesheet" href="{% static 'css/encore_tasks_refresh.css' %}">{% endblock %}
 {% block topbar_title %}Task Templates{% endblock %}
 {% block content %}
 <section class="task-manager-heading">
@@ -30,7 +31,12 @@
         </div>
     </a>
 {% empty %}
-    <div class="task-empty-state">No task templates yet.</div>
+    <div class="task-template-empty">
+        <div class="task-template-empty-icon" aria-hidden="true">☷</div>
+        <h2>No task templates yet</h2>
+        <p>Create your first reusable checklist to assign recurring studio work and automate follow-ups.</p>
+        <a class="button primary" href="{% url 'tasks:template_create' studio.slug %}">+ Create Your First Template</a>
+    </div>
 {% endfor %}
 </section>
 {% endblock %}

@@ -1,0 +1,102 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ class_instance.name }} Attendance Overview | Encore Performance Suite{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/encore_attendance.css' %}">
+{% endblock %}
+
+{% block topbar_title %}Attendance Overview{% endblock %}
+
+{% block content %}
+<section class="attendance-page-shell">
+    <section class="attendance-heading attendance-heading-compact">
+        <div>
+            <p class="eyebrow">Attendance Report</p>
+            <h1>{{ class_instance.name }}</h1>
+            <p>{{ class_instance.class_id }} · {{ class_instance.season.name }} · {{ month_label }}</p>
+        </div>
+        <div class="attendance-heading-actions">
+            <a class="button secondary" href="{% url 'attendance:manager' studio.slug %}?tab=submissions">Back to Manager</a>
+        </div>
+    </section>
+
+    <section class="attendance-stat-list attendance-stat-list-three">
+        <article>
+            <span>Sessions This Month</span>
+            <strong>{{ session_count }}</strong>
+            <small>Attendance sheets created</small>
+        </article>
+        <article>
+            <span>Students</span>
+            <strong>{{ student_count }}</strong>
+            <small>Students included in this class</small>
+        </article>
+        <article>
+            <span>Attendance Rate</span>
+            <strong>{% if attendance_rate is not None %}{{ attendance_rate }}%{% else %}—{% endif %}</strong>
+            <small>{{ absence_count }} absences recorded</small>
+        </article>
+    </section>
+
+    <section class="attendance-panel">
+        <div class="attendance-panel-header attendance-panel-header-month">
+            <div>
+                <span class="eyebrow">Monthly View</span>
+                <h2>Student Attendance by Date</h2>
+                <p>Every day in the month is shown. Dates without an attendance sheet remain blank.</p>
+            </div>
+            <div class="month-navigation">
+                <a class="button secondary" href="?month={{ previous_month }}">Previous</a>
+                <strong>{{ month_label }}</strong>
+                <a class="button secondary" href="?month={{ next_month }}">Next</a>
+            </div>
+        </div>
+
+        <div class="attendance-legend strong-legend">
+            <span><i class="legend-swatch present"></i>Present</span>
+            <span><i class="legend-swatch absent"></i>Absent</span>
+            <span><i class="legend-swatch late"></i>Late</span>
+            <span><i class="legend-swatch excused"></i>Excused</span>
+            <span><i class="legend-swatch left-early"></i>Left Early</span>
+        </div>
+
+        <div class="monthly-grid-shell">
+            <table class="monthly-attendance-grid">
+                <thead>
+                    <tr>
+                        <th class="student-column">Student</th>
+                        {% for day in date_columns %}
+                            <th class="date-column {% if day.weekday == 5 or day.weekday == 6 %}weekend-column{% endif %}">
+                                <span>{{ day|date:"D" }}</span>
+                                <strong>{{ day|date:"j" }}</strong>
+                            </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in rows %}
+                        <tr>
+                            <td class="student-column">
+                                <strong>{{ row.student.last_name }}, {{ row.student.first_name }}</strong>
+                            </td>
+                            {% for record in row.cells %}
+                                <td class="attendance-grid-cell">
+                                    {% if record %}
+                                        <span class="attendance-status-mark status-{{ record.status }}" title="{{ record.get_status_display }}">
+                                            {% if record.status == 'present' %}P{% elif record.status == 'absent' %}A{% elif record.status == 'late' %}L{% elif record.status == 'excused' %}E{% elif record.status == 'left_early' %}LE{% endif %}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="32"><div class="empty-state table-empty-state">No students are available for this class.</div></td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</section>
+{% endblock %}

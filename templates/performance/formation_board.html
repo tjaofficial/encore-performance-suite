@@ -15,6 +15,9 @@
 {% block topbar_title %}Drawing Board{% endblock %}
 {% block content %}
 <div id="formation-board-app" class="drawing-board-workspace"
+    data-template-save-url="{% url 'performance:drawing_board_stage_template_save' studio.slug board.id %}"
+    data-template-apply-url="{% url 'performance:drawing_board_stage_template_apply' studio.slug board.id %}"
+    data-template-undo-url="{% url 'performance:drawing_board_stage_template_undo' studio.slug board.id %}"
     data-save-url="{% url 'performance:drawing_board_detail_save' studio.slug board.id %}"
     data-add-formation-url="{% url 'performance:drawing_board_detail_formation_add' studio.slug board.id %}"
     data-delete-url-template="{% url 'performance:drawing_board_formation_delete' studio.slug board.id 999999 %}"
@@ -69,6 +72,16 @@
             <button id="save-formation" class="button primary drawing-board-save-button" type="button">Save</button>
         </div>
     </header>
+
+    {% if messages %}
+        <div class="drawing-board-message-stack">
+            {% for message in messages %}
+                <div class="drawing-board-message {{ message.tags|default:'' }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
 
     <div class="drawing-board-workspace-actions">
 <button
@@ -446,6 +459,9 @@
                 </div>
             </div>
             <div class="drawing-panel-content" data-panel-content="options" hidden>
+                <details class="board-options-accordion" open>
+                    <summary><span>Formation</span><span class="accordion-chevron" aria-hidden="true">⌄</span></summary>
+                    <div class="board-accordion-inner">
                 <div class="panel-section-heading">
                     <span>Formation</span>
                     <strong>Formation Information</strong>
@@ -515,6 +531,35 @@
                     </small>
                 </div>
 
+                    </div>
+                </details>
+                <details class="board-options-accordion" open>
+                    <summary><span>Board Options</span><span class="accordion-chevron" aria-hidden="true">⌄</span></summary>
+                    <div class="board-accordion-inner">
+                <details class="board-options-accordion">
+                    <summary><span>Venue Presets</span><span class="accordion-chevron" aria-hidden="true">⌄</span></summary>
+                    <div class="board-accordion-inner">
+                <div class="venue-template-settings">
+                    <div class="panel-section-heading"><span>Venue Presets</span><strong>Stage &amp; Lighting Templates</strong>
+                        <p>Use a saved stage or lighting setup without changing choreography.</p></div>
+                    <label class="board-info-field"><span>Venue template</span>
+                        <select id="venue-template-select" class="encore-input"><option value="">Choose a venue…</option>
+                            {% for venue in venue_templates %}<option value="{{ venue.id }}">{{ venue.name }}</option>{% endfor %}
+                        </select></label>
+                    <label class="board-option-row"><input type="checkbox" id="venue-import-stage" checked><span><strong>Stage drawings &amp; layout</strong><small>Replace only stage drawings, wings, and apron settings.</small></span></label>
+                    <label class="board-option-row"><input type="checkbox" id="venue-import-lighting" checked><span><strong>Lighting fixtures &amp; cues</strong><small>Replace only the current lighting setup.</small></span></label>
+                    <button type="button" id="venue-template-apply" class="button primary" style="width:100%">Use Template</button>
+                    <button type="button" id="venue-template-undo" class="board-inline-action" style="width:100%">Undo Last Template Import</button>
+                    {% if role == 'administrator' or role == 'teacher' %}
+                    <div class="venue-template-save"><label class="board-info-field"><span>Save stage and lighting as template</span>
+                    <input id="venue-template-name" class="encore-input" maxlength="160" placeholder="Venue / stage name"></label>
+                    <button type="button" id="venue-template-save" class="board-inline-action">Save Venue Template</button></div>
+                    {% endif %}
+                    <p id="venue-template-status" class="venue-template-status" role="status"></p>
+                </div>
+
+                    </div>
+                </details>
                 <div class="panel-section-heading formation-stage-options-heading">
                     <span>Board Options</span>
                     <strong>Stage Display</strong>
@@ -558,6 +603,45 @@
                         </small>
                     </span>
                 </label>
+
+                    </div>
+                </details>
+                <details class="board-options-accordion">
+                    <summary><span>Copy & Reuse</span><span class="accordion-chevron" aria-hidden="true">⌄</span></summary>
+                    <div class="board-accordion-inner">
+                <div class="panel-section-heading board-copy-settings-heading">
+                    <span>Copy & Reuse</span>
+                    <strong>Copy This Drawing Board</strong>
+                    <p>
+                        Reuse this choreography in another class. Formations,
+                        transitions, drawings, timing, and lighting are copied.
+                        Student assignments are cleared for the new class.
+                    </p>
+                </div>
+
+                {% if related_copy_classes or other_copy_classes %}
+                    <button
+                        id="open-copy-board-dialog"
+                        class="board-inline-action board-copy-action"
+                        type="button"
+                    >
+                        Copy to Another Class
+                    </button>
+
+                    {% if related_copy_classes %}
+                        <small class="board-copy-help">
+                            Encore found {{ related_copy_classes|length }}
+                            closely related class{{ related_copy_classes|length|pluralize }}
+                            with the same name, season, class type, and teacher.
+                        </small>
+                    {% endif %}
+                {% else %}
+                    <div class="board-copy-empty">
+                        No other active classes are available for this Drawing Board.
+                    </div>
+                {% endif %}
+                    </div>
+                </details>
 
             </div>
             <div class="drawing-panel-content transition-panel-content" data-panel-content="transition" hidden>
@@ -1038,8 +1122,8 @@
 
                 <svg id="transition-path-layer" class="transition-path-layer" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
                     <defs>
-                        <marker id="transition-arrowhead" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto" markerUnits="strokeWidth">
-                            <path d="M0,0 L5,2.5 L0,5 Z" class="transition-arrowhead-shape"></path>
+                        <marker id="transition-arrowhead" markerWidth="7" markerHeight="7" refX="4" refY="3.5" orient="auto" markerUnits="strokeWidth">
+                            <path d="M-2,-0.25 L5,3.5 L-2,7.25 Z" class="transition-arrowhead-shape"></path>
                         </marker>
                     </defs>
                     <g id="transition-paths"></g>
@@ -1407,5 +1491,152 @@
   </div>
 </div>
 
+{% if related_copy_classes or other_copy_classes %}
+<dialog id="copy-board-dialog" class="board-copy-dialog">
+    <form
+        method="post"
+        action="{% url 'performance:drawing_board_copy_to_class' studio.slug board.id %}"
+        class="board-copy-form"
+        id="copy-board-form"
+    >
+        {% csrf_token %}
+
+        <div class="board-copy-dialog-heading">
+            <div>
+                <span>Copy & Reuse</span>
+                <h2>Copy Drawing Board</h2>
+            </div>
+            <button type="button" id="close-copy-board-dialog" aria-label="Close copy dialog">×</button>
+        </div>
+
+        <div class="board-copy-dialog-body">
+            <div class="board-copy-source">
+                <span>Source</span>
+                <strong>{{ board.title|default:board.class_instance.name }}</strong>
+                <small>{{ board.class_instance.name }} · {{ board.class_instance.season.name }}</small>
+            </div>
+
+            <label class="board-info-field">
+                <span>Destination Class</span>
+                <select class="encore-input" name="destination_class" id="copy-board-destination" required>
+                    <option value="">Choose a class</option>
+                    {% if related_copy_classes %}
+                        <optgroup label="Related Classes">
+                            {% for class_option in related_copy_classes %}
+                                <option value="{{ class_option.id }}">
+                                    {{ class_option.name }} · {{ class_option.class_id }} · {{ class_option.season.name }}
+                                </option>
+                            {% endfor %}
+                        </optgroup>
+                    {% endif %}
+                    {% if other_copy_classes %}
+                        <optgroup label="Other Classes">
+                            {% for class_option in other_copy_classes %}
+                                <option value="{{ class_option.id }}">
+                                    {{ class_option.name }} · {{ class_option.class_id }} · {{ class_option.season.name }}
+                                </option>
+                            {% endfor %}
+                        </optgroup>
+                    {% endif %}
+                </select>
+            </label>
+
+            <label class="board-info-field">
+                <span>New Drawing Board Name</span>
+                <input
+                    class="encore-input"
+                    type="text"
+                    name="new_title"
+                    id="copy-board-title"
+                    maxlength="200"
+                    value="{{ board.title|default:board.class_instance.name }} - Copy"
+                    required
+                >
+                <small>The copy must have a different name from this Drawing Board.</small>
+            </label>
+
+            <div class="board-copy-summary">
+                <strong>What gets copied</strong>
+                <span>Formations, marker positions, transitions, movement paths, stage drawings, timing, stage settings, and lighting.</span>
+                <strong>What gets cleared</strong>
+                <span>Student assignments. The copied board starts ready for the destination class roster.</span>
+            </div>
+
+            <div class="board-copy-confirmation" id="copy-board-confirmation" hidden>
+                <strong>Confirm copy</strong>
+                <p id="copy-board-confirmation-text"></p>
+                <p>The original Drawing Board will not be changed.</p>
+            </div>
+        </div>
+
+        <div class="board-copy-dialog-actions">
+            <button type="button" class="button secondary" id="cancel-copy-board">Cancel</button>
+            <button type="button" class="button primary" id="review-copy-board">Review Copy</button>
+            <button type="submit" class="button primary" id="confirm-copy-board" hidden>Copy Drawing Board</button>
+        </div>
+    </form>
+</dialog>
+{% endif %}
+
 <script src="{% static 'js/encore_formation_board.js' %}"></script>
+{% if related_copy_classes or other_copy_classes %}
+<script>
+(function () {
+    const dialog = document.getElementById("copy-board-dialog");
+    const openButton = document.getElementById("open-copy-board-dialog");
+    const closeButton = document.getElementById("close-copy-board-dialog");
+    const cancelButton = document.getElementById("cancel-copy-board");
+    const reviewButton = document.getElementById("review-copy-board");
+    const confirmButton = document.getElementById("confirm-copy-board");
+    const destination = document.getElementById("copy-board-destination");
+    const title = document.getElementById("copy-board-title");
+    const confirmation = document.getElementById("copy-board-confirmation");
+    const confirmationText = document.getElementById("copy-board-confirmation-text");
+
+    if (!dialog || !openButton) return;
+
+    function resetReview() {
+        confirmation.hidden = true;
+        confirmButton.hidden = true;
+        reviewButton.hidden = false;
+    }
+
+    function closeDialog() {
+        if (dialog.open) dialog.close();
+        resetReview();
+    }
+
+    openButton.addEventListener("click", function () {
+        resetReview();
+        dialog.showModal();
+    });
+    closeButton.addEventListener("click", closeDialog);
+    cancelButton.addEventListener("click", closeDialog);
+    destination.addEventListener("change", resetReview);
+    title.addEventListener("input", resetReview);
+
+    reviewButton.addEventListener("click", function () {
+        if (!destination.value) {
+            destination.reportValidity();
+            return;
+        }
+        if (!title.value.trim()) {
+            title.reportValidity();
+            return;
+        }
+
+        const selected = destination.options[destination.selectedIndex];
+        confirmationText.textContent =
+            'Copy to "' + selected.text.trim() + '" as "' + title.value.trim() + '"?';
+        confirmation.hidden = false;
+        confirmButton.hidden = false;
+        reviewButton.hidden = true;
+    });
+
+    dialog.addEventListener("click", function (event) {
+        if (event.target === dialog) closeDialog();
+    });
+})();
+</script>
+{% endif %}
 {% endblock %}

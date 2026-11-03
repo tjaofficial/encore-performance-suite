@@ -29,12 +29,10 @@
         </p>
     </div>
 
-    <a
-        class="button primary"
-        href="{% url 'costumes:costume_create' studio.slug class_instance.id %}"
-    >
-        + Add Costume
-    </a>
+    <div class="wardrobe-header-actions">
+        {% if role == "administrator" %}<a class="button secondary" href="{% url 'costumes:vendor_list' studio.slug %}">Vendor Conversions</a>{% endif %}
+        <a class="button primary" href="{% url 'costumes:costume_create' studio.slug class_instance.id %}">+ Add Costume</a>
+    </div>
 </section>
 
 <form method="get" class="costume-toolbar">

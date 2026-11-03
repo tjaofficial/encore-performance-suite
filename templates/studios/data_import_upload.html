@@ -1,0 +1,55 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Import Data | Encore{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}">{% endblock %}
+{% block topbar_title %}Import Data{% endblock %}
+
+{% block content %}
+<div class="settings-workspace">
+    {% include "includes/settings_nav.html" %}
+    <main class="settings-workspace-content">
+        <section class="settings-heading">
+            <div>
+                <a class="back-link" href="{% url 'studios:data_transfer_home' studio.slug %}">← Back to Data Import &amp; Export</a>
+                <p class="eyebrow">Import · Step 1 of 4</p>
+                <h1>Upload a CSV</h1>
+                <p>Tell Encore what kind of records are in the file. The column names can come from any system.</p>
+            </div>
+        </section>
+
+        {% if messages %}
+            <div class="message-stack">
+                {% for message in messages %}<div class="message-banner {{ message.tags }}">{{ message }}</div>{% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data" class="settings-form data-import-form">
+            {% csrf_token %}
+            <section class="settings-panel">
+                <div class="settings-field">
+                    <label for="import_type">What does this file contain?</label>
+                    <select class="encore-input" id="import_type" name="import_type" required>
+                        <option value="">Choose a record type</option>
+                        {% for key, config in import_types.items %}
+                            <option value="{{ key }}">{{ config.label }}</option>
+                        {% endfor %}
+                    </select>
+                    <small>You can import multiple CSV files one at a time. Encore will support linked multi-file migration jobs in a later phase.</small>
+                </div>
+
+                <div class="settings-field data-file-field">
+                    <label for="csv_file">CSV file</label>
+                    <input class="encore-input" id="csv_file" name="csv_file" type="file" accept=".csv,text/csv" required>
+                    <small>UTF-8 CSV · up to 10 MB for this step.</small>
+                </div>
+            </section>
+
+            <div class="form-actions">
+                <a class="button secondary" href="{% url 'studios:data_transfer_home' studio.slug %}">Cancel</a>
+                <button class="button primary" type="submit">Analyze File →</button>
+            </div>
+        </form>
+    </main>
+</div>
+{% endblock %}

@@ -83,7 +83,7 @@
                     <div class="public-form-grid">
                         {% for field in form %}
                             <div class="public-field">
-                                {{ field.label_tag }}
+                                <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span style="color:#c92a42;font-weight:800" aria-label="required">*</span>{% endif %}</label>
                                 {{ field }}
 
                                 {% for error in field.errors %}

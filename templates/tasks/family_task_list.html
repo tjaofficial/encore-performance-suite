@@ -1,0 +1,16 @@
+{% extends "dashboard/parent_portal_base.html" %}
+{% load static %}
+{% block title %}My Tasks | Encore{% endblock %}
+{% block parent_portal_heading %}My Tasks{% endblock %}
+{% block parent_extra_css %}<link rel="stylesheet" href="{% static 'css/encore_tasks.css' %}"><link rel="stylesheet" href="{% static 'css/encore_attendance_phase2.css' %}">{% endblock %}
+{% block parent_content %}
+<section class="attendance-family-page">
+<header class="attendance-family-header"><div><h1>{{ selected_student.first_name }}'s Tasks</h1><p>Track tasks for your dancers. Make-up tasks update automatically as you schedule and attend classes.</p></div><a class="button secondary" href="{% url 'attendance:makeup_schedule' studio.slug %}?student={{ selected_student.id }}">Make-Up Schedule</a></header>
+<nav class="task-manager-tabs"><a href="?student={{ selected_student.id }}&tab=mine" class="{% if not show_completed %}active{% endif %}">Open Tasks</a><a href="?student={{ selected_student.id }}&tab=mine&completed=1" class="{% if show_completed %}active{% endif %}">Completed</a></nav>
+<section class="attendance-family-section">
+{% for row in task_rows %}<article class="attendance-family-item" style="display:flex;align-items:center;gap:18px;justify-content:space-between;">
+<div style="flex:1"><a href="{% url 'tasks:task_detail' studio.slug row.task.id %}?student={{ selected_student.id }}"><strong>{{ row.task.title }}</strong></a><p>{{ row.display_description }}</p>{% if row.task.student %}<small>For {{ row.task.student }}</small>{% endif %}{% if row.system_managed %}<small> · Automatically managed by Encore</small>{% endif %}</div>
+{% if row.can_complete %}<form method="post" action="{% url 'tasks:task_toggle_complete' studio.slug row.task.id %}">{% csrf_token %}<button class="button secondary" type="submit">{% if row.assignment.completed_at %}Reopen{% else %}Complete{% endif %}</button></form>{% else %}<span>{% if row.assignment.completed_at %}Completed{% else %}In progress{% endif %}</span>{% endif %}
+</article>{% empty %}<p>No tasks here right now.</p>{% endfor %}
+</section></section>
+{% endblock %}

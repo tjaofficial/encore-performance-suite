@@ -1,5 +1,6 @@
 import json
 import re
+from copy import deepcopy
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -8,8 +9,10 @@ from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 
-from classes.models import Class
+from classes.models import Class, Season
 from enrollments.models import Enrollment
 from instructors.models import Instructor
 from resources.models import ClassResource
@@ -28,6 +31,7 @@ from .models import (
     FormationTransition,
     DrawingBoardLightingCue,
     DrawingBoardLightingFixture,
+    StageLightingTemplate,
     LightingCue,
     PerformancePrepItem,
 )
@@ -171,10 +175,25 @@ def plan_list(request, studio_slug):
             )
         ).distinct()
 
-    search = request.GET.get(
-        "q",
-        "",
-    ).strip()
+    # An explicit class filter wins; otherwise use the studio's current season.
+    today = timezone.localdate()
+    current_season = Season.objects.filter(studio=studio, start_date__lte=today, end_date__gte=today).order_by('-start_date').first()
+    selected_class = request.GET.get('class', '').strip()
+    selected_season = request.GET.get('season', '').strip()
+    selected_teacher = request.GET.get('teacher', '').strip()
+    selected_dance = request.GET.get('dance', '').strip()
+    # A class-specific entry defaults to that class; filters remain changeable.
+    if selected_class.isdigit():
+        plans = plans.filter(class_instance_id=int(selected_class))
+    if selected_season.isdigit():
+        plans = plans.filter(class_instance__season_id=int(selected_season))
+    elif selected_season != 'all' and not selected_class and current_season:
+        plans = plans.filter(class_instance__season=current_season)
+    if selected_teacher.isdigit():
+        plans = plans.filter(Q(class_instance__instructor_id=int(selected_teacher)) | Q(class_instance__assistant_instructor_id=int(selected_teacher)))
+    if selected_dance.isdigit():
+        plans = plans.filter(pk=int(selected_dance))
+    search = request.GET.get('q', '').strip()
 
     if search:
         plans = plans.filter(
@@ -193,6 +212,15 @@ def plan_list(request, studio_slug):
             "role": role,
             "plans": plans,
             "search": search,
+            "seasons": Season.objects.filter(studio=studio).order_by('-start_date'),
+            "classes_filter": Class.objects.filter(studio=studio, pk__in=ChoreographyPlan.objects.filter(studio=studio).values('class_instance_id')).order_by('name') if role == 'administrator' else Class.objects.filter(studio=studio).filter(Q(instructor=instructor) | Q(assistant_instructor=instructor)).distinct().order_by('name'),
+            "teachers_filter": Instructor.objects.filter(studio=studio).order_by('first_name', 'last_name') if role == 'administrator' else [],
+            "dances_filter": ChoreographyPlan.objects.filter(studio=studio).filter(Q(class_instance__instructor=instructor) | Q(class_instance__assistant_instructor=instructor)).order_by('title') if role == 'teacher' else ChoreographyPlan.objects.filter(studio=studio).order_by('title'),
+            "selected_class": selected_class,
+            "selected_season": selected_season or ('current' if current_season else 'all'),
+            "selected_teacher": selected_teacher,
+            "selected_dance": selected_dance,
+            "current_season": current_season,
         },
     )
 
@@ -219,6 +247,15 @@ def plan_create(request, studio_slug):
         )
 
     teacher_mode = role == "teacher"
+    requested_class = (request.GET.get("class") or request.POST.get("class_context") or "").strip()
+    locked_class = None
+    if requested_class.isdigit():
+        allowed_classes = Class.objects.filter(studio=studio, is_active=True)
+        if teacher_mode:
+            allowed_classes = allowed_classes.filter(
+                Q(instructor=instructor) | Q(assistant_instructor=instructor)
+            )
+        locked_class = get_object_or_404(allowed_classes, pk=int(requested_class))
 
     form = ChoreographyPlanForm(
         request.POST or None,
@@ -226,6 +263,14 @@ def plan_create(request, studio_slug):
         instructor=instructor,
         teacher_mode=teacher_mode,
     )
+
+    if locked_class is not None:
+        form.initial["class_instance"] = locked_class.pk
+        form.fields["class_instance"].initial = locked_class
+        form.fields["class_instance"].disabled = True
+        form.fields["class_instance"].widget.attrs["aria-label"] = "Class (locked)"
+        if not form.is_bound:
+            form.initial["class_instance"] = locked_class.pk
 
     if request.method == "POST" and form.is_valid():
         plan = form.save(
@@ -259,7 +304,8 @@ def plan_create(request, studio_slug):
             "studio": studio,
             "role": role,
             "form": form,
-            "page_title": "Create Performance Plan",
+            "page_title": "Create Dance",
+            "locked_class": locked_class,
         },
     )
 
@@ -317,6 +363,58 @@ def plan_detail(
     formations = plan.formations.all()
     lighting_cues = plan.lighting_cues.all()
     prep_items = plan.prep_items.all()
+    costumes = (
+        plan.costumes
+        .filter(is_active=True)
+        .select_related(
+            "vendor",
+            "vendor_size_chart",
+        )
+        .prefetch_related("images")
+        .order_by("name")
+    )
+
+    # This hub summarizes the resources already connected to this dance.
+    # The current plan detail is staff-only; publishing to families needs
+    # an explicit approval and access-control pass.
+    dance_boards = (
+        plan.drawing_boards
+        .prefetch_related("formations")
+        .order_by("-updated_at")
+    )
+    from resources.models import ClassResource
+    dance_videos = list(
+        ClassResource.objects.filter(
+            studio=studio, dance=plan, class_instance=plan.class_instance,
+            resource_type=ClassResource.ResourceType.VIDEO, is_active=True,
+        ).order_by("sort_order", "created_at")
+    )
+    from urllib.parse import urlparse, parse_qs
+    for video in dance_videos:
+        parsed = urlparse(video.external_url or "")
+        hostname = (parsed.hostname or "").lower()
+        video_id = ""
+        if hostname in {"youtube.com", "www.youtube.com", "m.youtube.com"} and parsed.path == "/watch":
+            video_id = parse_qs(parsed.query).get("v", [""])[0]
+        elif hostname in {"youtu.be", "www.youtu.be"}:
+            video_id = parsed.path.strip("/").split("/")[0]
+        elif hostname in {"youtube.com", "www.youtube.com"} and parsed.path.startswith("/shorts/"):
+            video_id = parsed.path.split("/")[2]
+        if re.fullmatch(r"[a-zA-Z0-9_-]{11}", video_id):
+            video.embed_url = f"https://www.youtube.com/embed/{video_id}"
+            video.thumbnail_url = f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg"
+        else:
+            video.embed_url = ""
+            video.thumbnail_url = ""
+
+    music_submissions = ClassResource.objects.filter(
+        studio=studio, dance=plan, resource_type=ClassResource.ResourceType.MUSIC
+    ).select_related("uploaded_by", "reviewed_by").order_by("-created_at")
+    featured_board = dance_boards.first()
+    board_formation_count = (
+        featured_board.formations.count()
+        if featured_board is not None else 0
+    )
 
     complete_count = prep_items.filter(
         is_complete=True,
@@ -336,21 +434,63 @@ def plan_detail(
         else 0
     )
 
+    return_to = request.GET.get("return", "")
+    allowed_prefix = reverse('performance:plan_list', kwargs={'studio_slug':studio.slug})
+    if not (return_to.startswith(allowed_prefix) and url_has_allowed_host_and_scheme(return_to, allowed_hosts={request.get_host()}, require_https=request.is_secure())):
+        return_to = allowed_prefix
+
     return render(
         request,
         "performance/plan_detail.html",
         {
+            "return_to": return_to,
             "studio": studio,
             "role": role,
             "plan": plan,
             "formations": formations,
             "lighting_cues": lighting_cues,
             "prep_items": prep_items,
+            "costumes": costumes,
+            "note_fields": [("choreography_notes", "Choreography Notes", "Steps, movement and timing", plan.choreography_notes), ("teacher_notes", "Internal Notes", "Private to studio staff", plan.teacher_notes), ("performance_notes", "Performance Notes", "Show and stage instructions", plan.performance_notes)],
+            "dance_videos": dance_videos,
+            "other_resources": ClassResource.objects.filter(studio=studio, dance=plan, is_active=True, resource_type__in=["other", "document"]).order_by("sort_order", "title"),
+            "music_submissions": music_submissions,
+            "featured_board": featured_board,
+            "board_formation_count": board_formation_count,
             "prep_complete_count": complete_count,
             "prep_total_count": total_count,
             "prep_progress_percent": progress_percent,
         },
     )
+
+
+@login_required
+def dance_notes_autosave(request, studio_slug, plan_id):
+    """Update a single dance note with studio and assigned-teacher permissions."""
+    from django.views.decorators.http import require_POST
+    from django.utils import timezone
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required"}, status=405)
+    studio = get_object_or_404(Studio, slug=studio_slug, is_active=True)
+    role, instructor = _require_staff(request, studio)
+    plan = get_object_or_404(ChoreographyPlan, pk=plan_id, studio=studio)
+    if role not in ("administrator", "teacher") or (role == "teacher" and not _teacher_can_access_plan(instructor, plan)):
+        return JsonResponse({"error": "Permission denied"}, status=403)
+    field = request.POST.get("field", "")
+    if field not in {"choreography_notes", "teacher_notes", "performance_notes"}:
+        return JsonResponse({"error": "Invalid note field"}, status=400)
+    content = request.POST.get("content", "")
+    if len(content) > 30000:
+        return JsonResponse({"error": "Note is too long"}, status=400)
+    # The client supplies the version it edited to avoid overwriting another editor.
+    expected = request.POST.get("original", "")
+    with transaction.atomic():
+        current = ChoreographyPlan.objects.select_for_update().get(pk=plan.pk, studio=studio)
+        if getattr(current, field) != expected:
+            return JsonResponse({"error": "This note changed elsewhere. Copy your text and refresh before saving."}, status=409)
+        setattr(current, field, content)
+        current.save(update_fields=[field, "updated_at"])
+    return JsonResponse({"saved": True, "content": content})
 
 
 @login_required
@@ -437,7 +577,7 @@ def plan_edit(
             "studio": studio,
             "role": role,
             "form": form,
-            "page_title": "Edit Performance Plan",
+            "page_title": "Edit Dance Details",
         },
     )
 
@@ -876,9 +1016,9 @@ def drawing_board_detail(request, studio_slug, board_id):
         if sid not in active_ids: sid=None
         existing[n]={"marker":n,"student_id":sid,"shape":item.get("shape") or "circle","color":item.get("color") or "#2E3CF1"}
     assignments=[existing.get(n,{"marker":n,"student_id":None,"shape":"circle","color":"#2E3CF1"}) for n in range(1,len(students)+1)]
-    if assignments != (board.marker_assignments or []):
-        board.marker_assignments=assignments
-        board.save(update_fields=["marker_assignments","updated_at"])
+    # IMPORTANT: Rendering the active roster must not destroy historical marker
+    # assignments for a student who was withdrawn. Filter only the payload.
+    # The pre-withdrawal snapshot is retained separately for audit/reference.
     rows=[]
     for formation in board.formations.order_by("sequence_order","id"):
         positions=[]
@@ -917,6 +1057,7 @@ def drawing_board_detail(request, studio_slug, board_id):
             class_instance=board.class_instance,
             resource_type=ClassResource.ResourceType.MUSIC,
             is_active=True,
+            approval_status=ClassResource.ApprovalStatus.APPROVED,
         )
         .order_by(
             "title",
@@ -1107,9 +1248,271 @@ def drawing_board_detail(request, studio_slug, board_id):
             else None
         ),
     }
+    accessible_copy_classes = Class.objects.filter(
+        studio=studio,
+        is_active=True,
+    ).exclude(pk=board.class_instance_id)
+
+    if role == "teacher":
+        accessible_copy_classes = accessible_copy_classes.filter(
+            Q(instructor=instructor)
+            | Q(assistant_instructor=instructor)
+        ).distinct()
+
+    related_copy_classes = list(
+        accessible_copy_classes.filter(
+            season_id=board.class_instance.season_id,
+            class_type_id=board.class_instance.class_type_id,
+            instructor_id=board.class_instance.instructor_id,
+            name__iexact=board.class_instance.name,
+        )
+        .select_related("season", "instructor", "class_type", "default_location")
+        .order_by("name", "class_id")
+    )
+
+    related_ids = [item.id for item in related_copy_classes]
+
+    other_copy_classes = list(
+        accessible_copy_classes.exclude(id__in=related_ids)
+        .select_related("season", "instructor", "class_type", "default_location")
+        .order_by("-season__start_date", "name", "class_id")[:100]
+    )
+
     return render(request,"performance/formation_board.html",{
-        "studio":studio,"role":role,"board":board,"plan":board.performance_plan,"board_payload":payload,
+        "studio":studio,
+        "role":role,
+        "board":board,
+        "plan":board.performance_plan,
+        "board_payload":payload,
+        "venue_templates": StageLightingTemplate.objects.filter(studio=studio),
+        "related_copy_classes": related_copy_classes,
+        "other_copy_classes": other_copy_classes,
     })
+
+
+@login_required
+@transaction.atomic
+def drawing_board_copy_to_class(request, studio_slug, board_id):
+    studio = get_object_or_404(
+        Studio,
+        slug=studio_slug,
+        is_active=True,
+    )
+
+    source_board = get_object_or_404(
+        DrawingBoard.objects.select_related(
+            "class_instance",
+            "class_instance__season",
+            "class_instance__class_type",
+            "class_instance__instructor",
+        ),
+        pk=board_id,
+        studio=studio,
+    )
+
+    role, instructor = _board_access(
+        request,
+        studio,
+        source_board,
+    )
+
+    if role is None:
+        return render(
+            request,
+            "dashboard/access_denied.html",
+            {"studio": studio},
+            status=403,
+        )
+
+    if request.method != "POST":
+        return redirect(
+            "performance:drawing_board_detail",
+            studio_slug=studio.slug,
+            board_id=source_board.id,
+        )
+
+    destination_id = request.POST.get(
+        "destination_class",
+        "",
+    ).strip()
+
+    new_title = request.POST.get(
+        "new_title",
+        "",
+    ).strip()
+
+    if not destination_id:
+        messages.error(
+            request,
+            "Choose a destination class.",
+        )
+        return redirect(
+            "performance:drawing_board_detail",
+            studio_slug=studio.slug,
+            board_id=source_board.id,
+        )
+
+    destination_queryset = Class.objects.filter(
+        studio=studio,
+        is_active=True,
+    ).exclude(pk=source_board.class_instance_id)
+
+    if role == "teacher":
+        destination_queryset = destination_queryset.filter(
+            Q(instructor=instructor)
+            | Q(assistant_instructor=instructor)
+        ).distinct()
+
+    destination_class = get_object_or_404(
+        destination_queryset,
+        pk=destination_id,
+    )
+
+    if not new_title:
+        messages.error(
+            request,
+            "Enter a name for the copied Drawing Board.",
+        )
+        return redirect(
+            "performance:drawing_board_detail",
+            studio_slug=studio.slug,
+            board_id=source_board.id,
+        )
+
+    source_title = (
+        source_board.title
+        or f"{source_board.class_instance.name} Drawing Board"
+    )
+
+    if new_title.casefold() == source_title.casefold():
+        messages.error(
+            request,
+            "The copied Drawing Board must have a different name.",
+        )
+        return redirect(
+            "performance:drawing_board_detail",
+            studio_slug=studio.slug,
+            board_id=source_board.id,
+        )
+
+    copied_assignments = []
+
+    for item in source_board.marker_assignments or []:
+        if not isinstance(item, dict):
+            continue
+
+        try:
+            marker_number = int(item.get("marker"))
+        except (TypeError, ValueError):
+            continue
+
+        copied_assignments.append(
+            {
+                "marker": marker_number,
+                "student_id": None,
+                "shape": item.get("shape") or "circle",
+                "color": item.get("color") or "#2E3CF1",
+            }
+        )
+
+    copied_board = DrawingBoard.objects.create(
+        studio=studio,
+        class_instance=destination_class,
+        performance_plan=None,
+        title=new_title[:200],
+        song_duration_seconds=source_board.song_duration_seconds,
+        marker_assignments=copied_assignments,
+        stage_drawings=deepcopy(source_board.stage_drawings or []),
+        show_offstage_wings=source_board.show_offstage_wings,
+        apron_stage_grid=source_board.apron_stage_grid,
+        created_by=instructor,
+        updated_by=instructor,
+    )
+
+    formation_map = {}
+
+    source_formations = list(
+        source_board.formations.order_by(
+            "sequence_order",
+            "id",
+        )
+    )
+
+    for source_formation in source_formations:
+        copied_formation = Formation.objects.create(
+            board=copied_board,
+            plan=None,
+            name=source_formation.name,
+            section_label=source_formation.section_label,
+            sequence_order=source_formation.sequence_order,
+            time_seconds=source_formation.time_seconds,
+            hold_duration_seconds=source_formation.hold_duration_seconds,
+            notes=source_formation.notes,
+            positions=deepcopy(source_formation.positions or []),
+        )
+
+        formation_map[source_formation.id] = copied_formation
+
+    for source_transition in source_board.formation_transitions.select_related(
+        "from_formation",
+        "to_formation",
+    ).all():
+        copied_from = formation_map.get(source_transition.from_formation_id)
+        copied_to = formation_map.get(source_transition.to_formation_id)
+
+        if not copied_from or not copied_to:
+            continue
+
+        FormationTransition.objects.create(
+            board=copied_board,
+            from_formation=copied_from,
+            to_formation=copied_to,
+            movements=deepcopy(source_transition.movements or []),
+            duration_seconds=source_transition.duration_seconds,
+        )
+
+    for source_fixture in source_board.lighting_fixtures.all():
+        DrawingBoardLightingFixture.objects.create(
+            board=copied_board,
+            fixture_number=source_fixture.fixture_number,
+            label=source_fixture.label,
+            fixture_type=source_fixture.fixture_type,
+            x=source_fixture.x,
+            y=source_fixture.y,
+            notes=source_fixture.notes,
+            created_by=instructor,
+            updated_by=instructor,
+        )
+
+    for source_cue in source_board.lighting_cues.all():
+        DrawingBoardLightingCue.objects.create(
+            board=copied_board,
+            cue_number=source_cue.cue_number,
+            name=source_cue.name,
+            time_seconds=source_cue.time_seconds,
+            fade_seconds=source_cue.fade_seconds,
+            is_blackout=source_cue.is_blackout,
+            focus_areas=deepcopy(source_cue.focus_areas or []),
+            follow_spots=deepcopy(source_cue.follow_spots or []),
+            fixture_states=deepcopy(source_cue.fixture_states or []),
+            notes=source_cue.notes,
+            created_by=instructor,
+            updated_by=instructor,
+        )
+
+    messages.success(
+        request,
+        (
+            f'Drawing Board copied to "{destination_class.name}". '
+            "Student assignments were cleared."
+        ),
+    )
+
+    return redirect(
+        "performance:drawing_board_detail",
+        studio_slug=studio.slug,
+        board_id=copied_board.id,
+    )
 
 
 @login_required
@@ -1123,6 +1526,22 @@ def drawing_board_detail_save(request, studio_slug, board_id):
     try: payload=json.loads(request.body.decode("utf-8"))
     except json.JSONDecodeError: return JsonResponse({"ok":False,"error":"Invalid JSON."},status=400)
     students=_board_students(board); marker_count=len(students); active_ids={s["id"] for s in students}
+    # Detect a class roster change while an instructor had this board open.
+    # Never overwrite an up-to-date board from a stale browser session.
+    supplied_roster = payload.get("active_roster_ids")
+    if supplied_roster is not None:
+        if not isinstance(supplied_roster, list):
+            return JsonResponse({"ok": False, "error": "Invalid Drawing Board roster."}, status=400)
+        try:
+            submitted_roster_ids = {int(student_id) for student_id in supplied_roster}
+        except (ValueError, TypeError):
+            return JsonResponse({"ok": False, "error": "Invalid Drawing Board roster."}, status=400)
+        if submitted_roster_ids != active_ids or len(supplied_roster) != len(active_ids):
+            return JsonResponse({
+                "ok": False,
+                "roster_changed": True,
+                "error": "The class roster changed while this Drawing Board was open. Refresh the page before making further edits; your changes have not been saved.",
+            }, status=409)
     submitted=payload.get("assignments",[]); assignments=[]; used=set()
     for n in range(1,marker_count+1):
         item=next((x for x in submitted if isinstance(x,dict) and int(x.get("marker",0) or 0)==n),{})
@@ -2948,6 +3367,7 @@ def drawing_board_information_save(
                 class_instance=board.class_instance,
                 resource_type=ClassResource.ResourceType.MUSIC,
                 is_active=True,
+                approval_status=ClassResource.ApprovalStatus.APPROVED,
             )
 
             dance.music_resource = song
@@ -3314,12 +3734,18 @@ def drawing_board_song_add(
             duration_seconds
             or None
         ),
-        visibility=ClassResource.Visibility.STAFF,
+        visibility=ClassResource.Visibility.STAFF if role == "teacher" else ClassResource.Visibility.ENROLLED,
         is_active=True,
+        dance=board.performance_plan,
+        approval_status=(ClassResource.ApprovalStatus.PENDING if role == "teacher" else ClassResource.ApprovalStatus.APPROVED),
     )
 
     song.full_clean()
     song.save()
+    if role == "teacher":
+        from resources.music_reviews import notify_music_submitted
+        transaction.on_commit(lambda pk=song.pk: notify_music_submitted(pk))
+        return JsonResponse({"ok": True, "pending_approval": True, "message": "Music submitted for administrator approval."})
 
     dance = board.performance_plan
     dance.music_resource = song
@@ -3932,3 +4358,185 @@ def formation_duplicate(
         plan_id=plan.pk,
         formation_id=duplicate.pk,
     )
+
+
+@login_required
+def dance_choreography_viewer(request, studio_slug, plan_id):
+    """Read-only choreography presentation with independent role and enrollment checks."""
+    from django.http import Http404
+    from django.urls import reverse
+    from families.models import Guardian
+    from students.models import Student
+    studio = get_object_or_404(Studio, slug=studio_slug, is_active=True)
+    role = _workspace_role(request, studio)
+    dance = get_object_or_404(ChoreographyPlan.objects.select_related('class_instance','music_resource'), studio=studio, pk=plan_id)
+    eligible_ids = set(Enrollment.objects.filter(class_instance=dance.class_instance, status=Enrollment.Status.ACTIVE, student__is_active=True).values_list('student_id', flat=True))
+    own_ids = set()
+    if role == 'administrator':
+        pass
+    elif role == 'teacher':
+        instructor = _teacher(request, studio)
+        if not instructor or not _teacher_can_access_plan(instructor,dance):
+            raise Http404()
+    elif role == 'family':
+        family_ids = Guardian.objects.filter(family__studio=studio, user=request.user, is_active=True).values_list('family_id',flat=True)
+        own_ids = set(Student.objects.filter(studio=studio, family_id__in=family_ids, pk__in=eligible_ids).values_list('id',flat=True))
+        if not own_ids: raise Http404()
+    elif role == 'student':
+        own_ids = set(Student.objects.filter(studio=studio, user=request.user, pk__in=eligible_ids).values_list('id',flat=True))
+        if not own_ids: raise Http404()
+    else:
+        raise Http404()
+    board = dance.drawing_boards.order_by('-updated_at').first()
+    if not board:
+        return render(request,'performance/dance_choreography_viewer.html',{'studio':studio,'dance':dance,'board':None})
+    from resources.models import ClassResource
+    students = list(Student.objects.filter(studio=studio, pk__in=eligible_ids).order_by('last_name','first_name'))
+    assignments = {int(x['marker']):x.get('student_id') for x in (board.marker_assignments or []) if isinstance(x,dict) and str(x.get('marker','')).isdigit()}
+    marker_names = {s.pk:f'{s.first_name} {s.last_name}' for s in students}
+    items = []
+    timeline = 0
+    board_formations = list(board.formations.order_by('sequence_order','id'))
+    transitions = {(tr.from_formation_id, tr.to_formation_id): tr.duration_seconds for tr in board.formation_transitions.all()}
+    for index, formation in enumerate(board_formations):
+        coords=[]
+        for pos in formation.positions or []:
+            try:
+                marker=int(pos['marker']); x=float(pos['x']); y=float(pos['y'])
+            except (ValueError,TypeError,KeyError):continue
+            if not (0 <= x <= 100 and 0 <= y <= 100):continue
+            student_id=assignments.get(marker)
+            coords.append({'marker':marker,'x':x,'y':y,'own':student_id in own_ids,'name':marker_names.get(student_id,'Dancer')})
+        start = max(timeline, formation.time_seconds)
+        next_formation = board_formations[index + 1] if index + 1 < len(board_formations) else None
+        transition_seconds = transitions.get((formation.pk, next_formation.pk), 3) if next_formation else 0
+        items.append({'name':formation.name,'time':start,'hold':formation.hold_duration_seconds,'transition':transition_seconds,'positions':coords})
+        timeline = start + formation.hold_duration_seconds + transition_seconds
+    lighting = [{'time':cue.time_seconds,'name':cue.name,'blackout':cue.is_blackout} for cue in board.lighting_cues.order_by('time_seconds','cue_number')]
+    song = dance.music_resource
+    music_url=''
+    if song and song.is_active and song.approval_status==ClassResource.ApprovalStatus.APPROVED and song.visibility==ClassResource.Visibility.ENROLLED and song.file:
+        music_url=reverse('resources:music_file',kwargs={'studio_slug':studio.slug,'resource_id':song.pk})
+    return render(request,'performance/dance_choreography_viewer.html', {'studio':studio,'dance':dance,'board':board,'formations_json':items,'lighting_json':lighting,'music_url':music_url,'family_mode':role in ('family','student'),'own_available':bool(own_ids)})
+
+
+@login_required
+@transaction.atomic
+def drawing_board_stage_template_save(request, studio_slug, board_id):
+    """Authorized studio staff save reusable stage drawings (including labels) and lighting."""
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "POST required."}, status=405)
+    studio = get_object_or_404(Studio, slug=studio_slug, is_active=True)
+    board = get_object_or_404(DrawingBoard, pk=board_id, studio=studio)
+    role, _ = _board_access(request, studio, board)
+    if role not in {"administrator", "teacher"}:
+        return JsonResponse({"ok": False, "error": "Instructor or administrator access required."}, status=403)
+    try:
+        payload = json.loads(request.body)
+    except (ValueError, TypeError):
+        return JsonResponse({"ok": False, "error": "Invalid JSON."}, status=400)
+    name = str(payload.get("name", "")).strip()
+    if not name or len(name) > 160:
+        return JsonResponse({"ok": False, "error": "Enter a template name (up to 160 characters)."}, status=400)
+    if StageLightingTemplate.objects.filter(studio=studio, name=name).exists():
+        return JsonResponse({"ok": False, "error": "A venue template with this name already exists."}, status=409)
+    fixtures = list(board.lighting_fixtures.order_by("fixture_number", "id").values(
+        "fixture_number", "label", "fixture_type", "x", "y", "notes"))
+    cues = list(board.lighting_cues.order_by("time_seconds", "cue_number").values(
+        "cue_number", "name", "time_seconds", "fade_seconds", "is_blackout", "focus_areas", "follow_spots", "fixture_states", "notes"))
+    template = StageLightingTemplate.objects.create(
+        studio=studio, name=name, stage_drawings=deepcopy(board.stage_drawings or []),
+        show_offstage_wings=board.show_offstage_wings, apron_stage_grid=board.apron_stage_grid,
+        fixtures=json.loads(json.dumps(fixtures, default=str)), cues=json.loads(json.dumps(cues, default=str)),
+    )
+    return JsonResponse({"ok": True, "id": template.id, "name": template.name})
+
+
+@login_required
+@transaction.atomic
+def drawing_board_stage_template_apply(request, studio_slug, board_id):
+    """Replace only the requested board layers. Choreography is never touched."""
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "POST required."}, status=405)
+    studio = get_object_or_404(Studio, slug=studio_slug, is_active=True)
+    board = get_object_or_404(DrawingBoard.objects.select_for_update().select_related("class_instance"), pk=board_id, studio=studio)
+    role, instructor = _board_access(request, studio, board)
+    if role not in {"administrator", "teacher"}:
+        return JsonResponse({"ok": False, "error": "Access denied."}, status=403)
+    try:
+        payload = json.loads(request.body)
+        template_id = int(payload.get("template_id"))
+    except (ValueError, TypeError):
+        return JsonResponse({"ok": False, "error": "Select a valid template."}, status=400)
+    stage = payload.get("stage") is True
+    lighting = payload.get("lighting") is True
+    if not (stage or lighting):
+        return JsonResponse({"ok": False, "error": "Choose Stage, Lighting, or both."}, status=400)
+    template = get_object_or_404(StageLightingTemplate, pk=template_id, studio=studio)
+    # An undo snapshot contains only the replaced layers; never alter choreography.
+    snapshot = {}
+    if stage:
+        snapshot["stage_drawings"] = deepcopy(board.stage_drawings or [])
+        snapshot["show_offstage_wings"] = board.show_offstage_wings
+        snapshot["apron_stage_grid"] = board.apron_stage_grid
+        board.stage_drawings = deepcopy(template.stage_drawings or [])
+        board.show_offstage_wings = template.show_offstage_wings
+        board.apron_stage_grid = template.apron_stage_grid
+        board.save(update_fields=["stage_drawings", "show_offstage_wings", "apron_stage_grid", "updated_at"])
+    if lighting:
+        snapshot["fixtures"] = json.loads(json.dumps(list(board.lighting_fixtures.values("fixture_number", "label", "fixture_type", "x", "y", "notes")), default=str))
+        snapshot["cues"] = json.loads(json.dumps(list(board.lighting_cues.values("cue_number", "name", "time_seconds", "fade_seconds", "is_blackout", "focus_areas", "follow_spots", "fixture_states", "notes")), default=str))
+        board.lighting_cues.all().delete()
+        board.lighting_fixtures.all().delete()
+        for fixture in template.fixtures or []:
+            DrawingBoardLightingFixture.objects.create(board=board, fixture_number=fixture["fixture_number"],
+                label=fixture.get("label", ""), fixture_type=fixture.get("fixture_type", "par"),
+                x=fixture.get("x", 50), y=fixture.get("y", 10), notes=fixture.get("notes", ""),
+                created_by=instructor, updated_by=instructor)
+        for cue in template.cues or []:
+            DrawingBoardLightingCue.objects.create(board=board, cue_number=cue["cue_number"],
+                name=cue.get("name", ""), time_seconds=cue.get("time_seconds", 0),
+                fade_seconds=cue.get("fade_seconds", 1), is_blackout=cue.get("is_blackout", False),
+                focus_areas=deepcopy(cue.get("focus_areas") or []), follow_spots=deepcopy(cue.get("follow_spots") or []),
+                fixture_states=deepcopy(cue.get("fixture_states") or []), notes=cue.get("notes", ""),
+                created_by=instructor, updated_by=instructor)
+    request.session[f"board_template_undo_{board.pk}"] = snapshot
+    return JsonResponse({"ok": True, "message": "Template applied. Reloading board."})
+
+
+@login_required
+@transaction.atomic
+def drawing_board_stage_template_undo(request, studio_slug, board_id):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "POST required."}, status=405)
+    studio = get_object_or_404(Studio, slug=studio_slug, is_active=True)
+    board = get_object_or_404(DrawingBoard.objects.select_for_update().select_related("class_instance"), pk=board_id, studio=studio)
+    role, instructor = _board_access(request, studio, board)
+    if role not in {"administrator", "teacher"}:
+        return JsonResponse({"ok": False, "error": "Access denied."}, status=403)
+    key = f"board_template_undo_{board.pk}"
+    snapshot = request.session.get(key)
+    if not isinstance(snapshot, dict) or not snapshot:
+        return JsonResponse({"ok": False, "error": "No template change is available to undo."}, status=400)
+    if "stage_drawings" in snapshot:
+        board.stage_drawings = snapshot["stage_drawings"]
+        board.show_offstage_wings = snapshot["show_offstage_wings"]
+        board.apron_stage_grid = snapshot["apron_stage_grid"]
+        board.save(update_fields=["stage_drawings", "show_offstage_wings", "apron_stage_grid", "updated_at"])
+    if "fixtures" in snapshot:
+        board.lighting_cues.all().delete()
+        board.lighting_fixtures.all().delete()
+        for fixture in snapshot["fixtures"]:
+            DrawingBoardLightingFixture.objects.create(board=board, fixture_number=fixture["fixture_number"],
+                label=fixture.get("label", ""), fixture_type=fixture.get("fixture_type", "par"),
+                x=fixture.get("x", 50), y=fixture.get("y", 10), notes=fixture.get("notes", ""),
+                created_by=instructor, updated_by=instructor)
+        for cue in snapshot.get("cues", []):
+            DrawingBoardLightingCue.objects.create(board=board, cue_number=cue["cue_number"],
+                name=cue.get("name", ""), time_seconds=cue.get("time_seconds", 0),
+                fade_seconds=cue.get("fade_seconds", 1), is_blackout=cue.get("is_blackout", False),
+                focus_areas=deepcopy(cue.get("focus_areas") or []), follow_spots=deepcopy(cue.get("follow_spots") or []),
+                fixture_states=deepcopy(cue.get("fixture_states") or []), notes=cue.get("notes", ""),
+                created_by=instructor, updated_by=instructor)
+    del request.session[key]
+    return JsonResponse({"ok": True})

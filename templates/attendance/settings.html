@@ -1,0 +1,206 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+{% block title %}Attendance Settings | Encore Performance Suite{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/encore_studio_settings.css' %}"><link rel="stylesheet" href="{% static 'css/encore_attendance.css' %}">{% endblock %}
+{% block topbar_title %}Attendance Settings{% endblock %}
+{% block content %}
+<div class="settings-workspace">{% include "includes/settings_nav.html" %}
+<main class="settings-workspace-content attendance-settings-content">
+<div class="attendance-settings-title"><div><h1>Attendance Settings</h1><p>Manage make-up schedules, staff permissions, and absence automations for your studio.</p></div><a class="button secondary" href="{% url 'attendance:manager' studio.slug %}">Attendance Manager →</a></div>
+{% if messages %}<div class="message-stack">{% for message in messages %}<div class="message-banner">{{ message }}</div>{% endfor %}</div>{% endif %}
+<section class="attendance-panel"><div class="attendance-panel-header"><div><h2>Make-Up Class Eligibility</h2><p>Choose which specific class days/times may replace a missed class. A make-up is a one-time visit, not a new enrollment, and is not blocked by class capacity.</p></div></div>
+<form method="post" class="attendance-settings-form" data-makeup-rule-form>
+{% csrf_token %}<input type="hidden" name="action" value="add_makeup_rule">
+<div class="makeup-source-control">
+  <label for="makeup-source-class">Original class being missed</label>
+  <input type="search" placeholder="Search current-season classes by name or ID…" data-filter-original aria-label="Search original class">
+  <select id="makeup-source-class" name="source_class_id" required data-original-class>
+    <option value="">Choose an original class…</option>
+    {% for cls in active_classes %}<option value="{{ cls.id }}" data-type="{{ cls.class_type_id }}" data-level="{{ cls.level_id|default:'' }}">{{ cls.name }} · {{ cls.class_id }} ({{ cls.season.name }})</option>{% endfor %}
+  </select>
+  <small>Only active classes in a season running today appear here.</small>
+</div>
+<div class="makeup-eligibility-table-wrap">
+ <div class="makeup-table-heading"><div><h3>Approved replacement sessions</h3><p>Filter by class type, level, name or day. Select only the actual weekly sessions families may book.</p></div><span data-makeup-selected-count>0 selected</span></div>
+ <div class="makeup-meeting-filters">
+    <label>Search <input type="search" placeholder="Search Ballet, class ID, instructor…" data-filter-meetings></label>
+    <label>Class type <select data-filter-class-type><option value="">All class types</option>{% for id, name in class_type_options %}<option value="{{ id }}">{{ name }}</option>{% endfor %}</select></label>
+    <label>Level <select data-filter-class-level><option value="">All levels</option>{% for id, name in level_options %}<option value="{{ id|default:'' }}">{{ name }}</option>{% endfor %}</select></label>
+    <button type="button" class="button secondary" data-match-original>Same type &amp; level</button>
+    <button type="button" class="button secondary" data-clear-meeting-filters>Clear filters</button>
+ </div>
+ <div class="makeup-table-selection-bar">
+    <label><input type="checkbox" data-select-visible-meetings> Select all visible sessions</label>
+    <button type="button" class="button secondary" data-clear-meeting-selection>Clear selection</button>
+    <span data-makeup-visible-count></span>
+ </div>
+ <div class="makeup-table-scroll">
+  <table class="makeup-meeting-table"><thead><tr><th>Use</th><th>Replacement class</th><th>Type</th><th>Level</th><th>Day</th><th>Time</th></tr></thead>
+  <tbody>{% for meeting in meeting_options %}
+   <tr data-meeting-item data-search="{{ meeting.class_instance.name|lower }} {{ meeting.class_instance.class_id|lower }} {{ meeting.class_instance.class_type.name|lower }} {{ meeting.class_instance.level.name|default:''|lower }} {{ meeting.get_day_of_week_display|lower }}" data-class-type="{{ meeting.class_instance.class_type_id }}" data-class-level="{{ meeting.class_instance.level_id|default:'' }}">
+     <td><input type="checkbox" name="meeting_ids" value="{{ meeting.id }}" aria-label="Allow {{ meeting.class_instance.name }} on {{ meeting.get_day_of_week_display }}"></td>
+     <td><strong>{{ meeting.class_instance.name }}</strong><small>{{ meeting.class_instance.class_id }} · {{ meeting.class_instance.season.name }}</small></td>
+     <td>{{ meeting.class_instance.class_type.name }}</td><td>{{ meeting.class_instance.level.name|default:'—' }}</td><td>{{ meeting.get_day_of_week_display }}</td><td>{{ meeting.start_time|time:'g:i A' }}</td>
+   </tr>
+  {% empty %}<tr><td colspan="6">No active class meetings in the current season.</td></tr>{% endfor %}</tbody></table>
+ </div>
+ <p class="makeup-filter-empty" data-meeting-no-results hidden>No replacement sessions match these filters.</p>
+</div>
+<div class="makeup-rule-save"><span>Make-up bookings do not affect enrollment totals or capacity.</span><button type="submit" class="button primary">Save Eligible Sessions</button></div>
+</form>
+<div class="attendance-rules-list"><h3>Current Make-Up Rules</h3>{% for rule in rules %}<div class="makeup-rule-row"><div><strong>{{ rule.source_class.name }}</strong><span>→ {{ rule.eligible_meeting.class_instance.name }} · {{ rule.eligible_meeting.get_day_of_week_display }} {{ rule.eligible_meeting.start_time|time:'g:i A' }}</span></div><form method="post">{% csrf_token %}<input type="hidden" name="action" value="remove_makeup_rule"><input type="hidden" name="rule_id" value="{{ rule.pk }}"><button class="button secondary" type="submit">Remove</button></form></div>{% empty %}<p class="attendance-empty-inline">No make-up class rules configured yet.</p>{% endfor %}</div>
+</section>
+<section class="attendance-panel"><div class="attendance-panel-header"><div><h2>Attendance Permissions</h2><p>Administrators can always manage make-ups. Control whether teachers can assign make-up sessions for their classes.</p></div></div><form method="post" class="attendance-settings-form">{% csrf_token %}<input type="hidden" name="action" value="save_attendance_policy"><label class="attendance-toggle"><input name="teachers_can_assign_makeups" type="checkbox" {% if policy.teachers_can_assign_makeups %}checked{% endif %}><span>Allow teachers to assign make-up sessions</span></label><button class="button primary" type="submit">Save Permissions</button></form></section>
+    {% if is_admin %}
+    <section class="attendance-panel automation-panel">
+        <div class="attendance-panel-header automation-section-header">
+            <div>
+                <span class="eyebrow">Automation</span>
+                <h2>Consecutive Absence Automations</h2>
+                <p>These automations run only after attendance is finalized.</p>
+            </div>
+            <button
+                type="button"
+                class="button primary"
+                data-open-automation-modal
+                data-mode="create"
+            >
+                Create Automation
+            </button>
+        </div>
+
+        <div class="automation-list">
+            {% for trigger in triggers %}
+                <article class="automation-row">
+                    <div class="automation-row-accent"></div>
+                    <div class="automation-row-main">
+                        <div class="automation-row-title">
+                            <strong>{{ trigger.name }}</strong>
+                            <span class="automation-state {% if trigger.is_enabled %}is-enabled{% else %}is-disabled{% endif %}">
+                                {% if trigger.is_enabled %}Enabled{% else %}Disabled{% endif %}
+                            </span>
+                        </div>
+                        <div class="automation-row-summary">
+                            <span>{{ trigger.threshold_value }} consecutive absences</span>
+                            <span>•</span>
+                            {% if trigger.send_email %}
+                                <span>
+                                    Email: 
+                                    {% if trigger.email_template %}
+                                        {{ trigger.email_template.name }}
+                                    {% else %}
+                                        Default attendance email
+                                    {% endif %}
+                                </span>
+                            {% else %}
+                                <span>No email</span>
+                            {% endif %}
+                        </div>
+                        <div class="automation-row-actions-text">
+                            {% if trigger.highlight_student %}<span>Highlight student</span>{% endif %}
+                            {% if trigger.create_makeup_requirements %}<span>Create makeups</span>{% endif %}
+                            {% if trigger.create_parent_task %}<span>Create parent task</span>{% endif %}
+                            {% if trigger.notify_teacher %}<span>Notify teacher</span>{% endif %}
+                        </div>
+                    </div>
+                    <div class="automation-row-controls">
+                        <button
+                            type="button"
+                            class="button secondary compact-button"
+                            data-open-automation-modal
+                            data-mode="edit"
+                            data-trigger-id="{{ trigger.id }}"
+                            data-name="{{ trigger.name|escape }}"
+                            data-threshold="{{ trigger.threshold_value }}"
+                            data-enabled="{% if trigger.is_enabled %}1{% else %}0{% endif %}"
+                            data-highlight="{% if trigger.highlight_student %}1{% else %}0{% endif %}"
+                            data-makeups="{% if trigger.create_makeup_requirements %}1{% else %}0{% endif %}"
+                            data-send-email="{% if trigger.send_email %}1{% else %}0{% endif %}"
+                            data-parent-task="{% if trigger.create_parent_task %}1{% else %}0{% endif %}"
+                            data-notify-teacher="{% if trigger.notify_teacher %}1{% else %}0{% endif %}"
+                            data-email-template-id="{{ trigger.email_template_id|default:'' }}"
+                        >
+                            Edit
+                        </button>
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="toggle_trigger">
+                            <input type="hidden" name="trigger_id" value="{{ trigger.id }}">
+                            <button class="button secondary compact-button" type="submit">
+                                {% if trigger.is_enabled %}Turn Off{% else %}Turn On{% endif %}
+                            </button>
+                        </form>
+                        <form method="post" data-delete-automation-form>
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete_trigger">
+                            <input type="hidden" name="trigger_id" value="{{ trigger.id }}">
+                            <button class="button danger-ghost compact-button" type="submit">Delete</button>
+                        </form>
+                    </div>
+                </article>
+            {% empty %}
+                <div class="automation-empty-state">
+                    <strong>No attendance automations yet.</strong>
+                    <span>Create one when you are ready to automate absence follow-up.</span>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <div class="automation-modal-backdrop" data-automation-modal hidden>
+        <section class="automation-modal" role="dialog" aria-modal="true" aria-labelledby="automation-modal-title">
+            <div class="automation-modal-header">
+                <div>
+                    <span class="eyebrow">Attendance Automation</span>
+                    <h2 id="automation-modal-title" data-automation-modal-title>Create Automation</h2>
+                </div>
+                <button type="button" class="modal-close-button" data-close-automation-modal aria-label="Close">×</button>
+            </div>
+
+            <form method="post" class="automation-modal-form" data-automation-form>
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_trigger" data-automation-action>
+                <input type="hidden" name="trigger_id" value="" data-automation-trigger-id>
+
+                <div class="automation-form-grid">
+                    <label class="automation-form-wide">
+                        <span>Automation name</span>
+                        <input type="text" name="name" value="Consecutive Absence Alert" data-automation-name required>
+                    </label>
+                    <label>
+                        <span>Consecutive absences</span>
+                        <input type="number" name="threshold_value" min="1" max="99" value="3" data-automation-threshold required>
+                    </label>
+                </div>
+
+                <div class="automation-option-list">
+                    <label><input type="checkbox" name="is_enabled" checked data-automation-enabled> <span>Enabled</span></label>
+                    <label><input type="checkbox" name="highlight_student" checked data-automation-highlight> <span>Highlight student when threshold is reached</span></label>
+                    <label><input type="checkbox" name="create_makeup_requirements" checked data-automation-makeups> <span>Create makeup requirements</span></label>
+                    <label><input type="checkbox" name="create_parent_task" checked data-automation-parent-task> <span>Create parent task</span></label>
+                    <label><input type="checkbox" name="notify_teacher" checked data-automation-notify-teacher> <span>Notify teacher</span></label>
+                    <label><input type="checkbox" name="send_email" checked data-automation-send-email> <span>Email parent / student</span></label>
+                </div>
+
+                <label class="automation-email-field" data-automation-email-field>
+                    <span>Email template</span>
+                    <select name="email_template_id" data-automation-email-template>
+                        <option value="">Use default attendance email</option>
+                        {% for template in email_templates %}
+                            <option value="{{ template.id }}">{{ template.name }} · {{ template.get_category_display }}</option>
+                        {% endfor %}
+                    </select>
+                    <small>Choose any active studio email template, or use Encore's default attendance message.</small>
+                </label>
+
+                <div class="automation-modal-actions">
+                    <button type="button" class="button secondary" data-close-automation-modal>Cancel</button>
+                    <button type="submit" class="button primary" data-automation-submit>Save Automation</button>
+                </div>
+            </form>
+        </section>
+    </div>
+    {% endif %}
+</main></div>
+{% endblock %}
+{% block extra_js %}<script src="{% static 'js/encore_attendance.js' %}" defer></script>{% endblock %}

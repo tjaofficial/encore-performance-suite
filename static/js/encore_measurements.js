@@ -53,6 +53,48 @@ document.addEventListener("DOMContentLoaded", () => {
         return data;
     };
 
+    const renderConversions = (card, conversions) => {
+        const host = card.querySelector("[data-conversion-results]");
+        if (!host) return;
+        if (!conversions || !conversions.length) {
+            host.innerHTML = '<p class="muted-copy">Enter measurements to see vendor chart conversions.</p>';
+            return;
+        }
+        host.innerHTML = conversions.map((item) => {
+            const chips = item.charts && item.charts.length
+                ? item.charts.map((chart) => `<span class="conversion-chip"><b>${chart.chart}</b> ${chart.size}</span>`).join("")
+                : '<span class="conversion-none">No matching chart size</span>';
+            return `<div class="conversion-measurement-row" data-conversion-field="${item.field}"><strong>${item.label}</strong><span>${item.value}</span><div>${chips}</div></div>`;
+        }).join("");
+    };
+
+    const applyValues = (card, values) => {
+        if (!values) return;
+        card.querySelectorAll("[data-measurement-field]").forEach((input) => {
+            const key = input.dataset.measurementField;
+            if (Object.prototype.hasOwnProperty.call(values, key)) input.value = values[key] ?? "";
+        });
+    };
+
+    const updateCurrentSummary = (card, values) => {
+        if (!values) return;
+
+        card.querySelectorAll("[data-current-value]").forEach((output) => {
+            const key = output.dataset.currentValue;
+            if (!Object.prototype.hasOwnProperty.call(values, key)) return;
+
+            const value = values[key];
+            output.textContent = (value === null || value === undefined || value === "")
+                ? "—"
+                : value;
+        });
+
+        const startButton = card.querySelector("[data-start-new-measurements]");
+        if (startButton) {
+            startButton.textContent = "Update Measurements";
+        }
+    };
+
     const cardName = (card) => (
         card.dataset.studentName || ""
     );
@@ -195,6 +237,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const startNewButton = card.querySelector(
             "[data-start-new-measurements]"
         );
+        const cancelButton = card.querySelector("[data-cancel-measurements]");
 
         const timers = new Map();
 
@@ -223,13 +266,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
                 try {
-                    await post(
+                    const result = await post(
                         card.dataset.saveUrl,
                         {
                             field: input.dataset.measurementField,
                             value: input.value,
+                            vendor_id: card.dataset.vendorId || "",
                         }
                     );
+                    renderConversions(card, result.conversions);
 
                     setState(
                         card,
@@ -277,15 +322,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     startNewButton.disabled = true;
 
                     try {
-                        await post(
-                            card.dataset.newUrl
-                        );
-
-                        card.querySelectorAll(
-                            "[data-measurement-field]"
-                        ).forEach((input) => {
-                            input.value = "";
-                        });
+                        const result = await post(card.dataset.newUrl);
+                        applyValues(card, result.values);
 
                         if (currentSummary) {
                             currentSummary.hidden = true;
@@ -295,11 +333,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             editPanel.hidden = false;
                         }
 
-                        setState(
-                            card,
-                            "not_started",
-                            "New Measurement Set"
-                        );
+                        setState(card, "in_progress", "Updating Measurements · Autosaved");
 
                         const firstInput = card.querySelector(
                             "[data-measurement-field]"
@@ -317,6 +351,21 @@ document.addEventListener("DOMContentLoaded", () => {
             );
         }
 
+        if (cancelButton) {
+            cancelButton.addEventListener("click", async () => {
+                cancelButton.disabled = true;
+                try {
+                    const result = await post(card.dataset.cancelUrl);
+                    applyValues(card, result.values);
+                    if (editPanel) editPanel.hidden = true;
+                    if (currentSummary) currentSummary.hidden = false;
+                    const label = result.has_current ? "Complete" : "Not Started";
+                    setState(card, result.state || (result.has_current ? "complete" : "not_started"), label);
+                } catch (error) { window.alert(error.message); }
+                finally { cancelButton.disabled = false; }
+            });
+        }
+
         if (completeButton) {
             completeButton.addEventListener(
                 "click",
@@ -324,9 +373,24 @@ document.addEventListener("DOMContentLoaded", () => {
                     completeButton.disabled = true;
 
                     try {
-                        await post(
-                            card.dataset.completeUrl
+                        const result = await post(
+                            card.dataset.completeUrl,
+                            {
+                                vendor_id: card.dataset.vendorId || "",
+                            }
                         );
+
+                        applyValues(card, result.values);
+                        updateCurrentSummary(card, result.values);
+                        renderConversions(card, result.conversions);
+
+                        if (editPanel) {
+                            editPanel.hidden = true;
+                        }
+
+                        if (currentSummary) {
+                            currentSummary.hidden = false;
+                        }
 
                         setState(
                             card,

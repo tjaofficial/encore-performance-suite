@@ -1,0 +1,19 @@
+/* Shared time-off pages: match the studio manager design system. */
+.time-off-page {max-width:1200px; margin-inline:auto; padding:20px 24px 48px;}
+.time-off-page-header {padding:24px 28px; background:radial-gradient(circle at 97% 0%, #dfe8ff 0 66px,transparent 67px),#fff; border:1px solid #b4c7ed; border-radius:18px; margin-bottom:16px;}
+.time-off-page-header h1 {font-size:clamp(27px,3vw,40px); line-height:1.12; margin:8px 0; letter-spacing:-.03em;}
+.time-off-filter-tabs {background:#fff; border:1px solid #bbcae8; border-radius:12px; padding:7px; display:flex; flex-wrap:wrap; gap:6px; margin:16px 0;}
+.time-off-filter-tabs a {border-radius:9px; text-decoration:none;}
+.time-off-request-list {display:grid; grid-template-columns:1fr; gap:12px;}
+.time-off-request-card,.time-off-form-section,.time-off-empty-state {border:1px solid #b3c6ed; background:#fff; border-radius:14px; box-shadow:0 6px 20px rgba(25,50,94,.04);}
+.time-off-request-card {padding:18px 22px;}
+.time-off-empty-state {min-height:200px; display:flex; justify-content:center; align-items:center; color:#506181; text-align:center; padding:30px;}
+.time-off-form-card {display:grid; gap:14px;}
+.time-off-form-section {padding:22px;}
+.time-off-section-heading {margin-bottom:15px;}
+.time-off-date-picker {display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+.time-off-date-picker input {width:min(100%,300px); min-height:43px;}
+.time-off-date-hint {font-size:13px; color:#506181; margin:8px 0;}
+.time-off-form-actions {display:flex; justify-content:flex-end; gap:10px; margin-top:8px;}
+.time-off-field input,.time-off-field textarea {border:1px solid #c1d0ed; border-radius:9px; padding:11px 13px; width:100%; font:inherit;}
+@media (max-width:650px){.time-off-page{padding:10px 10px 30px}.time-off-page-header{padding:17px}.time-off-form-section{padding:15px}}

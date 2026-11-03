@@ -1,19 +1,26 @@
 from django import forms
 from django.forms import inlineformset_factory
+from django.utils import timezone
 
-from billing.models import TuitionPlan
+from billing.models import StudioTuitionSettings, TuitionPlan
 from instructors.models import Instructor
 from studios.models import StudioLocation, StudioRoom
 
-from .models import Class, ClassMeeting, ClassType, Season
+from .models import Class, ClassLevel, ClassMeeting, ClassType, Season
 
 
 class EncoreClassForm(forms.ModelForm):
+    use_custom_tuition = forms.BooleanField(
+        required=False,
+        label="Use a custom tuition override for this class",
+    )
+
     class Meta:
         model = Class
         fields = [
             "season",
             "class_type",
+            "level",
             "class_id",
             "name",
             "description",
@@ -24,6 +31,7 @@ class EncoreClassForm(forms.ModelForm):
             "capacity",
             "min_age",
             "max_age",
+            "is_performance_class",
             "gender_restriction",
             "prerequisites",
             "allow_drop_ins",
@@ -32,6 +40,9 @@ class EncoreClassForm(forms.ModelForm):
             "tuition_plan",
             "is_active",
             "registration_open",
+            "registration_mode",
+            "registration_opens",
+            "registration_closes",
             "notes",
         ]
 
@@ -39,6 +50,9 @@ class EncoreClassForm(forms.ModelForm):
             "dress_code": "Dress Code",
             "tuition_amount": "Class Tuition",
             "tuition_plan": "Tuition Billing Policy",
+            "is_performance_class": "Performance Class",
+            "registration_opens": "Registration Starts",
+            "registration_closes": "Registration Ends",
         }
 
         help_texts = {
@@ -53,6 +67,16 @@ class EncoreClassForm(forms.ModelForm):
             "tuition_plan": (
                 "Controls whether tuition is monthly, full-season, etc. "
                 "The policy does not override the class price."
+            ),
+            "is_performance_class": (
+                "Choose Unknown when the studio has not confirmed whether "
+                "this class performs."
+            ),
+            "registration_opens": (
+                "Optional class-specific registration start date."
+            ),
+            "registration_closes": (
+                "Optional class-specific registration end date."
             ),
         }
 
@@ -93,14 +117,29 @@ class EncoreClassForm(forms.ModelForm):
             "min_age": forms.NumberInput(
                 attrs={
                     "min": 0,
-                    "step": 1,
+                    "step": "0.25",
+                    "placeholder": "Example: 1.5 for 18 months",
                 }
             ),
             "max_age": forms.NumberInput(
                 attrs={
                     "min": 0,
-                    "step": 1,
+                    "step": "0.25",
+                    "placeholder": "Example: 3",
                 }
+            ),
+            "is_performance_class": forms.Select(
+                choices=[
+                    ("", "Unknown / Not Confirmed"),
+                    ("True", "Yes — Performance Class"),
+                    ("False", "No — Non-Performance Class"),
+                ]
+            ),
+            "registration_opens": forms.DateInput(
+                attrs={"type": "date"}
+            ),
+            "registration_closes": forms.DateInput(
+                attrs={"type": "date"}
             ),
             "drop_in_price": forms.NumberInput(
                 attrs={
@@ -131,9 +170,21 @@ class EncoreClassForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         self.studio = studio
+        self.studio_wide_tuition_enabled = False
+        self.studio_tuition_settings = None
 
         if studio is None:
             return
+
+        tuition_settings, _ = StudioTuitionSettings.objects.get_or_create(studio=studio)
+        self.studio_tuition_settings = tuition_settings
+        self.studio_wide_tuition_enabled = tuition_settings.is_studio_wide
+        if self.studio_wide_tuition_enabled:
+            self.fields["use_custom_tuition"].initial = bool(
+                self.instance and self.instance.pk and self.instance.tuition_amount is not None
+            )
+        else:
+            self.fields.pop("use_custom_tuition", None)
 
         self.fields["season"].queryset = Season.objects.filter(
             studio=studio,
@@ -143,6 +194,19 @@ class EncoreClassForm(forms.ModelForm):
             studio=studio,
             is_active=True,
         ).order_by("name")
+
+        self.fields["level"].queryset = ClassLevel.objects.filter(
+            studio=studio,
+            is_active=True,
+        ).order_by("number", "name")
+        self.fields["level"].required = False
+        self.fields["level"].empty_label = "No level / mixed level"
+
+        self.fields["gender_restriction"].choices = [
+            (Class.GenderRestriction.ANY, "Any"),
+            (Class.GenderRestriction.FEMALE, "Female"),
+            (Class.GenderRestriction.MALE, "Male"),
+        ]
 
         self.fields["instructor"].queryset = Instructor.objects.filter(
             studio=studio,
@@ -189,6 +253,40 @@ class EncoreClassForm(forms.ModelForm):
             self.fields[boolean_name].widget.attrs["class"] = (
                 "encore-checkbox"
             )
+
+
+    def clean(self):
+        cleaned = super().clean()
+
+        season = cleaned.get("season")
+        class_type = cleaned.get("class_type")
+        level = cleaned.get("level")
+
+        if (
+            season is not None
+            and class_type is not None
+            and season.end_date >= timezone.localdate()
+        ):
+            cleaned["name"] = (
+                f"{class_type.name} - {level.name}"
+                if level is not None
+                else class_type.name
+            )
+
+        if not self.studio_wide_tuition_enabled:
+            return cleaned
+
+        use_custom = cleaned.get("use_custom_tuition", False)
+        if use_custom:
+            if cleaned.get("tuition_amount") is None:
+                self.add_error(
+                    "tuition_amount",
+                    "Enter the custom tuition amount for this class.",
+                )
+        else:
+            cleaned["tuition_amount"] = None
+            cleaned["tuition_plan"] = self.studio_tuition_settings.default_tuition_plan
+        return cleaned
 
 
 class ClassMeetingForm(forms.ModelForm):

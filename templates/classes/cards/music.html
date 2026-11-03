@@ -1,44 +1,10 @@
 <article class="class-dashboard-card class-music-card">
-    <div class="class-card-heading">
-        <div>
-            <span class="card-kicker">Recent Music Uploads</span>
-            <h2>Music</h2>
-        </div>
-        <a href="{% url 'resources:resource_list' studio.slug %}">View All</a>
-    </div>
-
-    <div class="class-music-list">
-        {% for music in class_music %}
-            <div class="class-music-row">
-                <span class="music-icon">♫</span>
-                <div>
-                    <strong>{{ music.title }}</strong>
-                    <small>
-                        {% if music.description %}
-                            {{ music.description|truncatechars:45 }}
-                        {% else %}
-                            Music
-                        {% endif %}
-                    </small>
-                </div>
-
-                {% if music.file %}
-                    <a href="{{ music.file.url }}">Open</a>
-                {% elif music.external_url %}
-                    <a href="{{ music.external_url }}" target="_blank" rel="noopener">
-                        Open
-                    </a>
-                {% endif %}
-            </div>
-        {% empty %}
-            <div class="class-card-empty media-empty">No music uploaded yet.</div>
-        {% endfor %}
-    </div>
-
-    <a
-        class="class-card-button"
-        href="{% url 'resources:resource_list' studio.slug %}"
-    >
-        Go to Music & Media →
-    </a>
+  <div class="class-card-heading"><div><span class="card-kicker">Soundtrack Library</span><h2>Recent Music Uploads</h2></div><a href="{% url 'resources:music_manager' studio.slug %}?class={{ class_instance.id }}">View All</a></div>
+  <div class="class-music-list" aria-label="Recent uploaded music">
+    {% for music in class_music %}
+      <a class="class-music-row class-music-row-link" href="{% if music.dance_id %}{% url 'performance:plan_detail' studio.slug music.dance_id %}{% elif performance_plan %}{% url 'performance:plan_detail' studio.slug performance_plan.id %}{% else %}{% url 'resources:music_manager' studio.slug %}?class={{ class_instance.id }}{% endif %}" aria-label="Open Dance Resources for {{ music.title }}">
+        <span class="music-icon">♫</span><span class="class-music-info"><strong>{{ music.title }}</strong><small>{% if music.dance %}{{ music.dance.title }}{% elif music.artist %}{{ music.artist }}{% else %}Class music · select to open resources{% endif %}</small></span><span class="class-music-chevron">→</span>
+      </a>
+    {% empty %}<div class="class-card-empty media-empty">No music uploaded yet.</div>{% endfor %}
+  </div>
 </article>

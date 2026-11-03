@@ -12,13 +12,13 @@
             class="teacher-card-action"
             href="{% url 'scheduling:calendar' studio.slug %}"
         >
-            View Calendar
+            See Calendar
         </a>
     </div>
 
     <div class="teacher-event-list">
         {% for event in upcoming_teacher_events %}
-            <div class="teacher-event-row">
+            <details class="teacher-event-row encore-event-preview"><summary>
                 <div class="teacher-event-date">
                     <strong>
                         {{ event.start_at|date:"M j" }}
@@ -50,7 +50,9 @@
                 <span class="teacher-event-type">
                     {{ event.get_event_type_display }}
                 </span>
-            </div>
+                </summary>
+                {% include "dashboard/includes/event_preview_detail.html" %}
+            </details>
         {% empty %}
             <div class="teacher-card-empty">
                 No upcoming events.

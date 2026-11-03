@@ -1,6 +1,6 @@
 from django import forms
 
-from classes.models import ClassType, Season
+from classes.models import ClassLevel, ClassType, Season
 from studios.models import (
     Studio,
     StudioLocation,
@@ -14,7 +14,17 @@ class StudioProfileForm(forms.ModelForm):
         model = Studio
         fields = [
             "name",
+            "email",
         ]
+
+        labels = {"email": "Studio Email Address"}
+        help_texts = {
+            "email": (
+                "Replies to studio-branded emails sent through Encore go to "
+                "this address. Use an inbox your staff regularly monitors."
+            ),
+        }
+        widgets = {"email": forms.EmailInput(attrs={"autocomplete": "email"})}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -24,12 +34,27 @@ class StudioProfileForm(forms.ModelForm):
 
 
 class StudioBrandingForm(forms.ModelForm):
+    def clean_parent_sidebar_color(self):
+        return self._clean_parent_color("parent_sidebar_color")
+
+    def clean_parent_logo_header_color(self):
+        return self._clean_parent_color("parent_logo_header_color")
+
+    def _clean_parent_color(self, name):
+        import re
+        value = (self.cleaned_data.get(name) or "").strip()
+        if not re.fullmatch(r"#[0-9a-fA-F]{6}", value):
+            raise forms.ValidationError("Choose a valid six-digit color.")
+        return value
+
     class Meta:
         model = StudioSettings
         fields = [
             "logo",
             "primary_color",
             "accent_color",
+            "parent_sidebar_color",
+            "parent_logo_header_color",
             "public_registration_enabled",
             "show_capacity_publicly",
             "allow_waitlist_requests",
@@ -43,10 +68,13 @@ class StudioBrandingForm(forms.ModelForm):
                 }
             ),
             "accent_color": forms.TextInput(
-                attrs={
-                    "type": "color",
-                    "class": "encore-color-input",
-                }
+                attrs={"type": "color", "class": "encore-color-input"}
+            ),
+            "parent_sidebar_color": forms.TextInput(
+                attrs={"type": "color", "class": "encore-color-input"}
+            ),
+            "parent_logo_header_color": forms.TextInput(
+                attrs={"type": "color", "class": "encore-color-input"}
             ),
         }
 
@@ -54,6 +82,8 @@ class StudioBrandingForm(forms.ModelForm):
             "logo": "Studio Logo",
             "primary_color": "Primary Color",
             "accent_color": "Accent Color",
+            "parent_sidebar_color": "Parent Sidebar Color",
+            "parent_logo_header_color": "Parent Logo Header Color",
             "public_registration_enabled": "Public Registration Enabled",
             "show_capacity_publicly": "Show Capacity Publicly",
             "allow_waitlist_requests": "Allow Waitlist Requests",
@@ -74,6 +104,8 @@ class StudioBrandingForm(forms.ModelForm):
             elif name not in {
                 "primary_color",
                 "accent_color",
+                "parent_sidebar_color",
+                "parent_logo_header_color",
             }:
                 field.widget.attrs["class"] = "encore-input"
 
@@ -217,6 +249,12 @@ class SeasonForm(forms.ModelForm):
             "end_date": forms.DateInput(
                 attrs={"type": "date"}
             ),
+            "registration_opens": forms.DateInput(
+                format="%Y-%m-%d", attrs={"type": "date"}
+            ),
+            "registration_closes": forms.DateInput(
+                format="%Y-%m-%d", attrs={"type": "date"}
+            ),
         }
 
     def __init__(self, *args, **kwargs):
@@ -258,6 +296,68 @@ class ClassTypeForm(forms.ModelForm):
                 field.widget.attrs[
                     "class"
                 ] = "encore-input"
+
+
+class ClassLevelForm(forms.ModelForm):
+    aliases_text = forms.CharField(
+        required=False,
+        label="Aliases / Shorthand",
+        widget=forms.Textarea(attrs={"rows": 4}),
+        help_text=(
+            "Enter aliases separated by commas or new lines. Example: Exp, Exp., Experienced. "
+            "Studio Director onboarding uses these to recognize level shorthand."
+        ),
+    )
+
+    class Meta:
+        model = ClassLevel
+        fields = [
+            "number",
+            "name",
+            "description",
+            "aliases_text",
+            "is_active",
+        ]
+        labels = {
+            "number": "Level Number",
+            "name": "Display Name",
+            "description": "Description",
+            "is_active": "Active",
+        }
+        widgets = {
+            "number": forms.NumberInput(attrs={"min": 1, "step": 1}),
+            "description": forms.Textarea(attrs={"rows": 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            self.fields["aliases_text"].initial = "\n".join(self.instance.aliases or [])
+        for field in self.fields.values():
+            if isinstance(field.widget, forms.CheckboxInput):
+                field.widget.attrs["class"] = "encore-checkbox"
+            else:
+                field.widget.attrs["class"] = "encore-input"
+
+    def clean_aliases_text(self):
+        raw = self.cleaned_data.get("aliases_text", "")
+        values = []
+        seen = set()
+        for token in raw.replace("\r", "\n").replace(",", "\n").split("\n"):
+            value = token.strip()
+            key = value.lower()
+            if value and key not in seen:
+                values.append(value)
+                seen.add(key)
+        return values
+
+    def save(self, commit=True):
+        obj = super().save(commit=False)
+        obj.aliases = self.cleaned_data.get("aliases_text", [])
+        if commit:
+            obj.full_clean()
+            obj.save()
+        return obj
 
 
 class StaffInviteForm(forms.Form):
@@ -453,3 +553,88 @@ class PublicWidgetSettingsForm(forms.Form):
         )
 
         return self.settings_obj
+
+
+class OnboardingMeetingRequestForm(forms.Form):
+    CURRENT_PLATFORM_CHOICES = [
+        ("", "Choose your current system"),
+        ("studio_director", "The Studio Director"),
+        ("jackrabbit", "Jackrabbit Dance"),
+        ("dancestudio_pro", "DanceStudio-Pro"),
+        ("class_manager", "Class Manager"),
+        ("spreadsheet", "Spreadsheets / manual records"),
+        ("other", "Another system"),
+    ]
+
+    STUDENT_COUNT_CHOICES = [
+        ("0_100", "0–100 students"),
+        ("101_250", "101–250 students"),
+        ("251_500", "251–500 students"),
+        ("501_1000", "501–1,000 students"),
+        ("1001_2000", "1,001–2,000 students"),
+        ("2001_plus", "2,001+ students"),
+    ]
+
+    MIGRATION_CHOICES = [
+        ("students", "Students"),
+        ("families", "Families / guardians"),
+        ("instructors", "Instructors / staff"),
+        ("classes", "Classes, seasons, and schedules"),
+        ("enrollments", "Enrollments"),
+        ("billing", "Billing, balances, and payment history"),
+        ("attendance", "Attendance"),
+        ("costumes", "Measurements / costumes"),
+        ("other", "Other data or setup help"),
+    ]
+
+    name = forms.CharField(max_length=200, label="Your Name")
+    email = forms.EmailField(label="Email")
+    phone = forms.CharField(max_length=50, required=False, label="Phone")
+    current_platform = forms.ChoiceField(
+        choices=CURRENT_PLATFORM_CHOICES,
+        label="Current Studio Software",
+    )
+    student_count = forms.ChoiceField(
+        choices=STUDENT_COUNT_CHOICES,
+        label="Approximate Student Count",
+    )
+    preferred_date = forms.DateField(
+        label="Preferred Meeting Date",
+        widget=forms.DateInput(attrs={"type": "date"}),
+    )
+    preferred_time = forms.TimeField(
+        label="Preferred Meeting Time",
+        widget=forms.TimeInput(attrs={"type": "time"}),
+    )
+    timezone = forms.CharField(
+        max_length=100,
+        label="Time Zone",
+        help_text="Example: America/Detroit or Eastern Time.",
+    )
+    migration_help = forms.MultipleChoiceField(
+        choices=MIGRATION_CHOICES,
+        required=False,
+        label="What would you like help moving or setting up?",
+        widget=forms.CheckboxSelectMultiple,
+    )
+    notes = forms.CharField(
+        required=False,
+        label="Anything else we should know?",
+        widget=forms.Textarea(
+            attrs={
+                "rows": 5,
+                "placeholder": (
+                    "Tell us about your current setup, deadlines, files, "
+                    "or anything you want to make sure we cover."
+                ),
+            }
+        ),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            if isinstance(field.widget, forms.CheckboxSelectMultiple):
+                field.widget.attrs["class"] = "encore-checkbox-list"
+            else:
+                field.widget.attrs["class"] = "encore-input"

@@ -3,7 +3,7 @@ from django.utils import timezone
 from studios.models import Studio
 from tasks.models import TaskNotification
 
-from .models import AnnouncementRead
+from .models import AnnouncementRead, WorkspaceNotification
 from .services import visible_announcements_for_user
 
 
@@ -119,6 +119,16 @@ def workspace_notifications(request):
         .count()
     )
 
+    unread_workspace_count = (
+        WorkspaceNotification.objects
+        .filter(
+            studio=studio,
+            user=request.user,
+            read_at__isnull=True,
+        )
+        .count()
+    )
+
     shell_context.update({
         "encore_notification_studio": studio,
         "encore_latest_announcements": [
@@ -131,6 +141,7 @@ def workspace_notifications(request):
         "encore_unread_notification_count": (
             unread_announcement_count
             + unread_task_count
+            + unread_workspace_count
         ),
     })
 

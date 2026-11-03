@@ -1,0 +1,77 @@
+{% extends "dashboard/parent_portal_base.html" %}
+
+{% block title %}{{ student.first_name }} Attendance | {{ studio.name }}{% endblock %}
+{% block parent_portal_heading %}Attendance{% endblock %}
+
+{% block parent_content %}
+<section class="parent-page-heading">
+    <div class="parent-page-icon parent-card-icon-attendance">✓</div>
+    <div>
+        <span class="parent-eyebrow">Attendance</span>
+        <h2>{{ student.first_name }} {{ student.last_name }}</h2>
+        <p>Recorded attendance across all of this dancer's classes.</p>
+    </div>
+
+    <a class="parent-outline-button" href="{% url 'students:family_student_detail' studio.slug student.id %}">
+        View Profile
+    </a>
+</section>
+
+<section class="parent-stat-grid">
+    <article>
+        <span>Attendance</span>
+        <strong>{% if percentage is not None %}{{ percentage }}%{% else %}—{% endif %}</strong>
+        <small>{{ total }} recorded sessions</small>
+    </article>
+    <article>
+        <span>Present</span>
+        <strong>{{ present_like }}</strong>
+        <small>includes late / left early</small>
+    </article>
+    <article>
+        <span>Absent</span>
+        <strong>{{ absent }}</strong>
+        <small>unexcused</small>
+    </article>
+    <article>
+        <span>Late</span>
+        <strong>{{ late }}</strong>
+        <small>{{ excused }} excused</small>
+    </article>
+</section>
+
+<section class="parent-page-card">
+    <div class="parent-section-heading">
+        <div>
+            <span class="parent-eyebrow">History</span>
+            <h3>Recorded Attendance</h3>
+        </div>
+    </div>
+
+    <div class="parent-page-list">
+        {% for record in records %}
+            <article class="parent-page-row">
+                <span class="parent-date-block">
+                    <strong>{{ record.session.session_date|date:"M" }}</strong>
+                    {{ record.session.session_date|date:"j" }}
+                </span>
+
+                <span class="parent-page-row-copy">
+                    <strong>{{ record.session.class_instance.name }}</strong>
+                    <span>
+                        {{ record.session.class_instance.class_id }}
+                        · {{ record.session.class_instance.instructor.full_name }}
+                    </span>
+                    {% if record.note %}<small>{{ record.note }}</small>{% endif %}
+                </span>
+
+                <span class="parent-status-pill status-{{ record.status }}">
+                    {{ record.get_status_display }}
+                </span>
+            </article>
+        {% empty %}
+            <div class="parent-empty-state">No attendance has been recorded yet.</div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

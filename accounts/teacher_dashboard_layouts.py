@@ -14,6 +14,7 @@ TEACHER_CARD_DEFINITIONS = {
         ),
         "default_width": "half",
         "default_height": 2,
+        "locked": True,
     },
     "tasks": {
         "label": "Reminders / To-Do",
@@ -30,6 +31,20 @@ TEACHER_CARD_DEFINITIONS = {
         ),
         "default_width": "half",
         "default_height": 2,
+    },
+    "stopwatch": {
+        "label": "Stopwatch",
+        "description": "Rehearsal timer with lap recording.",
+        "default_width": "half",
+        "default_height": 1,
+    },
+    "extra_work": {
+        "label": "Extra Work Logs",
+        "description": (
+            "Recent extra work entries with quick access to log and review hours."
+        ),
+        "default_width": "half",
+        "default_height": 1,
     },
 }
 
@@ -78,6 +93,20 @@ def default_teacher_dashboard_layout():
                 "width": "half",
                 "height": 2,
             },
+            {
+                "key": "stopwatch",
+                "enabled": True,
+                "order": 4,
+                "width": "half",
+                "height": 2,
+            },
+            {
+                "key": "extra_work",
+                "enabled": True,
+                "order": 4,
+                "width": "half",
+                "height": 1,
+            },
         ],
     }
 
@@ -123,6 +152,14 @@ def normalize_teacher_dashboard_layout(layout):
         if width not in VALID_WIDTHS:
             width = fallback["width"]
 
+        definition = TEACHER_CARD_DEFINITIONS[key]
+        is_locked = bool(
+            definition.get("locked", False)
+        )
+
+        if is_locked:
+            width = definition["default_width"]
+
         try:
             height = int(
                 saved.get(
@@ -138,6 +175,12 @@ def normalize_teacher_dashboard_layout(layout):
 
         if height not in VALID_HEIGHTS:
             height = fallback["height"]
+
+        if key == "stopwatch":
+            height = 2
+
+        if is_locked:
+            height = definition["default_height"]
 
         try:
             order = int(
@@ -221,7 +264,12 @@ def teacher_dashboard_editor_cards(layout):
                 "description": (
                     definition["description"]
                 ),
-                "locked": False,
+                "locked": bool(
+                    definition.get(
+                        "locked",
+                        False,
+                    )
+                ),
                 "required": False,
             }
         )

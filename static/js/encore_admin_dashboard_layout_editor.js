@@ -81,7 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const count = selectedSnapshotMetrics().length;
 
         if (snapshotCount) {
-            snapshotCount.textContent = `${count} / 6 selected`;
+            snapshotCount.textContent = `${count} selected`;
         }
 
         if (snapshotError) {
@@ -111,7 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }));
 
         hiddenInput.value = JSON.stringify({
-            version: 3,
+            version: 4,
             snapshot_metrics: selectedSnapshotMetrics(),
             quick_links: selectedQuickLinks(),
             custom_quick_links: customQuickLinks(),

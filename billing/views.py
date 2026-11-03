@@ -1744,7 +1744,8 @@ def stripe_connect_webhook(
 
     event_type = event["type"]
     obj = event["data"]["object"]
-    connected_account_id = event.get(
+    connected_account_id = stripe_value(
+        event,
         "account",
         "",
     )

@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from decimal import Decimal
+from uuid import UUID
 
 from django.apps import apps
 from django.core.exceptions import ValidationError
@@ -27,14 +28,17 @@ def snapshot_instance(instance):
             continue
 
         if field.is_relation:
-            data[field.attname] = getattr(instance, field.attname)
+            value = getattr(instance, field.attname)
+            # Foreign keys may reference UUID primary keys. Store the same
+            # JSON-safe representation that will be loaded for undo checks.
+            data[field.attname] = str(value) if isinstance(value, UUID) else value
             continue
 
         value = getattr(instance, field.name)
 
         if isinstance(value, (date, datetime)):
             value = value.isoformat()
-        elif isinstance(value, Decimal):
+        elif isinstance(value, (Decimal, UUID)):
             value = str(value)
 
         data[field.name] = value

@@ -3900,6 +3900,8 @@ def _jsonable(value):
         return {str(key): _jsonable(item) for key, item in value.items()}
     if isinstance(value, (list, tuple)):
         return [_jsonable(item) for item in value]
+    if isinstance(value, uuid.UUID):
+        return str(value)
     if hasattr(value, "isoformat"):
         return value.isoformat()
     if hasattr(value, "as_tuple"):
